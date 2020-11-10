@@ -8,7 +8,7 @@
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
         </Statement>
-        <Statement description="https://github.com/Kaseya-Automation-Team/Kaseya-Automation-Team/blob/main/Scripts/Powershell/Gather-Timezone-Offset-DST.ps1" name="GetURL" continueOnFail="false" osType="Windows">
+        <Statement description="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Gather-Timezone-Offset-DST.ps1" name="GetURL" continueOnFail="false" osType="Windows">
           <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Gather-Timezone-Offset-DST.ps1" />
           <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ktemp#\Gather-Timezone-Offset-DST.ps1" />
           <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
@@ -20,17 +20,12 @@
             <Parameter xsi:type="StringParameter" name="Value" value="" />
           </Condition>
           <Then>
-            <Statement description="Specify desired location of CVS file" name="GetVariable" continueOnFail="false">
-              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-              <Parameter xsi:type="StringParameter" name="SourceContent" value="#ktemp#\csv\time.csv" />
-              <Parameter xsi:type="StringParameter" name="VariableName" value="path" />
-            </Statement>
             <Statement description="Modifies Execution Policy to allow the script to run" name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
               <Parameter xsi:type="StringParameter" name="Command" value="Powershell Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine -force" />
               <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
               <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
             </Statement>
-            <Statement description="Delete a lingering file just in case" name="DeleteFile" continueOnFail="false" osType="Windows">
+            <Statement description="Delete a lingering file just in case" name="DeleteFile" continueOnFail="true" osType="Windows">
               <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\timezonesettings.csv" />
             </Statement>
             <Statement description="Execute the powershell" name="Execute Powershell" continueOnFail="false" osType="Windows">
@@ -47,14 +42,16 @@
               <Then>
                 <Statement description="pulls the file to the VSA in a unique folder in the UserProfiles directory" name="GetFile" continueOnFail="false">
                   <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#ktemp#\timezonesettings.csv" />
-                  <Parameter xsi:type="StringParameter" name="KServerFileName" value="..\..\Kaseya-TimeZone-Information\#vAgentConfiguration.agentGuid#.csv" />
+                  <Parameter xsi:type="StringParameter" name="KServerFileName" value="..\..\PSQueIn\TimeZone-Information\#vAgentConfiguration.agentGuid#.csv" />
                   <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
                 </Statement>
               </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="The file was not created. Please investigate further." />
+                </Statement>
+              </Else>
             </If>
-            <Statement name="WriteScriptLogEntry" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Comment" value="The file was not created. Please investigate further." />
-            </Statement>
           </Then>
           <Else>
             <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">

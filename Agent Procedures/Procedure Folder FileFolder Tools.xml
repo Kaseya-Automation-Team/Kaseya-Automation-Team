@@ -1,0 +1,267 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="FileFolder Tools" treePres="3">
+    <Procedure name="Get Last Modified Date for File or Folder" treePres="3" id="905432440" folderId="331322706877871" treeFullPath="Kaseya Automation Team.FileFolder Tools">
+      <Body description="Please note this procedure pulls a powershell from https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Get-Last-Modified-Date.ps1 which is a trusted repository. If you would prefer to host the file yourself, please download it from the URL and modify the getURL to a WriteFile">
+        <Statement description="modify line 2 to change which folder/file to check" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="c:\temp" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="folder" />
+        </Statement>
+        <Statement description="modify line 4 to change the date threshold to check against" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="daysold" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="kwork" />
+        </Statement>
+        <Statement description="This downloads the PS1 file from the Kaseya PS Github." name="GetURL" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Get-Last-Modified-Date.ps1" />
+          <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#kwork#\Get-Last-Modified-Date.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\Get-Last-Modified-Date.ps1" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File #kwork#\Get-Last-Modified-Date.ps1 #folder# #daysold#" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Powershell file did not upload" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Linux - Delete Files In Folder Older Than X Days" treePres="3" id="2098318067" folderId="331322706877871" treeFullPath="Kaseya Automation Team.FileFolder Tools">
+      <Body description="">
+        <Statement description="modify line 2 to change the folder to check" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="/etc/temp" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="folder" />
+        </Statement>
+        <Statement description="modify line 4 to change the threshold to check against" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="daysold" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="kwork" />
+        </Statement>
+        <Statement name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="find #folder#. -mtime +#daysold# -print &gt;&gt; #kwork#/FilesDeleted.txt" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <Statement name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="find #folder#/. -mtime +#daysold# -exec rm -f {} \;" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <Statement description="drops list of files deleted to the GETFILES directory" name="GetFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RemoteFileName" value=" #kwork#/FilesDeleted.txt" />
+          <Parameter xsi:type="StringParameter" name="KServerFileName" value="FileDeletion/FilesDeleted.txt" />
+          <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
+        </Statement>
+      </Body>
+    </Procedure>
+    <Procedure name="Monitor Folder Size" treePres="3" id="179678240" folderId="331322706877871" treeFullPath="Kaseya Automation Team.FileFolder Tools">
+      <Body description="Please note this procedure pulls a powershell from https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Get-File-Size.ps1 which is a trusted repository. If you would prefer to host the file yourself, please download it from the URL and modify the getURL to a WriteFile">
+        <Statement description="Change line 2 to modify which folder/file to monitor" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="c:\temp" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="folder" />
+        </Statement>
+        <Statement description="Change line 4 to GB or MB to return data in their respective formats" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="GB" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="unit" />
+        </Statement>
+        <Statement description="Change line 6 to modify the threshold to check folder/file sizes against" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="FolderSize" />
+        </Statement>
+        <Statement description="Change line 8 to modify who should receive this email alert" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="changethis@kaseya.com" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="email" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="kwork" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="MachineGroupID" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="MachineID" />
+        </Statement>
+        <Statement description="This downloads the PS1 file from the Kaseya PS Github." name="GetURL" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Get-File-Size.ps1" />
+          <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#kwork#\Get-File-Size.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\Get-File-Size.ps1" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Windows">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File #kwork#\Get-File-Size.ps1 #folder# #unit#" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThan" />
+                <Parameter xsi:type="StringParameter" name="Value" value="#FolderSize#" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Greater than threshold #MachineID# - #folder# folder - #global:cmdresults# #unit#" />
+                </Statement>
+                <Statement name="SendEmail" continueOnFail="false" osType="None">
+                  <Parameter xsi:type="StringParameter" name="To" value="#email#" />
+                  <Parameter xsi:type="StringParameter" name="Subject" value="#MachineID# - #folder# folder Size #global:cmdresults# MB" />
+                  <Parameter xsi:type="MultiLineStringParameter" name="Body" value="#MachineID# - #folder# folder Size is at #global:cmdresults# MB&#xA;Threshold set at #FolderSize# MB" />
+                </Statement>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="delete" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="Y" />
+                  </Condition>
+                </If>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#folder# Less than #FolderSize# #unit#" />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Powershell file did not upload" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Monitor Folder Size With Deletion" treePres="3" id="263426527" folderId="331322706877871" treeFullPath="Kaseya Automation Team.FileFolder Tools">
+      <Body description="Please note this procedure pulls a powershell from https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Get-File-Size.ps1 which is a trusted repository. If you would prefer to host the file yourself, please download it from the URL and modify the getURL to a WriteFile">
+        <Statement description="Change line 2 to modify which folder/file to monitor" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="c:\temp\old" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="folder" />
+        </Statement>
+        <Statement description="Change line 4 to GB or MB to return data in their respective formats" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="GB" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="unit" />
+        </Statement>
+        <Statement description="Change line 6 to modify the threshold to check folder/file sizes against" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="FolderSize" />
+        </Statement>
+        <Statement description="Change line 8 to modify who should receive this email alert" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="changethis@kaseya.com" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="email" />
+        </Statement>
+        <Statement description="Change line 10 to modify the threshold of file age to delete" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="15" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="days" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="kwork" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="MachineGroupID" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="MachineID" />
+        </Statement>
+        <Statement description="This downloads the PS1 file from the Kaseya PS Github." name="GetURL" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Get-File-Size.ps1" />
+          <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#kwork#\Get-File-Size.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\Get-File-Size.ps1" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Windows">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File #kwork#\Get-File-Size.ps1 #folder# #unit#" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThan" />
+                <Parameter xsi:type="StringParameter" name="Value" value="#FolderSize#" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Greater than threshold #MachineID# - #folder# folder - #global:cmdresults# #unit#" />
+                </Statement>
+                <Statement name="ExecuteShellCommand" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Command" value="powershell &quot;Get-ChildItem -Path &quot;#folder#&quot; | Where-Object {$_.LastWriteTime -lt (Get-Date).AddDays(-#days#)}&quot; &gt;&gt; #kwork#\filesdeleted.txt" />
+                  <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                  <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="True" />
+                </Statement>
+                <Statement name="ExecuteShellCommand" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Command" value="powershell &quot;Get-ChildItem -Path &quot;#folder#&quot; | Where-Object {$_.LastWriteTime -lt (Get-Date).AddDays(-#days#)} | Remove-Item -Force&quot;" />
+                  <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                  <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="True" />
+                </Statement>
+                <Statement name="SendEmail" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="To" value="#email#" />
+                  <Parameter xsi:type="StringParameter" name="Subject" value="#MachineID# - #folder# folder Size #global:cmdresults# MB" />
+                  <Parameter xsi:type="MultiLineStringParameter" name="Body" value="#MachineID# - #folder# folder Size is at #global:cmdresults# MB&#xA;Threshold set at #FolderSize# MB" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#folder# Less than #FolderSize# #unit#" />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Powershell file did not upload" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

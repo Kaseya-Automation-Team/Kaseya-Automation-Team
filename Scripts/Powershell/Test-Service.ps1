@@ -1,12 +1,11 @@
 <#
 .Synopsis
-   Saves service deficiency information to a csv
+   Saves service deficiency information to a file
 .DESCRIPTION
    Iterates provided services and check if they run from correct account. Log found deficiencies to a file.
-   If there is no deficiency the csv-file is not created
 .EXAMPLE
-   Test-Service -FileName 'def_services.csv' -Path 'C:\TEMP' -AgentName '123456' -Services 'sppsvc', 'KPSSVC', 'TermService', 'sacsvr', 'MSSQLSERVER', 'w3logsvc' -ServiceUsers 'LocalSystem', 'NetworkService'
-   Checks custom services and account
+   Test-Service -FileName 'def_services.txt' -Path 'C:\TEMP' -AgentName '123456' -Services 'sppsvc', 'KPSSVC', 'TermService', 'sacsvr', 'MSSQLSERVER', 'w3logsvc' -ServiceUsers 'LocalSystem', 'NetworkService'
+   Checks provided services and accounts
 .NOTES
    Version 0.1
    Author: Vladislav Semko
@@ -25,22 +24,25 @@ param (
     #}
     #return $true
     #})]
-    [string]$Path = "",
+    [string]$Path,
     #list of services to check
     [parameter(Mandatory=$true)]
-    [string[]]$Services = @(),
+    [string[]]$Services,
     #list of allowed users to start services
     [parameter(Mandatory=$true)]
-    [string[]]$ServiceUsers = @()
+    [string[]]$ServiceUsers
  )
 
 #$currentDate = Get-Date -UFormat "%m/%d/%Y %T"
+if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
+$Services = $Services | Select-Object -Unique
 #endregion initialization
 
 #outputArray contains information of services that run from incorrect accounts
 [array]$outputArray = @()
+
 #Iterate all the services from the list
-foreach ($service in $services) {
+foreach ($service in $Services) {
     $currentService = try { (Get-WmiObject Win32_Service -Filter "Name = '$service'") } catch { $null }
     if ( $null -ne $currentService )
     {
@@ -56,9 +58,9 @@ foreach ($service in $services) {
 #Deficiencies to log
 if ( 0 -lt $outputArray.Count )
 {
-    $outputArray -join ' ; ' | Out-File -FilePath $FileName -Force -Encoding UTF8
+    $outputArray -join ' ; ' | Out-File -FilePath $FileName -Force
 }
 else
 {
-    "No Deficiencies" | Out-File -FilePath $FileName -Force -Encoding UTF8
+    "No Deficiencies" | Out-File -FilePath $FileName -Force
 }

@@ -77,17 +77,21 @@ catch {
 }
 #endregion obtin settings for the active plan
 
+$currentDate = Get-Date -UFormat "%m/%d/%Y %T"
 #Fill Up output object's settings with values
 foreach ( $item in $Settings )
 {
     $SettingID = $item.InstanceId.Split("\")[-1]
     $SettingsElement = [PSCustomObject]@{
+        AgentGuid = $AgentName
+        Hostname = $env:COMPUTERNAME
         #PlanId = $OutputObject.PlanId
         PlanName = $OutputObject.ElementName
         PowerSource = $null
         #SettingId = $SettingID
         SettingName = $SettingsDictionary.($SettingID).ElementName
         SettingValue = $item.SettingIndexValue
+        Date = $currentDate
     }
     # Mark if on battery or plugged In
 

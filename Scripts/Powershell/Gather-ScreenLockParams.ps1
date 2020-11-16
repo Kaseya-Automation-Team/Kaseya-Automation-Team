@@ -4,7 +4,7 @@
 .DESCRIPTION
    Checks screen lock parameters in applied GPOs and local registry. Log found parameters to a csv-file.
 .EXAMPLE
-   Get-ScreenLockParams -FileName 'screenlock.csv' -Path 'C:\TEMP' -AgentName '123456'
+   Gather-ScreenLockParams.ps1 -FileName 'screenlock.csv' -Path 'C:\TEMP' -AgentName '123456'
 .NOTES
    Version 0.1
    Author: Vladislav Semko
@@ -27,17 +27,15 @@ param (
     [string]$Path = ""
  )
 #User GUID to query RSOP
-$user = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value -replace '-', '_'
+$userGUID = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value -replace '-', '_'
+
 #The parameters that enable Screen lock: 'ScreenSaveActive', 'ScreenSaveTimeOut' and 'ScreenSaverIsSecure'
 [string[]]$saverParameters = @('ScreenSaveActive', 'ScreenSaveTimeOut', 'ScreenSaverIsSecure')
+
 #Local Registry key
 [string]$RegKey = 'HKCU:Control Panel\Desktop'
 
 $currentDate = Get-Date -UFormat "%m/%d/%Y %T"
-
-if (-not [string]::IsNullOrEmpty( $FileName ) ) { $FileName = $FileName.Trim()}
-if (-not [string]::IsNullOrEmpty( $Path ) ) { $Path = $Path.Trim()}
-if (-not [string]::IsNullOrEmpty( $AgentName ) ) { $AgentName = $AgentName.Trim()}
 
 #Make sure that the existing output file deleted before collecting the data
 if(Test-Path "$Path\$FileName") {Remove-Item "$Path\$FileName" -Force}
@@ -95,7 +93,7 @@ function Convert-Uint8arrayToString
 }
 #endregion Convert-Uint8arrayToString
 
-#Get-WmiObject -Namespace root\rsop\user\$user -List RSOP*
+#Get-WmiObject -Namespace root\rsop\user\$userGUID -List RSOP*
 
 <#
 There are 3 parameters that enable Screen lock: 'ScreenSaveActive', 'ScreenSaveTimeOut' and 'ScreenSaverIsSecure'
@@ -113,13 +111,16 @@ foreach($parameter in $saverParameters)
     #At first try to get GPO settings defined for the parameter
     [string]$Action = 'LookUpGPO'
 
+    #region get actual settins
+    #State machine approach instead of multiple nested "if"s
     do {
         switch($Action)
         {
             'LookUpGPO'
             {
-                $gpoSetting = Get-WmiObject -Namespace root\rsop\user\$user -Class RSOP_RegistryPolicySetting -Filter "Name = '$parameter'" `
-                    | Select-Object registryKey, value, GPOID | Select-Object -Unique
+                $gpoSetting = try {
+                    Get-WmiObject -Namespace "root\rsop\user\$userGUID" -Query "select registryKey, value, GPOID from RSOP_RegistryPolicySetting Where Name = '$parameter'" -ErrorAction Stop | Select-Object -Unique
+                } catch { $null }
 
                 if( $null -ne $gpoSetting)  #GPO setting obtained
                 {
@@ -180,6 +181,7 @@ foreach($parameter in $saverParameters)
 
         }
     } while ( 'Stop'-ne $Action )
+    #endregion get actual settins
 }
 
 if ( 0 -lt $outputArray.Count )

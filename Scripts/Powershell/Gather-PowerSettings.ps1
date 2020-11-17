@@ -4,7 +4,7 @@
 .DESCRIPTION
    Gets active power settings and saves the settings information to a csv-file
 .EXAMPLE
-   Get-PowerSettings -FileName 'screenlock.csv' -Path 'C:\TEMP' -AgentName '123456'
+   Gather-PowerSettings -FileName 'powersettings.csv' -Path 'C:\TEMP' -AgentName '123456'
 .NOTES
    Version 0.1
    Author: Vladislav Semko
@@ -32,9 +32,8 @@ $OutputObject = [PSCustomObject]@{
 
 #Get the active power plan
 $ActivePlan = try {
-    Get-WmiObject -Namespace root\cimv2\power -Query "select InstanceID, ElementName from win32_PowerPlan where IsActive=True"
-}
-catch {
+    Get-WmiObject -Namespace root\cimv2\power -Query "SELECT InstanceID, ElementName FROM win32_PowerPlan WHERE IsActive=True" -ErrorAction Stop
+} catch {
     $null
     exit
 }
@@ -50,9 +49,8 @@ $OutputObject.ElementName = $ActivePlan.ElementName
 #region prepare info for replacing settings' IDs with their names
 # Get the readable names for the settings
 try {
-    $SettingNames = Get-WmiObject -Namespace root\cimv2\power -Query "select ElementName,InstanceID from Win32_PowerSetting" -ErrorAction Stop
-}
-catch {
+    $SettingNames = Get-WmiObject -Namespace root\cimv2\power -Query "SELECT ElementName,InstanceID FROM Win32_PowerSetting" -ErrorAction Stop
+} catch {
     $null
     exit
 }
@@ -69,7 +67,7 @@ foreach ($item in $SettingNames)
 
 #region obtin settings for the active plan
 try {
-    $Settings = Get-WmiObject -Namespace root\cimv2\power -Query "select InstanceId,SettingIndexValue from Win32_PowerSettingDataIndex Where InstanceId Like '%$ActivePlanId%'" -ErrorAction Stop
+    $Settings = Get-WmiObject -Namespace root\cimv2\power -Query "SELECT InstanceId,SettingIndexValue FROM Win32_PowerSettingDataIndex WHERE InstanceId Like '%$ActivePlanId%'" -ErrorAction Stop
 }
 catch {
     $null

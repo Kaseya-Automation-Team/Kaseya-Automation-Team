@@ -40,8 +40,6 @@ $currentDate = Get-Date -UFormat "%m/%d/%Y %T"
 #Make sure that the existing output file deleted before collecting the data
 if(Test-Path "$Path\$FileName") {Remove-Item "$Path\$FileName" -Force}
 
-[bool]$SettingMissed = $false   #Shows if some of setting present
-
 [array]$outputArray = @()
 #endregion initialization
 
@@ -71,12 +69,12 @@ function Get-RegistryValue
 }
 #endregion Get-RegistryValue
 
-#region Convert-Uint8arrayToString
+#region Convert-Uint8ArrayToString
 <#
 .Synopsis
    Converts data from uint8 array to a readable string
 #>
-function Convert-Uint8arrayToString
+function Convert-Uint8ArrayToString
 {
     [CmdletBinding()]
     [OutputType([string])]
@@ -91,9 +89,7 @@ function Convert-Uint8arrayToString
     #[System.Text.Encoding]::UTF8.GetString($InputValue) -replace "\W"
     [System.Text.Encoding]::UTF8.GetString($InputValue) -replace "\x00+"
 }
-#endregion Convert-Uint8arrayToString
-
-#Get-WmiObject -Namespace root\rsop\user\$userGUID -List RSOP*
+#endregion Convert-Uint8ArrayToString
 
 <#
 There are 3 parameters that enable Screen lock: 'ScreenSaveActive', 'ScreenSaveTimeOut' and 'ScreenSaverIsSecure'
@@ -104,86 +100,70 @@ Since GPOs override local registry settings
 
 foreach($parameter in $saverParameters)
 {
-    $Value = 'Not Set'
-    $registryKey = ''
-    $setBy = 'Not Set'
-
-    #At first try to get GPO settings defined for the parameter
-    [string]$Action = 'LookUpGPO'
+    [hashtable]$OutputData = @{
+        AgentGuid = $AgentName
+        Hostname = $env:COMPUTERNAME
+        Name = $parameter
+        Value = 'Not Set'
+        RegistryKey = 'Not Set'
+        SetBy = 'Not Set'
+        Date = $currentDate
+    }
 
     #region get actual settins
+
     #State machine approach instead of multiple nested "if"s
+    #At first try to get GPO settings defined for the parameter
+
+    [string]$State = 'LookingUpGPO'
+
     do {
-        switch($Action)
+
+        switch( $State )
         {
-            'LookUpGPO'
+            'LookingUpGPO'
             {
+                $Query = "SELECT registryKey, value, GPOID FROM RSOP_RegistryPolicySetting WHERE Name = '$parameter'"
                 $gpoSetting = try {
-                    Get-WmiObject -Namespace "root\rsop\user\$userGUID" -Query "select registryKey, value, GPOID from RSOP_RegistryPolicySetting Where Name = '$parameter'" -ErrorAction Stop | Select-Object -Unique
-                } catch { $null }
+                    Get-WmiObject -Namespace "root\rsop\user\$userGUID" -Query $Query -ErrorAction Stop | Select-Object -Unique } catch { $null }
 
                 if( $null -ne $gpoSetting)  #GPO setting obtained
                 {
-                    
-                    $Value = Convert-Uint8arrayToString $($gpoSetting.value)
-                    $registryKey = $gpoSetting.registryKey
-                    $setBy = $gpoSetting.GPOID
+                    $OutputData.Value = $( Convert-Uint8ArrayToString $($gpoSetting.value) )
+                    $OutputData.RegistryKey = $($gpoSetting.registryKey )
+                    $OutputData.SetBy = $( $gpoSetting.GPOID )
 
-                    $Action = 'AddOutput'
+                    $State = 'AddingDataToOutput'
                 }
-                else { $Action = 'LookUpRegistry' }
+                else { $State = 'LookingUpRegistry' }
             }
 
-            'LookUpRegistry'
+            'LookingUpRegistry'
             {
-                $regSetting = Get-RegistryValue -RegKey $RegKey -Name $parameter
+                $regSetting = try {Get-RegistryValue -RegKey $RegKey -Name $parameter -ErrorAction Stop } catch { $null }
+
                 if ( ($null -ne $regSetting) -and ( -Not [string]::IsNullOrEmpty( $regSetting.Trim()) ) )
                 {
                     #non empty value exists
-                    $Value = $regSetting
-                    $registryKey = $RegKey
-                    $setBy = 'Local Registry'
-
-                    $Action = 'AddOutput'
-                    
+                    $OutputData.Value = $regSetting
+                    $OutputData.RegistryKey = $RegKey
+                    $OutputData.setBy = 'Local Registry'
                 }
-                else { $Action = 'AddMissed'}
+                $State = 'AddingDataToOutput' #After registry search
             }
 
-            'AddOutput'
+            'AddingDataToOutput'
             {
-                #GPO setting obtained. Adding to output
-                $outputArray += [pscustomobject]@{ AgentGuid = $AgentName
-                                                Hostname = $env:COMPUTERNAME
-                                                Name = $parameter
-                                                Value = $Value
-                                                RegistryKey = $registryKey
-                                                SetBy = $setBy
-                                                Date = $currentDate
-                                                }
-                
-
-                $Action = 'Stop'
-            }
-            'AddMissed'
-            {
-                $SettingMissed = $true
-                $outputArray += [pscustomobject]@{ AgentGuid = $AgentName
-                                                Hostname = $env:COMPUTERNAME
-                                                Name = $parameter
-                                                Value = 'Not Set'
-                                                RegistryKey = $RegKey
-                                                SetBy = 'Not Set'
-                                                Date = $currentDate
-                                                }
-                $Action = 'Stop'
+                $outputArray += [pscustomobject]$OutputData | Select-Object AgentGuid, Hostname, Name, Value, RegistryKey, SetBy, Date
+                $State = 'Processed'
             }
 
         }
-    } while ( 'Stop'-ne $Action )
+    } while ( 'Processed' -ne $State )
     #endregion get actual settins
 }
 
+#region output
 if ( 0 -lt $outputArray.Count )
 {
     if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
@@ -191,3 +171,4 @@ if ( 0 -lt $outputArray.Count )
 
     $outputArray | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation
 }
+#endregion output

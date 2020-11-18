@@ -4,9 +4,10 @@
 .DESCRIPTION
    Gets active power settings and saves the settings information to a csv-file
 .EXAMPLE
-   Gather-PowerSettings -FileName 'powersettings.csv' -Path 'C:\TEMP' -AgentName '123456'
+   test-PowerSettings -FileName 'powersettings.csv' -Path 'C:\TEMP' -AgentName '123456'
 .NOTES
-   Version 0.1
+   Version 0.2
+   Much slower, but works with problems related to obtaining Win32_PowerSetting class objects
    Author: Vladislav Semko
    Email: Vladislav.Semko@kaseya.com
 #>
@@ -21,14 +22,8 @@ param (
     [string]$Path
  )
 
-#Create an object to store all the settings
-$Settings = New-Object System.Collections.Generic.List[PSObject] 
-
-$OutputObject = [PSCustomObject]@{
-    PlanId = $null
-    ElementName = $null
-    Settings =  $Settings
-}
+#region initialization
+$currentDate = Get-Date -UFormat "%m/%d/%Y %T"
 
 #Get the active power plan
 $ActivePlan = try {
@@ -38,74 +33,20 @@ $ActivePlan = try {
     exit
 }
 
-#Get just ID from the query's output
-[string]$regexp = '\{(.+?)\}'
-$ActivePlanId = [regex]::match( $ActivePlan.InstanceID, $regexp ).Groups[1].Value
-
-#Add Plan ID & name to the output object
-$OutputObject.PlanId = $ActivePlanId
-$OutputObject.ElementName = $ActivePlan.ElementName
-
-#region prepare info for replacing settings' IDs with their names
-# Get the readable names for the settings
-try {
-    $SettingNames = Get-WmiObject -Namespace root\cimv2\power -Query "SELECT ElementName,InstanceID FROM Win32_PowerSetting" -ErrorAction Stop
-} catch {
-    $null
-    exit
-}
-
-#Create  dictionary to match setting names and their ID's
-[hashtable]$SettingsDictionary = @{}
-
-foreach ($item in $SettingNames)
+$PowerSettings = $ActivePlan.GetRelated("Win32_PowerSettingDataIndex") | ForEach-Object `
 {
-    $SettingId = [regex]::match( $item.InstanceID, $regexp ).Groups[0].Value
-    $SettingsDictionary.Add( $SettingId, $item  )
+    $PowerSettingIndex = $_;
+    $PowerSettingIndex.GetRelated("Win32_PowerSetting") | Select-Object `
+        @{ Label="PowerSetting";Expression={$_.InstanceID} },
+        @{ Label="AgentGuid";Expression={$AgentName} },
+        @{ Label="Hostname";Expression={$env:COMPUTERNAME} },
+        @{ Label="PlanName";Expression={$ActivePlan.ElementName} },
+        @{ Label="PowerSource";Expression={ $(if ($PowerSettingIndex.InstanceID -match "AC") {"Plugged in"} else {"On battery"}) } },
+        @{ Label="SettingName";Expression={$_.ElementName}},
+        @{ Label="SettingValue";Expression={$PowerSettingIndex.SettingIndexValue} },
+        @{ Label="Date";Expression={$currentDate} }
 }
-#endregion prepare info for replacing settings' IDs with their names
-
-#region obtin settings for the active plan
-try {
-    $Settings = Get-WmiObject -Namespace root\cimv2\power -Query "SELECT InstanceId,SettingIndexValue FROM Win32_PowerSettingDataIndex WHERE InstanceId Like '%$ActivePlanId%'" -ErrorAction Stop
-}
-catch {
-    $null
-    exit
-}
-#endregion obtin settings for the active plan
-
-$currentDate = Get-Date -UFormat "%m/%d/%Y %T"
-#Fill Up output object's settings with values
-foreach ( $item in $Settings )
-{
-    $SettingID = $item.InstanceId.Split("\")[-1]
-    $SettingsElement = [PSCustomObject]@{
-        AgentGuid = $AgentName
-        Hostname = $env:COMPUTERNAME
-        #PlanId = $OutputObject.PlanId
-        PlanName = $OutputObject.ElementName
-        PowerSource = $null
-        #SettingId = $SettingID
-        SettingName = $SettingsDictionary.($SettingID).ElementName
-        SettingValue = $item.SettingIndexValue
-        Date = $currentDate
-    }
-    # Mark if on battery or plugged In
-
-    if ($item.InstanceId -match "AC") {
-        $SettingsElement.PowerSource = "Plugged in"
-    }
-    if ($item.InstanceId -match "DC")
-    {
-        $SettingsElement.PowerSource = "On battery"
-    }
-    # Add the setting to the output object
-    $OutputObject.Settings.Add($SettingsElement)
-}
-# Output collected settings
-
 if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
 if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
-$OutputObject.Settings | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation
+$PowerSettings | Select-Object AgentGuid, Hostname, PlanName, PowerSource, SettingName, SettingValue, Date  | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation

@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
-  <Procedure name="Gather Domain Admins" treePres="3" id="18079129" folderId="837937133404396" treeFullPath="myProcedures - kadmin">
-    <Body description="The procedure calls PowerShell script that finds all the objects of the users type that are included in the the Domain Admins group either directly or through nested group membership and saves to a CSV-file.">
-      <Statement description="The procedure calls PowerShell script that finds all the objects of the users type that are included in the the Domain Admins group either directly or through nested group membership and saves to a CSV-file.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Vladislav Semko (vladislav.semko@kaseya.com)" name="GetVariable" continueOnFail="false" osType="Windows">
+  <Procedure name="Gather Biggest Folders" treePres="3" id="38707308" folderId="837937133404396" treeFullPath="myProcedures - kadmin">
+    <Body description="The procedure calls PowerShell script that gathers top 10 biggest folder in drives and saves info to a CSV-file.">
+      <Statement description="The procedure calls PowerShell script that gathers top 10 biggest folder in drives and saves info to a CSV-file.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Vladislav Semko (vladislav.semko@kaseya.com)" name="GetVariable" continueOnFail="false" osType="Windows">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
@@ -14,12 +14,12 @@
       </Statement>
       <Statement description="Set the output CSV-file name" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-        <Parameter xsi:type="StringParameter" name="SourceContent" value="domain_admins.csv" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="biggest_folders.csv" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="output_file" />
       </Statement>
       <Statement description="Set Powershell script name" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-        <Parameter xsi:type="StringParameter" name="SourceContent" value="Gather-ADDomainAdmins.ps1" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Gather-BiggestFolders.ps1" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="psscript" />
       </Statement>
       <If description="">
@@ -36,7 +36,7 @@
               <Parameter xsi:type="StringParameter" name="Value" value="" />
             </Condition>
             <Then>
-              <Statement description="remove the file if it exists" name="DeleteFile" continueOnFail="false">
+              <Statement name="DeleteFile" continueOnFail="false">
                 <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
               </Statement>
             </Then>

@@ -17,9 +17,7 @@ param (
     [parameter(Mandatory=$true)]
     [string]$FileName,
     [parameter(Mandatory=$true)]
-    [string]$Path,
-    [parameter(Mandatory=$false)]
-    [int]$Top = 10
+    [string]$Path
  )
 
 

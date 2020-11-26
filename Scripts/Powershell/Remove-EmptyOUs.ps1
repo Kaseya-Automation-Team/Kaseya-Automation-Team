@@ -4,17 +4,32 @@
 .DESCRIPTION
    Finds empty OUs in AD and removes them
 .EXAMPLE
-   Remove-EmptyOUs
+   Remove-EmptyOUs  -FileName 'remove_OUs.txt' -Path 'C:\TEMP'
 .NOTES
    Version 0.1
    Author: Vladislav Semko
    Email: Vladislav.Semko@kaseya.com
 #>
+param (
+    [parameter(Mandatory=$true)]
+    [string]$FileName,
+    [parameter(Mandatory=$true)]
+    [string]$Path
+ )
+
+ if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
 Import-Module ActiveDirectory
 
-Get-ADOrganizationalUnit -Filter * | ForEach-Object {
+[array]$RemoveOUs = Get-ADOrganizationalUnit -Filter * | ForEach-Object {
 	   if (-not (Get-ADObject -SearchBase $_ -SearchScope OneLevel -Filter * )) {
       		Write-Output $_
    	}
-} | Set-ADOrganizationalUnit -ProtectedFromAccidentalDeletion $false -PassThru | Remove-ADOrganizationalUnit -Confirm:$false
+}
+
+if (0 -lt $RemoveOUs.Length)
+{
+   $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+   [System.IO.File]::WriteAllLines($FileName,$(, "Empty OUs removed:" + $RemoveOUs.DistinguishedName), $Utf8NoBomEncoding)
+   $RemoveOUs | Set-ADOrganizationalUnit -ProtectedFromAccidentalDeletion $false -PassThru | Remove-ADOrganizationalUnit -Confirm:$false
+}

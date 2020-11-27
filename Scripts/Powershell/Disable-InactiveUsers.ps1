@@ -5,7 +5,7 @@
 .DESCRIPTION
    Finds inactive users in AD and removes them
 .EXAMPLE
-   Disable-InactiveUsers  -FileName 'remove_OUs.txt' -Path 'C:\TEMP' -Days 63
+   Disable-InactiveUsers  -FileName 'inactive_users.txt' -Path 'C:\TEMP' -Days 63
 .NOTES
    Version 0.1
    Author: Vladislav Semko

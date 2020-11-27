@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Gather Cylance version" treePres="3" id="1611835583" folderId="129310546037426" treeFullPath="myProcedures - admin.RFT Compliance Manager">
+    <Body description="This procedure collects information about Cylance Smart Antivirus - if it's installed, what version and exports info to CSV file.">
+      <Statement description="This procedure collects information about Cylance Smart Antivirus - if it's installed, what version and exports info to CSV file&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Aliaksandr Serzhankou (a.serzhankou@kaseya.com)" name="GetVariable" continueOnFail="false" osType="Windows">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ksecure" />
+      </Statement>
+      <Statement description="Specify working folder" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="#ksecure#\csv" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="path" />
+      </Statement>
+      <Statement description="Filename of the CSV file" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="cylance.csv" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="filename" />
+      </Statement>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#ksecure#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <Statement description="Set Unrestricted execution policy" name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="Powershell Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine -force" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+          <Statement description="Upload Powershell script to the agent machine" name="WriteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#path#\Gather-CylanceVersion.ps1" />
+            <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Gather-CylanceVersion.ps1" />
+            <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+          </Statement>
+          <Statement description="Run Powershell script and pass all required arguments to it" name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="powershell #path#\Gather-CylanceVersion.ps1 -AgentName &quot;#vAgentConfiguration.agentGuid#&quot; -Path &quot;#path#&quot; -FileName &quot;#filename#&quot;" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+          <Statement description="Clean up" name="DeleteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#path#\Gather-CylanceVersion.ps1" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Only Windows operating systems are supported." />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScriptExport>

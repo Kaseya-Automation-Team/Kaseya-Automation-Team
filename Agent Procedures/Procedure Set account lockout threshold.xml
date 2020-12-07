@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Set account lockout threshold" treePres="3" id="1980134891" folderId="129310546037426" treeFullPath="myProcedures - admin.RFT Compliance Manager">
+    <Body description="Sets number of failed login attempts until account get's locked. Compatible with AD (run on domain controller) and local users.">
+      <Statement description="Sets number of failed login attempts until account get's locked. Compatible with AD (run on domain controller) and local users&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Aliaksandr Serzhankou (a.serzhankou@kaseya.com)" name="GetVariable" continueOnFail="false" osType="Windows">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ksecure" />
+      </Statement>
+      <Statement description="Specify number of failed login attempts, until user's account will be blocked" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="10" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="threshold" />
+      </Statement>
+      <If description="Checking if it's Windows operating system">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#ksecure" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <Statement description="Set Unrestricted execution policy" name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="Powershell Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine -force" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+          <Statement description="Upload file to agent's machine" name="WriteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ksecure#\Set-LockoutThreshold.ps1" />
+            <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\RFTCM\Set-LockoutThreshold.ps1" />
+            <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+          </Statement>
+          <If description="">
+            <Condition name="TestFile">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ksecure#\Set-LockoutThreshold.ps1" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              <Parameter xsi:type="StringParameter" name="Value" value="" />
+            </Condition>
+            <Then>
+              <Statement description="Run Powershell script" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell &quot;#ksecure#\Set-LockoutThreshold.ps1 -Threshold #threshold#&quot;" />
+                <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+              </Statement>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+              </Statement>
+              <Statement description="Clean up" name="DeleteFile" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Path" value="#ksecure#\Set-LockoutThreshold.ps1" />
+              </Statement>
+            </Then>
+            <Else>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="File Set-LockoutThreshold.ps1 was not found in destination folder." />
+              </Statement>
+            </Else>
+          </If>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Only Windows operating systems are supported." />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScriptExport>

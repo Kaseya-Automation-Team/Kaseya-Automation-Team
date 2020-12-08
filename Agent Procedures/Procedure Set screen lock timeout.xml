@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
-  <Procedure name="Set screen lock timeout" treePres="3" id="414726776" folderId="129310546037426" treeFullPath="myProcedures - admin.RFT Compliance Manager">
+  <Procedure name="Set screen lock timeout" treePres="3" id="414726776" folderId="691492381408574" treeFullPath="Kaseya Automation Team.Compliance Remediation">
     <Body description="This script sets console lock display timeout on agent's machine for  AC and battery power plans.&#xA;&#xA;Also, script enabled corresponding option to appear in advanced power settings.">
       <Statement description="This script sets console lock display timeout on agent's machine for  AC and battery power plans&#xD;&#xA;Also, script enabled corresponding option to appear in advanced power settings&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Aliaksandr Serzhankou (a.serzhankou@kaseya.com)" name="GetVariable" continueOnFail="false" osType="Windows">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />

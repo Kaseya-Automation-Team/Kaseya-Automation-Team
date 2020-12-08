@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
-  <Procedure name="Disable Inactive Users" treePres="3" id="1054192993" folderId="837937133404396" treeFullPath="myProcedures - kadmin">
+  <Procedure name="Disable Inactive Users" treePres="3" id="1054192993" folderId="691492381408574" treeFullPath="Kaseya Automation Team.Compliance Remediation">
     <Body description="The procedure calls PowerShell script that disables users that did not login to the AD Domain for given amount (30 by default) of days.&#xA;Inactivity detected by the LastLogonDate AD attribute">
       <Statement description="The procedure calls PowerShell script that disables users that did not login to the AD Domain for  (30 by default) days&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Vladislav Semko (vladislav.semko@kaseya.com)&#xD;&#xA;Set amount of days of inactivity" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
@@ -19,12 +19,17 @@
       </Statement>
       <Statement description="Set Powershell script name" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-        <Parameter xsi:type="StringParameter" name="SourceContent" value="Disable-InactiveUsers.ps1" />
-        <Parameter xsi:type="StringParameter" name="VariableName" value="psscript" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\Disable-InactiveUsers.ps1" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script" />
       </Statement>
-      <If description="">
-        <Condition name="CheckVariable">
-          <Parameter xsi:type="StringParameter" name="VariableName" value="#path#" />
+      <Statement description="download the script" name="GetURL" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Disable-InactiveUsers.ps1" />
+        <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ps_script#" />
+        <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+      </Statement>
+      <If description="check if script downloaded">
+        <Condition name="TestFile">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ps_script#" />
           <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
           <Parameter xsi:type="StringParameter" name="Value" value="" />
         </Condition>
@@ -34,43 +39,38 @@
             <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
             <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
           </Statement>
-          <Statement description="Upload Powershell script to the agent machine" name="WriteFile" continueOnFail="false">
-            <Parameter xsi:type="StringParameter" name="Path" value="#path#\#psscript#" />
-            <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#psscript#" />
-            <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
-          </Statement>
           <Statement description="Run Powershell script and pass all required arguments to it" name="ExecuteShellCommand" continueOnFail="false">
-            <Parameter xsi:type="StringParameter" name="Command" value="powershell #path#\#psscript# -Path &quot;#path#&quot; -FileName &quot;#output_file# -Days #days#" />
+            <Parameter xsi:type="StringParameter" name="Command" value="powershell #ps_script# -Path &quot;#path#&quot; -FileName &quot;#output_file# -Days #days#" />
             <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
             <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
           </Statement>
-          <Statement description="Write Log" name="GetVariable" continueOnFail="false">
-            <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
-            <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#output_file#" />
-            <Parameter xsi:type="StringParameter" name="VariableName" value="log" />
-          </Statement>
-          <Statement name="WriteScriptLogEntry" continueOnFail="false">
-            <Parameter xsi:type="StringParameter" name="Comment" value="#log#" />
-          </Statement>
-          <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
-            <Parameter xsi:type="StringParameter" name="Path" value="#path#\#psscript#" />
-          </Statement>
-          <If description="">
+          <If description="Write Log">
             <Condition name="TestFile">
               <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
               <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
               <Parameter xsi:type="StringParameter" name="Value" value="" />
             </Condition>
             <Then>
+              <Statement name="GetVariable" continueOnFail="false">
+                <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#output_file#" />
+                <Parameter xsi:type="StringParameter" name="VariableName" value="log" />
+              </Statement>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="#log#" />
+              </Statement>
               <Statement name="DeleteFile" continueOnFail="false">
                 <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
               </Statement>
             </Then>
           </If>
+          <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ps_script#" />
+          </Statement>
         </Then>
         <Else>
           <Statement name="WriteScriptLogEntry" continueOnFail="false">
-            <Parameter xsi:type="StringParameter" name="Comment" value="Only Windows operating systems are supported." />
+            <Parameter xsi:type="StringParameter" name="Comment" value="Script not downloaded." />
           </Statement>
         </Else>
       </If>

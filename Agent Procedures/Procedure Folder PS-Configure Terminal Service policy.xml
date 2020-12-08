@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="PS-Configure Terminal Service policy" treePres="3">
+    <Procedure name="Enable Full Control" treePres="3" id="777698235" folderId="866669511686393" treeFullPath="myProcedures - admin.PS-Configure Terminal Service policy">
+      <Body description="This procedure with change settings of Windows Registry, responsible for configuration of Remote Control for Terminal Services">
+        <Statement description="This procedure with change settings of Windows Registry (set to &quot;Full control without user's permission&quot;), responsible for configuration of Remote Control for Terminal Services&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Aliaksandr Serzhankou (a.serzhankou@kaseya.com)" name="GetVariable" continueOnFail="false" osType="Windows">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <If description="Check if operating system is Windows">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="SetRegistryValue" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Shadow" />
+              <Parameter xsi:type="StringParameter" name="Value" value="2" />
+              <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+            </Statement>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Terminal server shadow support has been enabled" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Only Windows operating systems are supported." />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="No Remote Control" treePres="3" id="685380569" folderId="866669511686393" treeFullPath="myProcedures - admin.PS-Configure Terminal Service policy">
+      <Body description="This procedure with change settings of Windows Registry (set to &quot;No remote control allowed&quot;), responsible for configuration of Remote Control for Terminal Services">
+        <Statement description="This procedure with change settings of Windows Registry (set to &quot;No remote control allowed&quot;), responsible for configuration of Remote Control for Terminal Services&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Aliaksandr Serzhankou (a.serzhankou@kaseya.com)" name="GetVariable" continueOnFail="false" osType="Windows">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <If description="Check if operating system is Windows">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="SetRegistryValue" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Shadow" />
+              <Parameter xsi:type="StringParameter" name="Value" value="0" />
+              <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+            </Statement>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Terminal server shadow support has been disabled" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Only Windows operating systems are supported." />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

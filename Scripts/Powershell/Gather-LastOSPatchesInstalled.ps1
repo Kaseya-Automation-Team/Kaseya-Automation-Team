@@ -24,6 +24,9 @@ param (
     [int]$Top = 3
  )
 
+if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
+if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
+
 [string] $LastBootUp = "{0:dd'/'MM'/'yyyy H:mm:ss}" -f (Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty LastBootUpTime)
 
 Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object HotFixID, InstalledOn -First $Top | Select-Object -Property `

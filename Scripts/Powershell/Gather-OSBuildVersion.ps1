@@ -25,5 +25,11 @@ if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
 if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
 [string[]]$Props = @('Caption', 'Version', 'BuildNumber', 'OSArchitecture')
-Get-CimInstance Win32_OperatingSystem -Property $Props | Select-Object $Props | Select-Object -Property @{Name = 'Date'; Expression = {$currentDate }}, @{Name = 'AgentGuid'; Expression = {$AgentName}}, @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}} , *  `
+Get-CimInstance Win32_OperatingSystem -Property $Props | Select-Object $Props | Select-Object -Property `
+@{Name = 'Date'; Expression = {$currentDate }}, `
+@{Name = 'AgentGuid'; Expression = {$AgentName}}, `
+@{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}} , `
+@{Name = 'OSType'; Expression= {$_.Caption}} , `
+@{Name = 'Version'; Expression= {$_.Version}} , `
+@{Name = 'OSArchitecture'; Expression= {$_.OSArchitecture}} `
 | Export-Csv -Path "FileSystem::$FileName"-Force -Encoding UTF8 -NoTypeInformation

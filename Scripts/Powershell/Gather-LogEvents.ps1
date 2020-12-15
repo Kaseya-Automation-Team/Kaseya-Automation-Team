@@ -17,9 +17,9 @@
 .DESCRIPTION
    Using Get-WinEvent command script queries specified system log (System for example) for specified error levels (1 - Critical, 2 - Error, for example)
 .EXAMPLE
-   .\Get-LogEvents.ps1 -AgentName "432423422" -Path "c:\kworking" -Filename "failed_logins.csv" -LogName "System" -Days 30
+   .\Gather-LogEvents.ps1 -AgentName "432423422" -Path "c:\kworking" -Filename "failed_logins.csv" -LogName "System" -Days 30
 .NOTES
-   Version 0.1
+   Version 0.2
    Author: Aliaksandr Serzhankou
    Email: a.serzhankou@kaseya.com
 #>
@@ -54,16 +54,23 @@ ForEach ($Event in $AllEvents) {
     #Collect message
     $Message = $Event.Message
 
-    #Fill newly created objects with data
-    Add-Member -InputObject $Output -MemberType NoteProperty -Name AgentGuid -Value $AgentName
-    Add-Member -InputObject $Output -TypeName LevelName -MemberType NoteProperty -Name LevelName -Value $LevelName
-    Add-Member -InputObject $Output -TypeName Level -MemberType NoteProperty -Name Level -Value $Level
-    Add-Member -InputObject $Output -TypeName Message -MemberType NoteProperty -Name Message -Value $Message
-    Add-Member -InputObject $Output -TypeName DateTime -MemberType NoteProperty -Name DateTime -Value $Time
+    #Skip log records without any message
+    If ($Message) {
+
+        #Remove carriage return and new lines from the error message
+        $Message = $Event.Message.Replace("`r`n","")
+
+        #Fill newly created objects with data
+        Add-Member -InputObject $Output -MemberType NoteProperty -Name AgentGuid -Value $AgentName
+        Add-Member -InputObject $Output -TypeName LevelName -MemberType NoteProperty -Name LevelName -Value $LevelName
+        Add-Member -InputObject $Output -TypeName Level -MemberType NoteProperty -Name Level -Value $Level
+        Add-Member -InputObject $Output -TypeName Message -MemberType NoteProperty -Name Message -Value $Message
+        Add-Member -InputObject $Output -TypeName DateTime -MemberType NoteProperty -Name DateTime -Value $Time
 
 
-    #Add object to the previously created array
-    $Results += $Output
+        #Add object to the previously created array
+        $Results += $Output
+    }
 
 }
 

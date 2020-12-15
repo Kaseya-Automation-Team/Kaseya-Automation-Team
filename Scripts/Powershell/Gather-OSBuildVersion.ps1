@@ -31,5 +31,6 @@ Get-CimInstance Win32_OperatingSystem -Property $Props | Select-Object $Props | 
 @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}} , `
 @{Name = 'OSType'; Expression= {$_.Caption}} , `
 @{Name = 'Version'; Expression= {$_.Version}} , `
+@{Name = 'BuildNumber'; Expression= {$_.BuildNumber}} , `
 @{Name = 'OSArchitecture'; Expression= {$_.OSArchitecture}} `
 | Export-Csv -Path "FileSystem::$FileName"-Force -Encoding UTF8 -NoTypeInformation

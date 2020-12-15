@@ -28,10 +28,10 @@
             <Statement description="Delete a lingering file just in case" name="DeleteFile" continueOnFail="true" osType="Windows">
               <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\lockoutthreshold.csv" />
             </Statement>
-            <Statement description="Execute the powershell" name="Execute Powershell" continueOnFail="false" osType="Windows">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
-              <Parameter xsi:type="StringParameter" name="Parameter2" value="#ktemp#\Gather-LockoutThreshold.ps1 -AgentName &quot;#vAgentConfiguration.agentGuid#&quot; -Path &quot;#ktemp#\lockoutthreshold.csv&quot;" />
-              <Parameter xsi:type="StringParameter" name="Parameter3" value="False" />
+            <Statement description="Execute the powershell" name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+              <Parameter xsi:type="StringParameter" name="Command" value="powershell &quot;#ktemp#\Gather-LockoutThreshold.ps1 -AgentName '#vAgentConfiguration.agentGuid#' -Path '#ktemp#\lockoutthreshold.csv'&quot;" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
             </Statement>
             <If description="checks if the file was created">
               <Condition name="TestFile">

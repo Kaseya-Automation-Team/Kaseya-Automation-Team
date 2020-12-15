@@ -1,12 +1,10 @@
 ﻿<#
 .Synopsis
-   Gather list of Top (3 by default) latest updates and saves information to a csv-file
+   Gathers OS Version and build to a csv-file
 .DESCRIPTION
-   Gather list of Top given number latest updates and saves information as well as last boot time to a csv-file
+   Gathers OS Version and build to a csv-file
 .EXAMPLE
-   .\Gather-LastOSPatchesInstalled.ps1 -FileName 'biggestfolders.csv' -Path 'C:\TEMP' -AgentName '123456'
-.EXAMPLE
-    .\Gather-LastOSPatchesInstalled.ps1 -FileName 'biggestfolders.csv' -Path 'C:\TEMP' -AgentName '123456' -Top 10
+   .\Gather-OSBuildVersion.ps1 -FileName 'os_and_build.csv' -Path 'C:\TEMP' -AgentName '123456'
 .NOTES
    Version 0.1
    Author: Vladislav Semko
@@ -19,9 +17,7 @@ param (
     [parameter(Mandatory=$true)]
     [string]$FileName,
     [parameter(Mandatory=$true)]
-    [string]$Path,
-    [parameter(Mandatory=$false)]
-    [int]$Top = 3
+    [string]$Path
  )
 
 [string]$currentDate = Get-Date -UFormat "%m/%d/%Y %T"

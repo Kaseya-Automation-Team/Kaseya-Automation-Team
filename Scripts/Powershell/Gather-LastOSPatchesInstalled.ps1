@@ -4,9 +4,9 @@
 .DESCRIPTION
    Gather list of Top given number latest updates and saves information as well as last boot time to a csv-file
 .EXAMPLE
-   .\Gather-LastOSPatchesInstalled.ps1 -FileName 'biggestfolders.csv' -Path 'C:\TEMP' -AgentName '123456'
+   .\Gather-LastOSPatchesInstalled.ps1 -FileName 'latest_os_patches.csv' -Path 'C:\TEMP' -AgentName '123456'
 .EXAMPLE
-    .\Gather-LastOSPatchesInstalled.ps1 -FileName 'biggestfolders.csv' -Path 'C:\TEMP' -AgentName '123456' -Top 10
+    .\Gather-LastOSPatchesInstalled.ps1 -FileName 'latest_os_patches.csv' -Path 'C:\TEMP' -AgentName '123456' -Top 10
 .NOTES
    Version 0.1
    Author: Vladislav Semko
@@ -23,6 +23,9 @@ param (
     [parameter(Mandatory=$false)]
     [int]$Top = 3
  )
+
+if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
+if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
 [string] $LastBootUp = "{0:dd'/'MM'/'yyyy H:mm:ss}" -f (Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty LastBootUpTime)
 

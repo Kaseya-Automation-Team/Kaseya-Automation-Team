@@ -7,8 +7,7 @@
    .\Gather-TimeZoneSettings.ps1 -AgentName '12345' -FileName 'timezone_settings.csv' -Path 'C:\TEMP'
 .NOTES
    Version 0.1
-   Author: Vladislav Semko
-   Email: Vladislav.Semko@kaseya.com
+   Author: Proserv Team - VS
 #>
 param (
     [parameter(Mandatory=$true)]

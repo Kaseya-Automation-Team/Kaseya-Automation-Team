@@ -8,8 +8,7 @@
 .NOTES
    Version 0.2
    Much slower, but works with problems related to obtaining Win32_PowerSetting class objects
-   Author: Vladislav Semko
-   Email: Vladislav.Semko@kaseya.com
+   Author: Proserv Team - VS
 #>
 #region initialization
 

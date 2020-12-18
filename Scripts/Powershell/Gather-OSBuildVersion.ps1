@@ -7,8 +7,7 @@
    .\Gather-OSBuildVersion.ps1 -FileName 'os_and_build.csv' -Path 'C:\TEMP' -AgentName '123456'
 .NOTES
    Version 0.1
-   Author: Vladislav Semko
-   Email: Vladislav.Semko@kaseya.com
+   Author: Proserv Team - VS
 #>
 
 param (

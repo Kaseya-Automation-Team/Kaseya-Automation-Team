@@ -1,16 +1,15 @@
 <#
 .Synopsis
-   Gather list of Top (3 by default) latest updates and saves information to a csv-file
+   Gather list of Top (3 by default) latest Windows updates and saves information to a csv-file
 .DESCRIPTION
-   Gather list of Top given number latest updates and saves information as well as last boot time to a csv-file
+   Gather list of Top given number latest Windows updates and saves information as well as last boot time to a csv-file
 .EXAMPLE
    .\Gather-LastOSPatchesInstalled.ps1 -FileName 'latest_os_patches.csv' -Path 'C:\TEMP' -AgentName '123456'
 .EXAMPLE
     .\Gather-LastOSPatchesInstalled.ps1 -FileName 'latest_os_patches.csv' -Path 'C:\TEMP' -AgentName '123456' -Top 10
 .NOTES
    Version 0.1
-   Author: Vladislav Semko
-   Email: Vladislav.Semko@kaseya.com
+   Author: Proserv Team - VS
 #>
 
 param (

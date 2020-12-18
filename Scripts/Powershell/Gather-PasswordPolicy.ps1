@@ -8,8 +8,7 @@
    .\Gather-PasswordPolicy.ps1 -AgentName '12345' -FileName 'password_settings.csv' -Path 'C:\TEMP'
 .NOTES
    Version 0.1
-   Author: Vladislav Semko
-   Email: Vladislav.Semko@kaseya.com
+   Author: Proserv Team - VS
 #>
 
 param (

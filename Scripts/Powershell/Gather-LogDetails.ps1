@@ -12,7 +12,11 @@ param (
 #Create array where all objects for export will be storred
 $Results = @()
 
-$Logs = Get-WMIObject Win32_NTEventLogFile
+#Uncommect line below if all logs should be processed
+#$Logs = Get-WMIObject Win32_NTEventLogFile
+
+#And commect this one, if line above was uncommented
+$Logs = Get-WMIObject Win32_NTEventLogFile|Where-Object {$_.Filename -eq "Security" -or $_.Filename -eq "Application" -or $_.Filename -eq "System"}
 
 ForEach ($Log in $Logs) {
 

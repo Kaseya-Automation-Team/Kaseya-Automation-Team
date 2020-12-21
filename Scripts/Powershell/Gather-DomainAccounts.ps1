@@ -30,4 +30,4 @@ Get-WmiObject -Namespace root\cimv2 -Query $Query | Select-Object $Props | Selec
 @{Name = 'Date'; Expression = {$currentDate }}, `
 @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `
 @{Name = 'AgentGuid'; Expression = {$AgentName}}, `
-* | Export-Csv -Path "FileSystem::$FileName"-Force -Encoding UTF8 -NoTypeInformation
+* | Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation

@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Procedure name="Gather Windows Version And Build" treePres="3" id="495039756" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
-    <Body description="The procedure calls PowerShell script that gathers Windows version and build&#xA;&#xA;Author: Vladislav Semko">
-      <Statement description="The procedure calls PowerShell script that gathers Windows version and build&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Vladislav Semko (vladislav.semko@kaseya.com)" name="GetVariable" continueOnFail="false">
+    <Body description="The procedure calls PowerShell script that gathers Windows version and build&#xA;&#xA;Author: Proserv Team - VS">
+      <Statement description="The procedure calls PowerShell script that gathers Windows version and build&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="path" />
@@ -21,6 +21,11 @@
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ps_script#" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script_path_name" />
+      </Statement>
+      <Statement description="output file on the VSA server" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="..\..\PSQueIn\WindowsOSBuild-Information\#vAgentConfiguration.agentGuid#.csv" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="vsa_path" />
       </Statement>
       <Statement description="download the script" name="GetURL" continueOnFail="false">
         <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/#ps_script#" />
@@ -56,7 +61,7 @@
               </Statement>
               <Statement description="Pulls the file to the VSA in a unique folder in the UserProfiles directory" name="GetFile" continueOnFail="false">
                 <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#path#\#output_file#" />
-                <Parameter xsi:type="StringParameter" name="KServerFileName" value="..\..\PSQueIn\WindowsOSBuild-Information\#vAgentConfiguration.agentGuid#.csv" />
+                <Parameter xsi:type="StringParameter" name="KServerFileName" value="vsa_path" />
                 <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
               </Statement>
             </Then>

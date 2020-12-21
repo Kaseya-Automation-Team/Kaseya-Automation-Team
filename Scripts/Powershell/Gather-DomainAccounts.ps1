@@ -19,6 +19,8 @@ param (
 )
 
 $currentDate = Get-Date -UFormat "%m/%d/%Y %T"
+if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
+if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
 [string[]]$Props = @('Domain', 'Name', 'Status', 'Disabled')
 

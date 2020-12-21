@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Gather Log Details" treePres="3">
+    <Procedure name="Gather Log Details" treePres="3" id="307611102" folderId="581719892882611" treeFullPath="myProcedures - admin.Kaiser.Gather Log Details">
+      <Body description="This procedure gathers information about existing system logs - name of log, actual size of log, last modification date and export all info to CSV file.">
+        <Statement description="This procedure gathers information about existing system logs - name of log, actual size of log, last modification date and export all info to CSV file&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Aliaksandr Serzhankou (a.serzhankou@kaseya.com)&#xD;&#xA;Set the Working Directory Secure Folder to variable" name="GetVariable" continueOnFail="false" osType="Windows">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Gather-LogDetails.ps1" name="GetURL" continueOnFail="false" osType="Windows">
+          <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Gather-LogDetails.ps1" />
+          <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ktemp#\Gather-LogDetails.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Gather-LogDetails.ps1" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement description="Modifies Execution Policy to allow the script to run" name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+              <Parameter xsi:type="StringParameter" name="Command" value="Powershell Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine -force" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <Statement description="Delete a lingering file just in case" name="DeleteFile" continueOnFail="true" osType="Windows">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\logdetails.csv" />
+            </Statement>
+            <Statement description="Execute the powershell" name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+              <Parameter xsi:type="StringParameter" name="Command" value="powershell &quot;#ktemp#\Gather-LogDetails.ps1 -AgentName '#vAgentConfiguration.agentGuid#' -Path '#ktemp#\logdetails.csv'&quot;" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <If description="checks if the file was created">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\logdetails.csv" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement description="pulls the file to the VSA in a unique folder in the UserProfiles directory" name="GetFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#ktemp#\logdetails.csv" />
+                  <Parameter xsi:type="StringParameter" name="KServerFileName" value="..\..\PSQueIn\Logs-Details\#vAgentConfiguration.agentGuid#.csv" />
+                  <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="The file was not created. Please investigate further." />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+              <Parameter xsi:type="StringParameter" name="Comment" value="The powershell file did not download. Please check the agent can access github." />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

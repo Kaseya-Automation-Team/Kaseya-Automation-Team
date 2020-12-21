@@ -1,5 +1,5 @@
 ﻿## Kaseya Automation Team
-## Used by the "Gather Local User Info" Agent Procedure
+## Used by the "Gather RDP enablement status" Agent Procedure
 
 param (
     [parameter(Mandatory=$true)]

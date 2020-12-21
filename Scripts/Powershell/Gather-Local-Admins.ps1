@@ -108,7 +108,7 @@ function Get-LocalAdmins
             if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
             if (-not [string]::IsNullOrEmpty( $Path ) ) { $FileName = "$Path\$FileName" }
 
-            $currentDate = (Get-Date).ToUniversalTime().ToString("MM-dd-yyyy HH:mm:ss:ms")
+            $currentDate = Get-Date -UFormat "%m/%d/%Y %T"
 
             [array]$outputArray = @()
             $admins | ForEach-Object {

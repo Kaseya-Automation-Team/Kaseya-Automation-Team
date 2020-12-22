@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Wipe The Computer" treePres="3" id="938652836" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
+    <Body description="The procedure calls PowerShell script that wipes the Windows device.&#xA;&#xA;Author: Proserv Team - VS">
+      <Statement description="The procedure calls PowerShell script that wipes the Windows device&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;Explicitly ask permission to wipe" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="The procedure you are starting will wipe all the data. Please type &quot;YES&quot; if you are going to proceed with wipe." />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="WipeGranted" />
+      </Statement>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#WipeGranted#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="YES" />
+        </Condition>
+        <Then>
+          <Statement description="Log that wipe is confirmed" name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="#adminDefaults.adminName# confirmed system wipe" />
+          </Statement>
+          <Statement description="Working path" name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="path" />
+          </Statement>
+          <Statement description="Set the Powershell script that actually  wipes the info. The script must be executed under  the SYSTEM account" name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="Wipe-TheSystem.ps1" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script" />
+          </Statement>
+          <Statement description="Set the Powershell script name that creates scheduled task to launch the script that wipes under the SYSTEM account." name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="Run-AsSystem.ps1" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="schedule_script" />
+          </Statement>
+          <Statement description="The scripts' names &amp; path" name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ps_script#" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script_path_name" />
+          </Statement>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#schedule_script#" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="schedule_script_path_name" />
+          </Statement>
+          <Statement description="download the scripts" name="GetURL" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/#schedule_script#" />
+            <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#schedule_script_path_name#" />
+            <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+          </Statement>
+          <Statement name="GetURL" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/#ps_script#" />
+            <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ps_script_path_name#" />
+            <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+          </Statement>
+          <If description="check if script downloaded">
+            <Condition name="TestFile">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              <Parameter xsi:type="StringParameter" name="Value" value="" />
+            </Condition>
+            <Then>
+              <Statement description="Run Powershell script with required parameters and arguments" name="ExecuteShellCommand" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #schedule_script_path_name# -ScheduledScriptName #ps_script_path_name#" />
+                <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+              </Statement>
+              <Statement description="Write Log" name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="Wipe initiated" />
+              </Statement>
+            </Then>
+            <Else>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="Script was not downloaded" />
+              </Statement>
+            </Else>
+          </If>
+        </Then>
+      </If>
+    </Body>
+  </Procedure>
+</ScriptExport>

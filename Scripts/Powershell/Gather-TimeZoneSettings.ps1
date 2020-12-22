@@ -41,12 +41,12 @@ $PeersNTP = $(w32tm.exe /query /peers)
     }
 )
 
-
-[pscustomobject]@{
+$OutputObject = New-Object PSObject -Property @{
 AgentGuid = $AgentName
 Hostname = $env:COMPUTERNAME
 Date = $currentDate
 Offset = $( [System.TimeZoneInfo]::Local.BaseUtcOffset ).ToString()
 DST = $( [System.TimeZoneInfo]::Local.SupportsDaylightSavingTime ).ToString()
 Server = $NTPServer
-} | Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation
+}
+$OutputObject | Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation

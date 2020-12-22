@@ -14,8 +14,7 @@ param (
     [parameter(Mandatory=$true)]
     [string]$ScheduledScriptName
  )
-
-[string]$TaskName = "Schedule $ScheduledScriptName"
+[string]$TaskName = "Schedule $(Split-Path $ScheduledScriptName -leaf)"
 
 $ScheduledTaskPrincipal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount
 $SettingsSet = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -DontStopOnIdleEnd

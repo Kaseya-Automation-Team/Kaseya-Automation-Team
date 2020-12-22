@@ -44,7 +44,7 @@ ForEach ($Event in $AllEvents) {
 
     #Collect time and date
     $Time = $Event.TimeCreated
-    $Time = Get-Date $Time -Format 'dd/MM/yy hh:mm:ss:ms'
+    $Time = Get-Date $Time -Format 'MM/dd/yyyy hh:mm:ss:ms'
     $Time = $Time -replace "-", "/"
 
     #Collect level id and level name

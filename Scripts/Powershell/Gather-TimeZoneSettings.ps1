@@ -33,11 +33,11 @@ $PeersNTP = $(w32tm.exe /query /peers)
     }
     else
     {
-        [string]$regexp = '(Peer:\s+)(\S+)?$' # look for string that starts with 'Peer:'
+        $( [string]$regexp = '(Peer:\s+)(\S+)?$' # look for string that starts with 'Peer:'
         $PeersNTP | `
         Foreach-Object {[regex]::match( $_, $regexp ).Groups[2].Value} | `  # get server name in the matching string
         Where-Object { -not [string]::IsNullOrWhiteSpace($_)} | `   #get rid of empty lines
-        Select-Object -Unique | Select-Object -First 1  #get the first server
+        Select-Object -Unique ) -join ', '
     }
 )
 

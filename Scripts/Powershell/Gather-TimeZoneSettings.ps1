@@ -29,7 +29,7 @@ $PeersNTP = $(w32tm.exe /query /peers)
 [string]$NTPServer = $(
     if ( $PeersNTP -match 'error')
     {
-        'NULL'
+        'NTP not obtained'
     }
     else
     {

@@ -27,7 +27,7 @@ ForEach ($Log in $Logs) {
 
     #Get date and convert it to human readable format
     $date = ([WMI] '').ConvertToDateTime($Log.Lastmodified)
-    $date = Get-Date $date -Format 'yyyy/MM-dd hh:mm:ss:ms'
+    $date = Get-Date $date -Format 'MM-dd-yyyy hh:mm:ss:ms'
     $date = $date -replace "-", "/"
 
     Add-Member -InputObject $Output -MemberType NoteProperty -Name MachineID -Value $AgentName

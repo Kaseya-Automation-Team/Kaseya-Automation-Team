@@ -40,7 +40,8 @@ ForEach ($Event in $AllEvents) {
     $Message = $Event.Message
 
     $Time = $Event.TimeGenerated
-    $Time = Get-Date $Time -Format 'dd/MM/yy hh:mm:ss:ms'
+    $Time = Get-Date $Time -Format 'MM/dd/yyyy hh:mm:ss:ms'
+    $Time = $Time -replace "-", "/"
 
     $matches = ([regex]'(?m)\s+Account Name:\s+(.+)$').Matches($Message)
     $UserName = $matches[1].Groups[1].Value.Trim()

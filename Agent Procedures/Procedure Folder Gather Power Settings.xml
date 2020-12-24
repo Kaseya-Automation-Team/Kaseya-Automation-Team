@@ -8,6 +8,11 @@
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
         </Statement>
+        <Statement description="output file on the VSA server" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="..\..\PSQueIn\PowerSettings-Information\#vAgentConfiguration.agentGuid#.csv" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="vsa_path" />
+        </Statement>
         <Statement name="GetURL" continueOnFail="false" osType="Windows">
           <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Gather-PowerSettings.ps1" />
           <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ktemp#\Gather-PowerSettings.ps1" />
@@ -45,7 +50,7 @@
               <Then>
                 <Statement name="GetFile" continueOnFail="false" osType="Windows">
                   <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#ktemp#\power-settings.csv" />
-                  <Parameter xsi:type="StringParameter" name="KServerFileName" value="..\..\PSQueIn\PowerSettings-Information\#vAgentConfiguration.agentGuid#.csv" />
+                  <Parameter xsi:type="StringParameter" name="KServerFileName" value="#vsa_path#" />
                   <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
                 </Statement>
               </Then>

@@ -61,7 +61,7 @@
               </Statement>
               <Statement description="Pulls the file to the VSA in a unique folder in the UserProfiles directory" name="GetFile" continueOnFail="false">
                 <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#path#\#output_file#" />
-                <Parameter xsi:type="StringParameter" name="KServerFileName" value="vsa_path" />
+                <Parameter xsi:type="StringParameter" name="KServerFileName" value="#vsa_path#" />
                 <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
               </Statement>
             </Then>

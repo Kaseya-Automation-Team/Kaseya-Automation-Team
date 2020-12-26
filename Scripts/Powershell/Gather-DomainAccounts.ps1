@@ -16,40 +16,43 @@
 #>
 param (
     [parameter(Mandatory=$true)]
-    [string]$AgentName,
+    [string] $AgentName,
     [parameter(Mandatory=$true)]
-    [string]$FileName,
+    [string] $FileName,
     [parameter(Mandatory=$true)]
-    [string]$Path
+    [string] $Path
 )
 
 $currentDate = Get-Date -UFormat "%m/%d/%Y %T"
+
 if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
 if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
-$SystemObject = Get-WmiObject -Class Win32_ComputerSystem
-[string[]]$DomainAccountSIDs = @()
-[array]$DomainUsers = @()
+[string[]] $DomainAccountSIDs = @()
+[array] $DomainUsers = @()
 
-if ( $SystemObject.partofdomain)
+$SystemObject = try {Get-WmiObject -Class Win32_ComputerSystem -ComputerName $env:COMPUTERNAME} catch {$null}
+
+if ( $SystemObject.partofdomain )
 {
-    [string]$RegKeyPath = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList'
-
-    [string] $Domain  = $SystemObject | Select -Expand Domain
-    [string] $krbtgtSID = (New-Object Security.Principal.NTAccount $domain\krbtgt).Translate([Security.Principal.SecurityIdentifier]).Value
-    $DomainSID = $krbtgtSID.SubString(0, $krbtgtSID.LastIndexOf('-'))
-    
-    $DomainAccountSIDs = (Get-ChildItem Registry::$RegKeyPath).PSChildName | Where-Object {$_ -match $DomainSID}
-    Foreach ($SID in $DomainAccountSIDs )
-    {
-        $DomainUsers += $( 
-        try {Get-CimInstance -ClassName Win32_UserAccount -Filter "SID like '$SID'" -ComputerName $SystemObject.Name -ErrorAction Stop `
-        | Select-Object -Property 'Domain', 'Name', 'Status', 'Disabled', 'SID'} catch {$null} 
-        )
-    }
+   # under ProfileList key there are subkeys for each user in the system. 
+   [string] $RegKeyPath = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList'
+   [string] $Domain  = $SystemObject | Select-Object -ExpandProperty Domain
+   [string] $krbtgtSID = (New-Object Security.Principal.NTAccount "$Domain\krbtgt").Translate([Security.Principal.SecurityIdentifier]).Value
+   [string] $DomainSID = $krbtgtSID.SubString( 0, $krbtgtSID.LastIndexOf('-') )
+   #lookup for the domain profiles' SIDs
+   $DomainAccountSIDs = (Get-ChildItem Registry::$RegKeyPath).PSChildName | Where-Object {$_ -match $DomainSID}
+   Foreach ($SID in $DomainAccountSIDs )
+   {
+      $DomainUsers += $( 
+         try {Get-CimInstance -ClassName Win32_UserAccount -Filter "SID like '$SID'" -ComputerName $env:COMPUTERNAME -ErrorAction Stop `
+         | Select-Object -Property 'Domain', 'Name', 'Status', 'Disabled', 'SID'} catch {$null} 
+      )
+   }
 }
+
 $DomainUsers | Select-Object -Property `
-@{Name = 'Date'; Expression = {$currentDate }}, `
-@{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `
-@{Name = 'AgentGuid'; Expression = {$AgentName}}, `
-* | Export-Csv -Path "FileSystem::$FileName"-Force -Encoding UTF8 -NoTypeInformation
+   @{Name = 'Date'; Expression = {$currentDate }}, `
+   @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `
+   @{Name = 'AgentGuid'; Expression = {$AgentName}}, `
+* | Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation

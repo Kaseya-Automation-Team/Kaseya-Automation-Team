@@ -7,8 +7,7 @@
    Gather-ScreenLockParams.ps1 -FileName 'screenlock.csv' -Path 'C:\TEMP' -AgentName '123456'
 .NOTES
    Version 0.1
-   Author: Vladislav Semko
-   Email: Vladislav.Semko@kaseya.com
+   Author: Proserv Team - VS
 #>
 #region initialization
 
@@ -36,28 +35,6 @@ if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
 [array]$outputArray = @()
 #endregion initialization
-
-#region Get-RegistryValue
-<#
-.Synopsis
-   Returns specified registry as a string
-#>
-function Get-RegistryValue
-{
-    [CmdletBinding()]
-    [OutputType([string])]
-    Param
-    (
-        [Parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()] 
-        [string] $RegKey,
-        [Parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()] 
-        [string] $Name
-    )
-    try { ( Get-ItemProperty -path Registry::$RegKey -name $Name -ErrorAction Stop ).$Name } catch { $null }
-}
-#endregion Get-RegistryValue
 
 #region Convert-Uint8ArrayToString
 <#
@@ -128,7 +105,7 @@ foreach($parameter in $saverParameters)
 
             'LookingUpRegistry'
             {
-                $regSetting = try {Get-RegistryValue -RegKey $RegKey -Name $parameter -ErrorAction Stop } catch { $null }
+                $regSetting = try { ( Get-ItemProperty -Path Registry::$RegKey -Name $parameter -ErrorAction Stop ).$parameter } catch { $null }
 
                 if ( ($null -ne $regSetting) -and ( -Not [string]::IsNullOrEmpty( $regSetting.Trim()) ) )
                 {
@@ -151,11 +128,4 @@ foreach($parameter in $saverParameters)
     #endregion get actual settins
 }
 
-#region output
-if ( 0 -lt $outputArray.Count )
-{
-    
-
-    $outputArray | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation -Force
-}
-#endregion output
+$outputArray | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation -Force

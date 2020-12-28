@@ -6,7 +6,7 @@
 .EXAMPLE
    .\Gather-ScreenLockParams.ps1 -FileName 'screenlock.csv' -Path 'C:\TEMP' -AgentName '123456'
 .NOTES
-   Version 0.1
+   Version 0.2
    Author: Proserv Team - VS
 #>
 #region initialization

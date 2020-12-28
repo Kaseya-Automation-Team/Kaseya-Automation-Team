@@ -48,4 +48,4 @@ $PowerSettings = $ActivePlan.GetRelated("Win32_PowerSettingDataIndex") | ForEach
 if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
 if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
-$PowerSettings | Select-Object AgentGuid, Hostname, PlanName, PowerSource, SettingName, SettingValue, Date  | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation
+$PowerSettings | Select-Object AgentGuid, Hostname, PlanName, PowerSource, SettingName, SettingValue, Date  | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation -Force

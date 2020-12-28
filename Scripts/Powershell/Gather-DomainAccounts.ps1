@@ -41,13 +41,14 @@ if ( $SystemObject.partofdomain )
    [string] $krbtgtSID = (New-Object Security.Principal.NTAccount "$Domain\krbtgt").Translate([Security.Principal.SecurityIdentifier]).Value
    [string] $DomainSID = $krbtgtSID.SubString( 0, $krbtgtSID.LastIndexOf('-') )
    #lookup for the domain profiles' SIDs
-   $DomainAccountSIDs = (Get-ChildItem Registry::$RegKeyPath).PSChildName | Where-Object {$_ -match $DomainSID}
+   $DomainAccountSIDs = (Get-ChildItem -Name Registry::$RegKeyPath).PSChildName | Where-Object {$_ -match $DomainSID}
    Foreach ($SID in $DomainAccountSIDs )
    {
-      $DomainUsers += $( 
+      $UserBySID = $( 
          try {Get-CimInstance -ClassName Win32_UserAccount -Filter "SID like '$SID'" -ComputerName $env:COMPUTERNAME -ErrorAction Stop `
          | Select-Object -Property 'Domain', 'Name', 'Status', 'Disabled', 'SID'} catch {$null} 
       )
+      if ($null -ne $UserBySID) {$DomainUsers += $UserBySID}
    }
 }
 

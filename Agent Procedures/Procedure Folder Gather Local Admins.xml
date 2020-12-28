@@ -2,8 +2,8 @@
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Gather Local Admins" treePres="3">
     <Procedure name="Gather Local Admins" treePres="3" id="614087766" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
-      <Body description="The procedure calls PowerShell script that gathers domain accounts on local computer and saves to a CSV-file&#xA;&#xA;Author: Proserv Team - VS">
-        <Statement description="The procedure calls PowerShell script that gathers domain accounts on local computer&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS" name="GetVariable" continueOnFail="false">
+      <Body description="The procedure calls PowerShell script that gathers members of Administrators group and saves to a CSV-file&#xA;&#xA;Author: Proserv Team - VS">
+        <Statement description="The procedure calls PowerShell script that gathers members of Administrators group&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="path" />

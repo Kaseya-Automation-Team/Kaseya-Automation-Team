@@ -4,7 +4,7 @@
 .DESCRIPTION
    Checks screen lock parameters in applied GPOs and local registry. Log found parameters to a csv-file.
 .EXAMPLE
-   Gather-ScreenLockParams.ps1 -FileName 'screenlock.csv' -Path 'C:\TEMP' -AgentName '123456'
+   .\Gather-ScreenLockParams.ps1 -FileName 'screenlock.csv' -Path 'C:\TEMP' -AgentName '123456'
 .NOTES
    Version 0.1
    Author: Proserv Team - VS
@@ -19,8 +19,10 @@ param (
     [parameter(Mandatory=$true)]
     [string]$Path
  )
-#User GUID to query RSOP
-$userGUID = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value -replace '-', '_'
+
+#User SID to query RSOP
+$LoggedOnUser = $( try {Get-WmiObject -Class Win32_ComputerSystem -ComputerName $env:COMPUTERNAME  -ErrorAction Stop | Select-Object -ExpandProperty Username | Select-Object -First 1 } catch { 'S-1-5-18'} )
+$UserSID = ([System.Security.Principal.NTAccount]$LoggedOnUser).Translate([System.Security.Principal.SecurityIdentifier]).Value  -replace '-', '_'
 
 #The parameters that enable Screen lock: 'ScreenSaveActive', 'ScreenSaveTimeOut' and 'ScreenSaverIsSecure'
 [string[]]$saverParameters = @('ScreenSaveActive', 'ScreenSaveTimeOut', 'ScreenSaverIsSecure')
@@ -90,7 +92,7 @@ foreach($parameter in $saverParameters)
             {
                 $Query = "SELECT registryKey, value, GPOID FROM RSOP_RegistryPolicySetting WHERE Name = '$parameter'"
                 $gpoSetting = try {
-                    Get-WmiObject -Namespace "root\rsop\user\$userGUID" -Query $Query -ErrorAction Stop | Select-Object -Unique } catch { $null }
+                    Get-WmiObject -Namespace "root\rsop\user\$userSID" -Query $Query -ErrorAction Stop | Select-Object -Unique } catch { $null }
 
                 if( $null -ne $gpoSetting)  #GPO setting obtained
                 {

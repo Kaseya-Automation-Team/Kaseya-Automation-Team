@@ -14,17 +14,11 @@
 
 param (
     [parameter(Mandatory=$true)]
-    [string]$AgentName = "",
+    [string]$AgentName,
     [parameter(Mandatory=$true)]
-    [string]$FileName = "",
+    [string]$FileName,
     [parameter(Mandatory=$true)]
-    #[ValidateScript({
-    #if( -Not ($_ | Test-Path) ){
-    #    throw "Provided path does not exist" 
-    #}
-    #return $true
-    #})]
-    [string]$Path = ""
+    [string]$Path
  )
 #User GUID to query RSOP
 $userGUID = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value -replace '-', '_'
@@ -33,12 +27,12 @@ $userGUID = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value -repla
 [string[]]$saverParameters = @('ScreenSaveActive', 'ScreenSaveTimeOut', 'ScreenSaverIsSecure')
 
 #Local Registry key
-[string]$RegKey = 'HKCU:Control Panel\Desktop'
+[string]$RegKey = 'HKCU\Control Panel\Desktop'
 
 $currentDate = Get-Date -UFormat "%m/%d/%Y %T"
 
-#Make sure that the existing output file deleted before collecting the data
-if(Test-Path "$Path\$FileName") {Remove-Item "$Path\$FileName" -Force}
+if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
+if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
 [array]$outputArray = @()
 #endregion initialization
@@ -54,18 +48,14 @@ function Get-RegistryValue
     [OutputType([string])]
     Param
     (
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
+        [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $RegKey,
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=1)]
+        [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $Name
     )
-    try { ( Get-ItemProperty -path $RegKey -name $Name -ErrorAction Stop ).$Name } catch { $null }
+    try { ( Get-ItemProperty -path Registry::$RegKey -name $Name -ErrorAction Stop ).$Name } catch { $null }
 }
 #endregion Get-RegistryValue
 
@@ -80,9 +70,7 @@ function Convert-Uint8ArrayToString
     [OutputType([string])]
     Param
     (
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
+        [Parameter(Mandatory=$true)]
         [Byte[]]
         $InputValue
     )
@@ -166,9 +154,8 @@ foreach($parameter in $saverParameters)
 #region output
 if ( 0 -lt $outputArray.Count )
 {
-    if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
-    if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
+    
 
-    $outputArray | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation
+    $outputArray | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation -Force
 }
 #endregion output

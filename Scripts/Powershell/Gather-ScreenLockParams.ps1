@@ -21,8 +21,19 @@ param (
  )
 
 #User SID to query RSOP
-$LoggedOnUser = $( try {Get-WmiObject -Class Win32_ComputerSystem -ComputerName $env:COMPUTERNAME  -ErrorAction Stop | Select-Object -ExpandProperty Username | Select-Object -First 1 } catch { 'S-1-5-18'} )
-$UserSID = ([System.Security.Principal.NTAccount]$LoggedOnUser).Translate([System.Security.Principal.SecurityIdentifier]).Value  -replace '-', '_'
+$LoggedOnUser = $(
+    try {Get-WmiObject -Class Win32_ComputerSystem -ComputerName $env:COMPUTERNAME  -ErrorAction Stop `
+    | Select-Object -ExpandProperty Username `
+    | Select-Object -First 1 } 
+    catch { $null}
+    )
+
+$UserSID = 'S_1_5_18' #have to use Local System if no logged on users obtained
+
+if ($null -ne $LoggedOnUser) # if there are logged on users
+{
+    $UserSID = ([System.Security.Principal.NTAccount]$LoggedOnUser).Translate([System.Security.Principal.SecurityIdentifier]).Value  -replace '-', '_'
+}
 
 #The parameters that enable Screen lock: 'ScreenSaveActive', 'ScreenSaveTimeOut' and 'ScreenSaverIsSecure'
 [string[]]$saverParameters = @('ScreenSaveActive', 'ScreenSaveTimeOut', 'ScreenSaverIsSecure')
@@ -70,6 +81,7 @@ foreach($parameter in $saverParameters)
     [hashtable]$OutputData = @{
         AgentGuid = $AgentName
         Hostname = $env:COMPUTERNAME
+        UserSID = $UserSID 
         Name = $parameter
         Value = 'Not Set'
         RegistryKey = 'Not Set'
@@ -121,7 +133,7 @@ foreach($parameter in $saverParameters)
 
             'AddingDataToOutput'
             {
-                $outputArray += [pscustomobject]$OutputData | Select-Object AgentGuid, Hostname, Name, Value, RegistryKey, SetBy, Date
+                $outputArray += New-Object PSObject –Property $OutputData | Select-Object AgentGuid, Hostname, UserSID, Name, Value, RegistryKey, SetBy, Date
                 $State = 'Processed'
             }
 

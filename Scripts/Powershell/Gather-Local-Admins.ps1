@@ -47,8 +47,7 @@
    Gets local users only. AD Domain objects are skipped 
 .NOTES
    Version 0.1
-   Author: Vladislav Semko
-   Email: Vladislav.Semko@kaseya.com
+   Author: Proserv Team - VS
 #>
 function Get-LocalAdmins
 {

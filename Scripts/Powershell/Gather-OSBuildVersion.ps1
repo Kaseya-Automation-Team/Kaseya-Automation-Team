@@ -24,12 +24,16 @@ if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
 if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
 [string[]]$Props = @('Caption', 'Version', 'BuildNumber', 'OSArchitecture')
-Get-CimInstance Win32_OperatingSystem -Property $Props | Select-Object $Props | Select-Object -Property `
-@{Name = 'Date'; Expression = {$currentDate }}, `
-@{Name = 'AgentGuid'; Expression = {$AgentName}}, `
-@{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}} , `
-@{Name = 'OSType'; Expression= {$_.Caption}} , `
-@{Name = 'Version'; Expression= {$_.Version}} , `
-@{Name = 'BuildNumber'; Expression= {$_.BuildNumber}} , `
-@{Name = 'OSArchitecture'; Expression= {$_.OSArchitecture}} `
-| Export-Csv -Path "FileSystem::$FileName"-Force -Encoding UTF8 -NoTypeInformation
+$VersionBuild = try {Get-WmiObject Win32_OperatingSystem -Property $Props -ErrorAction Stop } catch {$null}
+if ($null -ne $VersionBuild)
+{
+    $VersionBuild | Select-Object $Props | Select-Object -Property `
+    @{Name = 'Date'; Expression = {$currentDate }}, `
+    @{Name = 'AgentGuid'; Expression = {$AgentName}}, `
+    @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}} , `
+    @{Name = 'OSType'; Expression= {$_.Caption}} , `
+    @{Name = 'Version'; Expression= {$_.Version}} , `
+    @{Name = 'BuildNumber'; Expression= {$_.BuildNumber}} , `
+    @{Name = 'OSArchitecture'; Expression= {$_.OSArchitecture}} `
+    | Export-Csv -Path "FileSystem::$FileName"-Force -Encoding UTF8 -NoTypeInformation
+}

@@ -11,7 +11,7 @@
 .EXAMPLE
    .\Gather-DomainAccounts.ps1 -AgentName '12345' -FileName 'domain_accounts.csv' -Path 'C:\TEMP'
 .NOTES
-   Version 0.1
+   Version 0.2.1
    Author: Proserv Team - VS
 #>
 param (
@@ -31,26 +31,26 @@ if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 [string[]] $DomainAccountSIDs = @()
 [array] $DomainUsers = @()
 
-$SystemObject = try {Get-WmiObject -Class Win32_ComputerSystem -ComputerName $env:COMPUTERNAME} catch {$null}
+$SystemObject = try {Get-WmiObject -Class Win32_ComputerSystem -ComputerName $env:COMPUTERNAME -ErrorAction Stop} catch {$null}
 
 if ( $SystemObject.partofdomain )
 {
    # under ProfileList key there are subkeys for each user in the system. 
    [string] $RegKeyPath = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList'
-   [string] $Domain  = $SystemObject | Select-Object -ExpandProperty Domain
-   [string] $krbtgtSID = (New-Object Security.Principal.NTAccount "$Domain\krbtgt").Translate([Security.Principal.SecurityIdentifier]).Value
-   [string] $DomainSID = $krbtgtSID.SubString( 0, $krbtgtSID.LastIndexOf('-') )
-   #lookup for the domain profiles' SIDs
-   $DomainAccountSIDs = try {(Get-ChildItem -Name Registry::$RegKeyPath -ErrorAction Stop).PSChildName | Where-Object {$_ -match $DomainSID} } catch {$null}
-   if ($null -ne $DomainAccountSIDs)
+   [string] $krbtgtSID = try {Get-WmiObject -Class Win32_UserAccount -Filter "Name='krbtgt' AND LocalAccount='False'" -ComputerName $env:COMPUTERNAME -ErrorAction Stop | Select-Object -ExpandProperty SID } catch {$null}
+   if ($null -ne $krbtgtSID)
    {
-       Foreach ($SID in $DomainAccountSIDs )
+       [string] $DomainSID = $krbtgtSID.SubString( 0, $krbtgtSID.LastIndexOf('-') )
+       #lookup for the domain profiles' SIDs
+       $DomainAccountSIDs = try {(Get-ChildItem -Name Registry::$RegKeyPath -ErrorAction Stop).PSChildName | Where-Object {$_ -match $DomainSID} } catch {$null}
+       if ($null -ne $DomainAccountSIDs)
        {
-          $UserBySID = $( 
-             try {Get-CimInstance -ClassName Win32_UserAccount -Filter "SID like '$SID'" -ComputerName $env:COMPUTERNAME -ErrorAction Stop `
-             | Select-Object -Property 'Domain', 'Name', 'Status', 'Disabled', 'SID'} catch {$null} 
-          )
-          if ($null -ne $UserBySID) {$DomainUsers += $UserBySID}
+           Foreach ($SID in $DomainAccountSIDs )
+           {
+              $UserBySID = try {Get-WmiObject -ClassName Win32_UserAccount -Filter "SID like '$SID'" -ComputerName $env:COMPUTERNAME -ErrorAction Stop `
+                 | Select-Object -Property 'Domain', 'Name', 'Status', 'Disabled', 'SID'} catch {$null} 
+              if ($null -ne $UserBySID) {$DomainUsers += $UserBySID}
+           }
        }
    }
 }

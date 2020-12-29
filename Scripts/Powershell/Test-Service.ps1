@@ -8,15 +8,14 @@
    Checks provided services and accounts
 .NOTES
    Version 0.1
-   Author: Vladislav Semko
-   Email: Vladislav.Semko@kaseya.com
+   Author: Proserv Team - VS
 #>
 #region initialization
 param (
     [parameter(Mandatory=$true)]
-    [string]$AgentName = "",
+    [string]$AgentName,
     [parameter(Mandatory=$true)]
-    [string]$FileName = "",
+    [string]$FileName,
     [parameter(Mandatory=$true)]
     #[ValidateScript({
     #if( -Not ($_ | Test-Path) ){
@@ -43,7 +42,7 @@ $Services = $Services | Select-Object -Unique
 
 #Iterate all the services from the list
 foreach ($service in $Services) {
-    $currentService = try { (Get-WmiObject Win32_Service -Filter "Name = '$service'") } catch { $null }
+    $currentService = try { (Get-WmiObject Win32_Service -Filter "Name = '$service'" -ErrorAction Stop) } catch { $null }
     if ( $null -ne $currentService )
     {
         #Check if the service runs from a correct account

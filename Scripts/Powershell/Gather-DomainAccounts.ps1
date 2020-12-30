@@ -7,7 +7,8 @@
    Users' profile folder and from 
    HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList registry key.
    However, the event log can be overwritten and the user profile folder can be deleted.
-   Therefore, the registry is used
+   Therefore, the registry is used.
+   krbtgt account: https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-accounts#sec-krbtgt
 .EXAMPLE
    .\Gather-DomainAccounts.ps1 -AgentName '12345' -FileName 'domain_accounts.csv' -Path 'C:\TEMP'
 .NOTES
@@ -40,7 +41,7 @@ if ( $SystemObject.partofdomain )
    [string] $Domain  = $SystemObject | Select-Object -ExpandProperty Domain
    [string] $krbtgtSID = (New-Object Security.Principal.NTAccount "$Domain\krbtgt").Translate([Security.Principal.SecurityIdentifier]).Value
    #[string] $krbtgtSID = try {Get-WmiObject -Class Win32_UserAccount -Filter "Name='krbtgt' AND LocalAccount='False'" -ComputerName $env:COMPUTERNAME -ErrorAction Stop | Select-Object -ExpandProperty SID } catch {$null}
-   if ($null -ne $krbtgtSID)
+   if ( -not [string]::IsNullOrEmpty($krbtgtSID) )
    {
        [string] $DomainSID = $krbtgtSID.SubString( 0, $krbtgtSID.LastIndexOf('-') )
        #lookup for the domain profiles' SIDs

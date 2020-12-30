@@ -37,7 +37,9 @@ if ( $SystemObject.partofdomain )
 {
    # under ProfileList key there are subkeys for each user in the system. 
    [string] $RegKeyPath = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList'
-   [string] $krbtgtSID = try {Get-WmiObject -Class Win32_UserAccount -Filter "Name='krbtgt' AND LocalAccount='False'" -ComputerName $env:COMPUTERNAME -ErrorAction Stop | Select-Object -ExpandProperty SID } catch {$null}
+   [string] $Domain  = $SystemObject | Select-Object -ExpandProperty Domain
+   [string] $krbtgtSID = (New-Object Security.Principal.NTAccount "$Domain\krbtgt").Translate([Security.Principal.SecurityIdentifier]).Value
+   #[string] $krbtgtSID = try {Get-WmiObject -Class Win32_UserAccount -Filter "Name='krbtgt' AND LocalAccount='False'" -ComputerName $env:COMPUTERNAME -ErrorAction Stop | Select-Object -ExpandProperty SID } catch {$null}
    if ($null -ne $krbtgtSID)
    {
        [string] $DomainSID = $krbtgtSID.SubString( 0, $krbtgtSID.LastIndexOf('-') )

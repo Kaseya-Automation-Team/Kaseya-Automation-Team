@@ -5,17 +5,17 @@
       <Statement description="The procedure calls powershell script that iterates privileged domain groups and check if they contain only provided accounts. In case of deficiency an alert is sent&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Version 0.1&#xD;&#xA;Set list of eligible domain admins as a comma-separated list of values in double quotes." name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;Administrator&quot;" />
-        <Parameter xsi:type="StringParameter" name="VariableName" value="domain_admins" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="dom_admins" />
       </Statement>
-      <Statement description="Set list of eligible enterprise admins as a comma-separated list of values in double quotes or leave it blank if there must be no members." name="GetVariable" continueOnFail="false">
+      <Statement description="Set list of eligible enterprise admins as a comma-separated list of values in double quotes." name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value=" " />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ent_admins" />
+      </Statement>
+      <Statement description="Set list of eligible schema admins as a comma-separated list of values in double quotes." name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;Administrator&quot;" />
-        <Parameter xsi:type="StringParameter" name="VariableName" value="enterprise_admins" />
-      </Statement>
-      <Statement description="Set list of eligible schema admins as a comma-separated list of values in double quotes  or leave it blank if there must be no members" name="GetVariable" continueOnFail="false">
-        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-        <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;Administrator&quot;" />
-        <Parameter xsi:type="StringParameter" name="VariableName" value=" schema_admins" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="sch_admins" />
       </Statement>
       <Statement description="Get local path" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
@@ -67,7 +67,7 @@
             <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
           </Statement>
           <Statement description="Run Powershell script with required parameters and arguments" name="ExecuteShellCommand" continueOnFail="false">
-            <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -AgentName #vAgentConfiguration.agentGuid# -Path #path# -FileName #output_file# -EligibleEnterpriseAdmins #enterprise_admins# -EligibleSchemaAdmins # schema_admins# -EligibleDomainAdmins #domain_admins#" />
+            <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -AgentName #vAgentConfiguration.agentGuid# -Path #path# -FileName #output_file# -EligibleEnterpriseAdmins #ent_admins# -EligibleSchemaAdmins #sch_admins# -EligibleDomainAdmins #dom_admins#" />
             <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
             <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
           </Statement>

@@ -2,13 +2,13 @@
 .Synopsis
    Saves privileged domain groups' member discrepancy information to a file
 .DESCRIPTION
-   Iterates privileged groups and check if they contain only provided accounts. Log found discrepancies to a file.
+   Iterates privileged AD groups and check if they contain only provided accounts. Log found discrepancies to a file.
 .EXAMPLE
    Test-PrivilegedGroups -FileName 'deficient_groups.txt' -Path 'C:\TEMP' -AgentName '123456' -EligibleEnterpriseAdmins 'user1', 'user2' -EligibleSchemaAdmins 'user1', 'user2' -EligibleDomainAdmins 'user1', 'user2'
    Checks provided group members for discrepancies
 .NOTES
    https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/security-identifiers-in-windows
-   Run on domain controller
+   Run on a domain controller
    Version 0.1
    Author: Proserv Team - VS
 #>

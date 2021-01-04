@@ -35,9 +35,9 @@ param (
 if ($EligibleEnterpriseAdmins.Contains("_empty_")) {$EligibleEnterpriseAdmins = @()}
 if ($EligibleSchemaAdmins.Contains("_empty_")) {$EligibleSchemaAdmins = @()}
 
-$EligibleDomainAdmins = $EligibleDomainAdmins | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
-$EligibleSchemaAdmins = $EligibleSchemaAdmins | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
-$EligibleEnterpriseAdmins = $EligibleEnterpriseAdmins | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+#$EligibleDomainAdmins = $EligibleDomainAdmins | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+#$EligibleSchemaAdmins = $EligibleSchemaAdmins | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+#$EligibleEnterpriseAdmins = $EligibleEnterpriseAdmins | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
 
 if ( $FileName -notmatch '\.txt$') { $FileName += '.txt' }
 if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }

@@ -45,6 +45,8 @@ if (Test-Path $FileName) {
 [string[]]$Discrepancies = @()
 [string]$DomainSID = (Get-ADDomain).DomainSID.Value
 
+[string]$Delimiter = "`r`n"
+
 #Match well known SIDs with eligible members
  [hashtable]$EligibleMembers = @{
 "$DomainSID-519" = $EligibleEnterpriseAdmins
@@ -68,5 +70,5 @@ $EligibleMembers.Keys | ForEach-Object {
 }
 if (0 -lt $Discrepancies.Count)
 {
-    $Discrepancies -join "`n" | Out-File -FilePath $FileName -Encoding utf8 -Force
+    $Discrepancies -join $Delimiter | Out-File -FilePath $FileName -Encoding utf8 -Force
 }

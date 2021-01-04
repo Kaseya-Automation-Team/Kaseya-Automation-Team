@@ -32,7 +32,7 @@ param (
     [string[]]$EligibleDomainAdmins
  )
 
-if ($EligibleDomainAdmins.Contains("_empty_")) {$EligibleDomainAdmins = @()}
+if ($EligibleEnterpriseAdmins.Contains("_empty_")) {$EligibleEnterpriseAdmins = @()}
 if ($EligibleSchemaAdmins.Contains("_empty_")) {$EligibleSchemaAdmins = @()}
 
 $EligibleDomainAdmins = $EligibleDomainAdmins | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }

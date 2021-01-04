@@ -74,5 +74,7 @@ $EligibleMembers.Keys | ForEach-Object {
 }
 if (0 -lt $Discrepancies.Count)
 {
-    $Discrepancies -join $Delimiter | Out-File -FilePath $FileName -Encoding utf8 -Force
+    #$Discrepancies -join $Delimiter | Out-File -FilePath $FileName -Encoding utf8 -Force
+    $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+    [System.IO.File]::WriteAllLines($FileName, $($Discrepancies -join $Delimiter), $Utf8NoBomEncoding)
 }

@@ -42,13 +42,16 @@ if (Test-Path $FileName) {
   Remove-Item -Path $FileName -Force -Confirm:$false
 }
 
-[string[]]$Message = @()
+[string[]]$Discrepancies = @()
+[string]$DomainSID = (Get-ADDomain).DomainSID.Value
 
+#Match well known SIDs with eligible members
  [hashtable]$EligibleMembers = @{
-"$((Get-ADDomain).DomainSID.Value)-519" = $EligibleEnterpriseAdmins
-"$((Get-ADDomain).DomainSID.Value)-518" = $EligibleSchemaAdmins
-"$((Get-ADDomain).DomainSID.Value)-512" = $EligibleDomainAdmins
+"$DomainSID-519" = $EligibleEnterpriseAdmins
+"$DomainSID-518" = $EligibleSchemaAdmins
+"$DomainSID-512" = $EligibleDomainAdmins
 }
+#endregion initialization
 
 $EligibleMembers.Keys | ForEach-Object {
     $ActualGroupMembers = Get-ADGroupMember -Identity $_ | Select-Object -ExpandProperty SamAccountName
@@ -59,11 +62,11 @@ $EligibleMembers.Keys | ForEach-Object {
         $Missing = ($ComparsionResult | Where-Object { '<=' -eq $_.SideIndicator } | Foreach-Object { $_.InputObject }) -join ', '
         $Added   = ($ComparsionResult | Where-Object { '=>' -eq $_.SideIndicator } | Foreach-Object { $_.InputObject }) -join ', '
         
-        if ($null -ne $Missing) {$Message += "$TheGroup`: Members missing: $Missing"}
-        if ($null -ne $Added)   {$Message += "$TheGroup`: Members added: $Added"}
+        if ($null -ne $Missing) {$Discrepancies += "$TheGroup`: Members missing: $Missing"}
+        if ($null -ne $Added)   {$Discrepancies += "$TheGroup`: Members added: $Added"}
     }
 }
-if (0 -lt $Message.Count)
+if (0 -lt $Discrepancies.Count)
 {
-    $Message -join "`n" | Out-File -FilePath $FileName -Encoding utf8 -Force
+    $Discrepancies -join "`n" | Out-File -FilePath $FileName -Encoding utf8 -Force
 }

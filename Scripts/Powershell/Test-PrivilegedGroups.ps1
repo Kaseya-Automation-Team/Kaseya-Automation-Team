@@ -8,6 +8,7 @@
    Checks provided group members for discrepancies
 .NOTES
    https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/security-identifiers-in-windows
+   Reserved word "_empty_" for a group that has no eligible members
    Run on a domain controller
    Version 0.1
    Author: Proserv Team - VS
@@ -31,8 +32,9 @@ param (
     [string[]]$EligibleDomainAdmins
  )
 
-#if ($EligibleDomainAdmins.Contains("_empty_")) {$EligibleDomainAdmins = @()}
-#if ($EligibleSchemaAdmins.Contains("_empty_")) {$EligibleSchemaAdmins = @()}
+if ($EligibleDomainAdmins.Contains("_empty_")) {$EligibleDomainAdmins = @()}
+if ($EligibleSchemaAdmins.Contains("_empty_")) {$EligibleSchemaAdmins = @()}
+
 $EligibleDomainAdmins = $EligibleDomainAdmins | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
 $EligibleSchemaAdmins = $EligibleSchemaAdmins | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
 $EligibleEnterpriseAdmins = $EligibleEnterpriseAdmins | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }

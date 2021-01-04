@@ -7,14 +7,14 @@
         <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;Administrator&quot;" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="dom_admins" />
       </Statement>
-      <Statement description="Set list of eligible enterprise admins as a comma-separated list of values in double quotes." name="GetVariable" continueOnFail="false">
+      <Statement description="Set list of eligible enterprise admins as a comma-separated list of values in double quotes. Put &quot;_empty_&quot; if the group should have no members." name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-        <Parameter xsi:type="StringParameter" name="SourceContent" value=" " />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;_empty_&quot;" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="ent_admins" />
       </Statement>
-      <Statement description="Set list of eligible schema admins as a comma-separated list of values in double quotes." name="GetVariable" continueOnFail="false">
+      <Statement description="Set list of eligible schema admins as a comma-separated list of values in double quotes. Put &quot;_empty_&quot; if the group should have no members." name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-        <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;Administrator&quot;" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;_empty_&quot;" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="sch_admins" />
       </Statement>
       <Statement description="Get local path" name="GetVariable" continueOnFail="false">
@@ -42,11 +42,11 @@
         <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
         <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
       </Statement>
-      <If description="Check if the machine is a domain controller. Get-WmiObject  -Class Win32_ComputerSystem returns 4 or 5 if the computer is a domain controller.">
+      <If description="Check if the machine is a domain controller.&#xD;&#xA;Get-WmiObject  -Class Win32_ComputerSystem returns 5 for the PDC emulator, 4 for the rest domain controllers.&#xD;&#xA;Since FSMO roles aren't automatically relocated during the shutdown process, please make sure that the PDC is online.">
         <Condition name="CheckVariable">
           <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
-          <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThanOrEquals" />
-          <Parameter xsi:type="StringParameter" name="Value" value="4" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="5" />
         </Condition>
         <Then>
           <If description="">
@@ -66,34 +66,42 @@
             <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ps_script_path_name#" />
             <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
           </Statement>
-          <Statement description="Run Powershell script with required parameters and arguments" name="ExecuteShellCommand" continueOnFail="false">
+          <Statement description="Run Powershell script with required parameters and arguments." name="ExecuteShellCommand" continueOnFail="false">
             <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -AgentName #vAgentConfiguration.agentGuid# -Path #path# -FileName #output_file# -EligibleEnterpriseAdmins #ent_admins# -EligibleSchemaAdmins #sch_admins# -EligibleDomainAdmins #dom_admins#" />
             <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
             <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
           </Statement>
-          <If description="check if deficiencies were found">
+          <If description="check if deficiencies were found.">
             <Condition name="TestFile">
               <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
               <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
               <Parameter xsi:type="StringParameter" name="Value" value="" />
             </Condition>
             <Then>
-              <Statement description="Deficiency detected. Generate alert" name="GetVariable" continueOnFail="false">
+              <Statement description="Deficiency detected. Generate alert." name="GetVariable" continueOnFail="false">
                 <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
                 <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#output_file#" />
-                <Parameter xsi:type="StringParameter" name="VariableName" value="outcome" />
+                <Parameter xsi:type="StringParameter" name="VariableName" value="discrepancy" />
+              </Statement>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="#discrepancy#" />
               </Statement>
               <Statement name="GetVariable" continueOnFail="false">
                 <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-                <Parameter xsi:type="StringParameter" name="SourceContent" value="Privileged group deficiency detected on machine &lt;&lt;id&gt;&gt;" />
+                <Parameter xsi:type="StringParameter" name="SourceContent" value="Privileged group deficiency detected" />
                 <Parameter xsi:type="StringParameter" name="VariableName" value="alertSubject" />
               </Statement>
               <Statement name="GetVariable" continueOnFail="false">
                 <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-                <Parameter xsi:type="StringParameter" name="SourceContent" value="Privileged group deficiency detected &lt;&lt;apn&gt;&gt; on machine &lt;&lt;id&gt;&gt; at &lt;&lt;ata&gt;&gt;. Detailed information: #outcome#" />
+                <Parameter xsi:type="StringParameter" name="SourceContent" value="Privileged group deficiency detected &lt;&lt;apn&gt;&gt; on PDC &lt;&lt;id&gt;&gt; at &lt;&lt;ata&gt;&gt;. Detailed information: #discrepancy#" />
                 <Parameter xsi:type="StringParameter" name="VariableName" value="alertBody" />
               </Statement>
               <Statement name="SendAlert" continueOnFail="false" />
+              <Statement description="Put actual Email addresses" name="SendEmail" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="To" value="name@company.com" />
+                <Parameter xsi:type="StringParameter" name="Subject" value="Privileged group deficiency detected" />
+                <Parameter xsi:type="MultiLineStringParameter" name="Body" value="#discrepancy#" />
+              </Statement>
             </Then>
           </If>
         </Then>

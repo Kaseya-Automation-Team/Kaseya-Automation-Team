@@ -21,4 +21,4 @@ $DownloadTo = "\\W2012R2-T1\Software"
 [xml]$xmlConfig = Get-Content -Path $ConfigFile
 $xmlConfig.Configuration.Add.SourcePath = $DownloadTo
 $xmlConfig.Save($ConfigFile)
-& .\install.cmd
+#& .\install.cmd

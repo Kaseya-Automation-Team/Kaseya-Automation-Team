@@ -20,6 +20,10 @@ param (
     [string]$OfficeEdition
 )
 
+[string]$WorkDir = Split-Path $($MyInvocation.MyCommand.Path) -Parent
+
+[string]$FilePath = Join-Path -Path $WorkDir -ChildPath "install.cmd"
+
 #region creating the batch file
 @"
 @echo off
@@ -32,9 +36,10 @@ exit /B
 :LOG
 setup.exe /download Config.xml
 setup.exe /configure Config.xml
-"@ | Out-File -FilePath "install.cmd" -Force -Encoding utf8
+"@ | Out-File -FilePath $FilePath -Force -Encoding utf8
 #endregion creating the batch file
 
+$FilePath = Join-Path -Path $WorkDir -ChildPath "Config.xml"
 #region creating the config file
 @"
 <Configuration>
@@ -47,5 +52,5 @@ setup.exe /configure Config.xml
   <Display Level="None" AcceptEULA="TRUE" />
   <Property Name="AUTOACTIVATE" Value="0" />
 </Configuration>
-"@ -f @($DownloadTo, $BitVersion, $OfficeEdition) | Out-File -FilePath "Config.xml" -Force -Encoding utf8
+"@ -f @($DownloadTo, $BitVersion, $OfficeEdition) | Out-File -FilePath $FilePath -Force -Encoding utf8
 #endregion creating the batch file

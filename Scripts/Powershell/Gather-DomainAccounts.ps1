@@ -11,6 +11,7 @@
    krbtgt account: https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-accounts#sec-krbtgt
 .EXAMPLE
    .\Gather-DomainAccounts.ps1 -AgentName '12345' -FileName 'domain_accounts.csv' -Path 'C:\TEMP'
+   .\Gather-DomainAccounts.ps1 -AgentName '12345' -FileName 'domain_accounts.csv' -Path 'C:\TEMP' -LogIt 1
 .NOTES
    Version 0.2.2
    Author: Proserv Team - VS
@@ -21,8 +22,21 @@ param (
     [parameter(Mandatory=$true)]
     [string] $FileName,
     [parameter(Mandatory=$true)]
-    [string] $Path
+    [string] $Path,
+    [parameter(Mandatory=$false)]
+    [int] $LogIt = 0
 )
+
+[string]$Pref = 'Continue'
+if (1 -eq $LogIt)
+{
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    $ScriptName = [io.path]::GetFileNameWithoutExtension( $($MyInvocation.MyCommand.Name) )
+    $LogFile = "$path\$ScriptName.log"
+    Start-Transcript -Path $LogFile
+}
 
 $currentDate = Get-Date -UFormat "%m/%d/%Y %T"
 
@@ -71,3 +85,12 @@ $DomainUsers | Select-Object -Property `
    @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `
    @{Name = 'AgentGuid'; Expression = {$AgentName}}, `
 * | Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation
+
+if (1 -eq $LogIt)
+{
+    $Pref = 'SilentlyContinue'
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    Stop-Transcript
+}

@@ -12,7 +12,7 @@
 .EXAMPLE
    .\Gather-DomainAccounts.ps1 -AgentName '12345' -FileName 'domain_accounts.csv' -Path 'C:\TEMP'
 .NOTES
-   Version 0.2.1
+   Version 0.2.2
    Author: Proserv Team - VS
 #>
 param (
@@ -32,9 +32,9 @@ if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 [string[]] $DomainAccountSIDs = @()
 [array] $DomainUsers = @()
 
-$SystemObject = try {Get-WmiObject -Class Win32_ComputerSystem -ComputerName $env:COMPUTERNAME -ErrorAction Stop} catch {$null}
+$Domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain() | Select-Object -ExpandProperty Name
 
-if ( $SystemObject.partofdomain )
+if ( $null -ne $Domain )
 {
    # under ProfileList key there are subkeys for each user in the system. 
    [string] $RegKeyPath = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList'
@@ -50,8 +50,16 @@ if ( $SystemObject.partofdomain )
        {
            Foreach ($SID in $DomainAccountSIDs )
            {
-              $UserBySID = try {Get-WmiObject -ClassName Win32_UserAccount -Filter "SID like '$SID'" -ComputerName $env:COMPUTERNAME -ErrorAction Stop `
-                 | Select-Object -Property 'Domain', 'Name', 'Status', 'Disabled', 'SID'} catch {$null} 
+                $Account = New-Object Security.Principal.SecurityIdentifier("$SID")
+                $NetbiosName = $Account.Translate([Security.Principal.NTAccount]) | Select-Object -ExpandProperty Value
+                $UserBySID = New-Object PSObject -Property @{
+                    Domain = $Domain
+                    SID = $SID
+                    Name = ($NetbiosName -split '\\')[-1]
+                }
+
+              #$UserBySID = try {Get-WmiObject -ClassName Win32_UserAccount -Filter "SID like '$SID'" -ComputerName $env:COMPUTERNAME -ErrorAction Stop `
+              #   | Select-Object -Property 'Domain', 'Name', 'Status', 'Disabled', 'SID'} catch {$null} 
               if ($null -ne $UserBySID) {$DomainUsers += $UserBySID}
            }
        }

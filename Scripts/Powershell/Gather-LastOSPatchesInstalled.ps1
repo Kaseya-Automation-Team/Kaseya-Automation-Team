@@ -26,12 +26,12 @@ param (
 if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
 if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
-[string] $LastBootUp = "{0:dd'/'MM'/'yyyy H:mm:ss}" -f [System.Management.ManagementDateTimeConverter]::ToDateTime($(Get-WmiObject -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty LastBootUpTime))
+[string] $LastBootUp = "{0:MM'/'dd'/'yyyy H:mm:ss}" -f [System.Management.ManagementDateTimeConverter]::ToDateTime($(Get-WmiObject -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty LastBootUpTime))
 
 Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object HotFixID, InstalledOn -First $Top | Select-Object -Property `
 @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `
 @{Name = 'AgentGuid'; Expression = {$AgentName}}, `
 @{Name = 'PatchName'; Expression = {$_.HotFixID}}, `
-@{Name = 'InstallData'; Expression = {"{0:dd'/'MM'/'yyyy}" -f $_.InstalledOn}}, `
+@{Name = 'InstallData'; Expression = {"{0:MM'/'dd'/'yyyy}" -f $_.InstalledOn}}, `
 @{Name = 'LastBootTime'; Expression = {$LastBootUp}} `
 | Export-Csv -Path "FileSystem::$FileName"-Force -Encoding UTF8 -NoTypeInformation

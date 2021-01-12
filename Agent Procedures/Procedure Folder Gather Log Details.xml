@@ -8,12 +8,12 @@
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
         </Statement>
-        <Statement name="GetVariable" continueOnFail="false">
+        <Statement description="Specify name of output file here" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="logdetails.csv" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="filename" />
         </Statement>
-        <Statement name="GetVariable" continueOnFail="false">
+        <Statement description="Set 1 to enable debug output to text file or leave 0 for quite mode" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="debug" />

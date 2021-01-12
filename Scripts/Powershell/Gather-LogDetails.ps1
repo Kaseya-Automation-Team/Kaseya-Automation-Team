@@ -60,7 +60,7 @@ ForEach ($Log in $Logs) {
     Write-Debug ($Log.Lastmodified|Out-String)
     Write-Debug ($date|Out-String)
 
-    $date = Get-Date $date -Format 'MM-dd-yyyy hh:mm:ss:ms'
+    $date = Get-Date $date -Format 'MM-dd-yyyy HH:mm:ss:ms'
     $date = $date -replace "-", "/"
 
 

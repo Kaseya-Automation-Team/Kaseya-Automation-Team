@@ -5,8 +5,9 @@
    Checks screen lock parameters in applied GPOs and local registry. Log found parameters to a csv-file.
 .EXAMPLE
    .\Gather-ScreenLockParams.ps1 -FileName 'screenlock.csv' -Path 'C:\TEMP' -AgentName '123456'
+   .\Gather-ScreenLockParams.ps1 -FileName 'screenlock.csv' -Path 'C:\TEMP' -AgentName '123456' -LogIt 1
 .NOTES
-   Version 0.2
+   Version 0.2.1
    Author: Proserv Team - VS
 #>
 #region initialization
@@ -17,8 +18,21 @@ param (
     [parameter(Mandatory=$true)]
     [string]$FileName,
     [parameter(Mandatory=$true)]
-    [string]$Path
- )
+    [string]$Path,
+    [parameter(Mandatory=$false)]
+    [int] $LogIt = 0
+)
+
+[string]$Pref = 'Continue'
+if (1 -eq $LogIt)
+{
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    $ScriptName = [io.path]::GetFileNameWithoutExtension( $($MyInvocation.MyCommand.Name) )
+    $LogFile = "$path\$ScriptName.log"
+    Start-Transcript -Path $LogFile
+}
 
 #User SID to query RSOP
 $LoggedOnUser = $(
@@ -143,3 +157,12 @@ foreach($parameter in $saverParameters)
 }
 
 $outputArray | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation -Force
+
+if (1 -eq $LogIt)
+{
+    $Pref = 'SilentlyContinue'
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    Stop-Transcript
+}

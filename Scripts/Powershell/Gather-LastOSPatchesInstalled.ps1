@@ -26,7 +26,8 @@ param (
 if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
 if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
-[string] $LastBootUp = "{0:MM'/'dd'/'yyyy H:mm:ss}" -f [System.Management.ManagementDateTimeConverter]::ToDateTime($(Get-WmiObject -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty LastBootUpTime))
+#[string] $LastBootUp = "{0:MM'/'dd'/'yyyy H:mm:ss}" -f [System.Management.ManagementDateTimeConverter]::ToDateTime($(Get-WmiObject -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty LastBootUpTime))
+[string] $LastBootUp = "{0:MM'/'dd'/'yyyy H:mm:ss}" -f (Get-Date).AddMilliseconds( -([System.Environment]::TickCount) )
 
 Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object HotFixID, InstalledOn -First $Top | Select-Object -Property `
 @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `

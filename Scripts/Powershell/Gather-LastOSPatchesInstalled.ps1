@@ -7,8 +7,10 @@
    .\Gather-LastOSPatchesInstalled.ps1 -FileName 'latest_os_patches.csv' -Path 'C:\TEMP' -AgentName '123456'
 .EXAMPLE
     .\Gather-LastOSPatchesInstalled.ps1 -FileName 'latest_os_patches.csv' -Path 'C:\TEMP' -AgentName '123456' -Top 10
+.EXAMPLE
+    .\Gather-LastOSPatchesInstalled.ps1 -FileName 'latest_os_patches.csv' -Path 'C:\TEMP' -AgentName '123456' -Top 10 -LogIt 1
 .NOTES
-   Version 0.1
+   Version 0.1.2
    Author: Proserv Team - VS
 #>
 
@@ -20,8 +22,23 @@ param (
     [parameter(Mandatory=$true)]
     [string]$Path,
     [parameter(Mandatory=$false)]
-    [int]$Top = 3
- )
+    [int]$Top = 3,
+    [parameter(Mandatory=$false)]
+    [int] $LogIt = 0
+)
+
+#region check/start transcript
+[string]$Pref = 'Continue'
+if (1 -eq $LogIt)
+{
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    $ScriptName = [io.path]::GetFileNameWithoutExtension( $($MyInvocation.MyCommand.Name) )
+    $LogFile = "$path\$ScriptName.log"
+    Start-Transcript -Path $LogFile
+}
+#endregion check/start transcript
 
 if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
 if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
@@ -36,3 +53,14 @@ Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object HotFixID, Insta
 @{Name = 'InstallData'; Expression = {"{0:MM'/'dd'/'yyyy}" -f $_.InstalledOn}}, `
 @{Name = 'LastBootTime'; Expression = {$LastBootUp}} `
 | Export-Csv -Path "FileSystem::$FileName"-Force -Encoding UTF8 -NoTypeInformation
+
+#region check/stop transcript
+if (1 -eq $LogIt)
+{
+    $Pref = 'SilentlyContinue'
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    Stop-Transcript
+}
+#endregion check/stop transcript

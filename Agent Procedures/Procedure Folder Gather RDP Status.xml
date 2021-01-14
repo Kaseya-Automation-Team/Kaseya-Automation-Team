@@ -3,7 +3,7 @@
   <Folder name="Gather RDP Status" treePres="3">
     <Procedure name="Gather RDP Status" treePres="3" id="1050474107" folderId="643874834312067" treeFullPath="myProcedures - admin.Kaiser.Gather RDP Status">
       <Body description="This procedure gathers RDP enablement status and also checks if Bombar Jump Client software is installed on the machine. Exports gathered info to CSV file.">
-        <Statement description="This procedure gathers RDP enablement status and also checks if Bombar Jump Client software is installed on the machine. Exports gathered info to CSV file&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - AS&#xD;&#xA;Set the Working Directory Secure Folder to variable" name="GetVariable" continueOnFail="false" osType="Windows">
+        <Statement description="This procedure gathers RDP enablement status and also checks if Bombar Jump Client software is installed on the machine. Exports gathered info to CSV file&#xD;&#xA;Version: 0.3&#xD;&#xA;Author: Proserv Team - AS&#xD;&#xA;Set the Working Directory Secure Folder to variable" name="GetVariable" continueOnFail="false" osType="Windows">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />

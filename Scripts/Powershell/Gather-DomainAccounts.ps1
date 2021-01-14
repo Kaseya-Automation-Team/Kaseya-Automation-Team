@@ -11,6 +11,7 @@
    krbtgt account: https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-accounts#sec-krbtgt
 .EXAMPLE
    .\Gather-DomainAccounts.ps1 -AgentName '12345' -FileName 'domain_accounts.csv' -Path 'C:\TEMP'
+.EXAMPLE
    .\Gather-DomainAccounts.ps1 -AgentName '12345' -FileName 'domain_accounts.csv' -Path 'C:\TEMP' -LogIt 1
 .NOTES
    Version 0.2.2
@@ -27,8 +28,9 @@ param (
     [int] $LogIt = 0
 )
 
+#region check/start transcript
 [string]$Pref = 'Continue'
-if (1 -eq $LogIt)
+if ( 1 -eq $LogIt )
 {
     $DebugPreference = $Pref
     $VerbosePreference = $Pref
@@ -37,6 +39,7 @@ if (1 -eq $LogIt)
     $LogFile = "$path\$ScriptName.log"
     Start-Transcript -Path $LogFile
 }
+#endregion check/start transcript
 
 $currentDate = Get-Date -UFormat "%m/%d/%Y %T"
 
@@ -46,47 +49,73 @@ if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 [string[]] $DomainAccountSIDs = @()
 [array] $DomainUsers = @()
 
-$Domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain() | Select-Object -ExpandProperty Name
-
-if ( $null -ne $Domain )
+[string]$Domain = try {
+    [System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain() | Select-Object -ExpandProperty Name
+}
+catch
 {
-   # under ProfileList key there are subkeys for each user in the system. 
-   [string] $RegKeyPath = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList'
-   [string] $Domain  = $SystemObject | Select-Object -ExpandProperty Domain
-   [string] $krbtgtSID = (New-Object Security.Principal.NTAccount "$Domain\krbtgt").Translate([Security.Principal.SecurityIdentifier]).Value
-   #[string] $krbtgtSID = try {Get-WmiObject -Class Win32_UserAccount -Filter "Name='krbtgt' AND LocalAccount='False'" -ComputerName $env:COMPUTERNAME -ErrorAction Stop | Select-Object -ExpandProperty SID } catch {$null}
-   if ( -not [string]::IsNullOrEmpty($krbtgtSID) )
-   {
-       [string] $DomainSID = $krbtgtSID.SubString( 0, $krbtgtSID.LastIndexOf('-') )
-       #lookup for the domain profiles' SIDs
-       $DomainAccountSIDs = try {(Get-ChildItem -Name Registry::$RegKeyPath -ErrorAction Stop).PSChildName | Where-Object {$_ -match $DomainSID} } catch {$null}
-       if ($null -ne $DomainAccountSIDs)
-       {
-           Foreach ($SID in $DomainAccountSIDs )
-           {
+    $_.Exception.Message
+}
+
+if ( $Domain -notmatch 'Exception' )
+{
+    # under the ProfileList key there are subkeys for each user in the system. 
+    [string] $RegKeyPath = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList'
+
+    #The krbtgt user exists in every domain. It cannot be renamed
+    [string] $krbtgtSID = try { (New-Object Security.Principal.NTAccount "$Domain\krbtgt").Translate([Security.Principal.SecurityIdentifier]).Value } catch {$null}
+    if ( -not [string]::IsNullOrEmpty($krbtgtSID) )
+    {
+        [string] $DomainSID = $krbtgtSID.SubString( 0, $krbtgtSID.LastIndexOf('-') )
+
+        #scan the registry for the domain profiles' SIDs
+        $DomainAccountSIDs = try {
+            (Get-ChildItem -Name Registry::$RegKeyPath -ErrorAction Stop).PSChildName | Where-Object { $_ -match $DomainSID }
+        }
+        catch {$null}
+        
+        if ( 0 -ne $DomainAccountSIDs.Length )
+        {
+            Foreach ( $SID in $DomainAccountSIDs )
+            {
                 $Account = New-Object Security.Principal.SecurityIdentifier("$SID")
-                $NetbiosName = $Account.Translate([Security.Principal.NTAccount]) | Select-Object -ExpandProperty Value
-                $UserBySID = New-Object PSObject -Property @{
-                    Domain = $Domain
-                    SID = $SID
-                    Name = ($NetbiosName -split '\\')[-1]
+                $NetbiosName = $(  try { $Account.Translate([Security.Principal.NTAccount]) | Select-Object -ExpandProperty Value } catch { $_.Exception.Message } )
+
+                if ( $NetbiosName -notmatch 'Exception' )
+                {
+                    $UserBySID = New-Object PSObject -Property @{
+                        Domain = $Domain
+                        SID = $SID
+                        Name = ($NetbiosName -split '\\')[-1]
+                    }
+                
+                    $DomainUsers += $UserBySID
+                }
+            }
+        }
+    }
+}
+
+#Gather empty user if no domain users found
+if ( 0 -eq $DomainUsers.Length )
+{
+    $EmptyUser = New-Object PSObject -Property @{
+                    Domain = $Domain;
+                    SID = 'NULL'
+                    Name = 'NULL'
                 }
 
-              #$UserBySID = try {Get-WmiObject -ClassName Win32_UserAccount -Filter "SID like '$SID'" -ComputerName $env:COMPUTERNAME -ErrorAction Stop `
-              #   | Select-Object -Property 'Domain', 'Name', 'Status', 'Disabled', 'SID'} catch {$null} 
-              if ($null -ne $UserBySID) {$DomainUsers += $UserBySID}
-           }
-       }
-   }
+    $DomainUsers += $EmptyUser
 }
 
 $DomainUsers | Select-Object -Property `
-   @{Name = 'Date'; Expression = {$currentDate }}, `
-   @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `
-   @{Name = 'AgentGuid'; Expression = {$AgentName}}, `
+    @{Name = 'Date'; Expression = {$currentDate }}, `
+    @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `
+    @{Name = 'AgentGuid'; Expression = {$AgentName}}, `
 * | Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation
 
-if (1 -eq $LogIt)
+#region check/stop transcript
+if ( 1 -eq $LogIt )
 {
     $Pref = 'SilentlyContinue'
     $DebugPreference = $Pref
@@ -94,3 +123,4 @@ if (1 -eq $LogIt)
     $InformationPreference = $Pref
     Stop-Transcript
 }
+#endregion check/stop transcript

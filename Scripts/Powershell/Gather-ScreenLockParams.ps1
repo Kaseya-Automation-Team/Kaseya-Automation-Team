@@ -5,6 +5,7 @@
    Checks screen lock parameters in applied GPOs and local registry. Log found parameters to a csv-file.
 .EXAMPLE
    .\Gather-ScreenLockParams.ps1 -FileName 'screenlock.csv' -Path 'C:\TEMP' -AgentName '123456'
+.EXAMPLE
    .\Gather-ScreenLockParams.ps1 -FileName 'screenlock.csv' -Path 'C:\TEMP' -AgentName '123456' -LogIt 1
 .NOTES
    Version 0.2.1
@@ -23,6 +24,7 @@ param (
     [int] $LogIt = 0
 )
 
+#region check/start transcript
 [string]$Pref = 'Continue'
 if (1 -eq $LogIt)
 {
@@ -33,6 +35,7 @@ if (1 -eq $LogIt)
     $LogFile = "$path\$ScriptName.log"
     Start-Transcript -Path $LogFile
 }
+#endregion check/start transcript
 
 #User SID to query RSOP
 $LoggedOnUser = $(
@@ -40,14 +43,18 @@ $LoggedOnUser = $(
     | Select-Object -ExpandProperty Username `
     | Select-Object -First 1 } 
     catch { $null}
-    )
+)
 
-$UserSID = 'S_1_5_18' #have to use Local System if no logged on users obtained
+#have to use Local System if no logged on users obtained
+[string]$UserSID = 'S-1-5-18'
 
 if ($null -ne $LoggedOnUser) # if there are logged on users
 {
-    $UserSID = ([System.Security.Principal.NTAccount]$LoggedOnUser).Translate([System.Security.Principal.SecurityIdentifier]).Value  -replace '-', '_'
+    $UserSID = ([System.Security.Principal.NTAccount]$LoggedOnUser).Translate([System.Security.Principal.SecurityIdentifier]).Value
 }
+
+#To query resultant set of GPOs for the user the user's SID has to be modified
+[string]$UserNameSpace = $UserSID -replace '-', '_'
 
 #The parameters that enable Screen lock: 'ScreenSaveActive', 'ScreenSaveTimeOut' and 'ScreenSaverIsSecure'
 [string[]]$saverParameters = @('ScreenSaveActive', 'ScreenSaveTimeOut', 'ScreenSaverIsSecure')
@@ -92,10 +99,13 @@ Since GPOs override local registry settings
 
 foreach($parameter in $saverParameters)
 {
+    $Account = New-Object Security.Principal.SecurityIdentifier("$UserSID")
+    $NetbiosName = $Account.Translate([Security.Principal.NTAccount]) | Select-Object -ExpandProperty Value
+
     [hashtable]$OutputData = @{
         AgentGuid = $AgentName
         Hostname = $env:COMPUTERNAME
-        UserSID = $UserSID 
+        User = $NetbiosName 
         Name = $parameter
         Value = 'Not Set'
         RegistryKey = 'Not Set'
@@ -118,7 +128,7 @@ foreach($parameter in $saverParameters)
             {
                 $Query = "SELECT registryKey, value, GPOID FROM RSOP_RegistryPolicySetting WHERE Name = '$parameter'"
                 $gpoSetting = try {
-                    Get-WmiObject -Namespace "root\rsop\user\$userSID" -Query $Query -ErrorAction Stop | Select-Object -Unique } catch { $null }
+                    Get-WmiObject -Namespace "root\rsop\user\$UserNameSpace" -Query $Query -ErrorAction Stop | Select-Object -Unique } catch { $null }
 
                 if( $null -ne $gpoSetting)  #GPO setting obtained
                 {
@@ -147,7 +157,7 @@ foreach($parameter in $saverParameters)
 
             'AddingDataToOutput'
             {
-                $outputArray += New-Object PSObject –Property $OutputData | Select-Object AgentGuid, Hostname, UserSID, Name, Value, RegistryKey, SetBy, Date
+                $outputArray += New-Object PSObject –Property $OutputData | Select-Object AgentGuid, Hostname, User, Name, Value, RegistryKey, SetBy, Date
                 $State = 'Processed'
             }
 
@@ -158,6 +168,7 @@ foreach($parameter in $saverParameters)
 
 $outputArray | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation -Force
 
+#region check/stop transcript
 if (1 -eq $LogIt)
 {
     $Pref = 'SilentlyContinue'
@@ -166,3 +177,4 @@ if (1 -eq $LogIt)
     $InformationPreference = $Pref
     Stop-Transcript
 }
+#endregion check/stop transcript

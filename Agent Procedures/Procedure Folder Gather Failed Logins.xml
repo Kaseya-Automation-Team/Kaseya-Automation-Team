@@ -44,7 +44,7 @@
               <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
             </Statement>
             <Statement description="Run Powershell script and pass all required arguments to it" name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
-              <Parameter xsi:type="StringParameter" name="Command" value="powershell #ktemp#\Get-Failed-Logins.ps1 -AgentName &quot;#vAgentConfiguration.agentGuid#&quot; -Path &quot;#ktemp#&quot; -FileName &quot;#filename#&quot; -Days #days# -LogIt #debug#" />
+              <Parameter xsi:type="StringParameter" name="Command" value="powershell #ktemp#\Gather-Failed-Logins.ps1 -AgentName &quot;#vAgentConfiguration.agentGuid#&quot; -Path &quot;#ktemp#&quot; -FileName &quot;#filename#&quot; -Days #days# -LogIt #debug#" />
               <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
               <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
             </Statement>

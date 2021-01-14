@@ -30,7 +30,7 @@ param (
 
 #region check/start transcript
 [string]$Pref = 'Continue'
-if (1 -eq $LogIt)
+if ( 1 -eq $LogIt )
 {
     $DebugPreference = $Pref
     $VerbosePreference = $Pref
@@ -70,7 +70,7 @@ if ( $Domain -notmatch 'Exception' )
 
         #scan the registry for the domain profiles' SIDs
         $DomainAccountSIDs = try {
-            (Get-ChildItem -Name Registry::$RegKeyPath -ErrorAction Stop).PSChildName | Where-Object {$_ -match $DomainSID}
+            (Get-ChildItem -Name Registry::$RegKeyPath -ErrorAction Stop).PSChildName | Where-Object { $_ -match $DomainSID }
         }
         catch {$null}
         
@@ -79,21 +79,25 @@ if ( $Domain -notmatch 'Exception' )
             Foreach ( $SID in $DomainAccountSIDs )
             {
                 $Account = New-Object Security.Principal.SecurityIdentifier("$SID")
-                $NetbiosName = $Account.Translate([Security.Principal.NTAccount]) | Select-Object -ExpandProperty Value
-                $UserBySID = New-Object PSObject -Property @{
-                    Domain = $Domain
-                    SID = $SID
-                    Name = ($NetbiosName -split '\\')[-1]
+                $NetbiosName = $(  try { $Account.Translate([Security.Principal.NTAccount]) | Select-Object -ExpandProperty Value } catch { $_.Exception.Message } )
+
+                if ( $NetbiosName -notmatch 'Exception' )
+                {
+                    $UserBySID = New-Object PSObject -Property @{
+                        Domain = $Domain
+                        SID = $SID
+                        Name = ($NetbiosName -split '\\')[-1]
+                    }
+                
+                    $DomainUsers += $UserBySID
                 }
-            
-                if ($null -ne $UserBySID) {$DomainUsers += $UserBySID}
             }
         }
     }
 }
 
 #Gather empty user if no domain users found
-if (0 -eq $DomainUsers.Length )
+if ( 0 -eq $DomainUsers.Length )
 {
     $EmptyUser = New-Object PSObject -Property @{
                     Domain = $Domain;
@@ -111,7 +115,7 @@ $DomainUsers | Select-Object -Property `
 * | Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation
 
 #region check/stop transcript
-if (1 -eq $LogIt)
+if ( 1 -eq $LogIt )
 {
     $Pref = 'SilentlyContinue'
     $DebugPreference = $Pref

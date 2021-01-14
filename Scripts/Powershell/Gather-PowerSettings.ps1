@@ -26,7 +26,7 @@ $currentDate = Get-Date -UFormat "%m/%d/%Y %T"
 
 #Get the active power plan
 $ActivePlan = try {
-    Get-WmiObject -Namespace root\cimv2\power -Query "SELECT InstanceID, ElementName FROM win32_PowerPlan WHERE IsActive=True" -ErrorAction Stop
+    Get-WmiObject -Namespace root\cimv2\power -Query "SELECT InstanceID, ElementName FROM win32_PowerPlan WHERE IsActive=True" -ComputerName $env:COMPUTERNAME -ErrorAction Stop
 } catch {
     $null
     exit

@@ -1,12 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Gather RDP Status" treePres="3">
-    <Procedure name="Gather RDP Status" treePres="3" id="1050474107" folderId="332821059661368" treeFullPath="myProcedures - kadmin.Gather RDP Status">
+    <Procedure name="Gather RDP Status" treePres="3" id="1050474107" folderId="643874834312067" treeFullPath="myProcedures - admin.Kaiser.Gather RDP Status">
       <Body description="This procedure gathers RDP enablement status and also checks if Bombar Jump Client software is installed on the machine. Exports gathered info to CSV file.">
-        <Statement description="This procedure gathers RDP enablement status and also checks if Bombar Jump Client software is installed on the machine. Exports gathered info to CSV file&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - AS&#xD;&#xA;Set the Working Directory Secure Folder to variable" name="GetVariable" continueOnFail="false" osType="Windows">
+        <Statement description="This procedure gathers RDP enablement status and also checks if Bombar Jump Client software is installed on the machine. Exports gathered info to CSV file&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - AS&#xD;&#xA;Set the Working Directory Secure Folder to variable" name="GetVariable" continueOnFail="false" osType="Windows">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="Specify name of output file here" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="rdpstatus.csv" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="filename" />
+        </Statement>
+        <Statement description="Set 1 to enable debug output to text file or leave 0 for quite mode" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="debug" />
         </Statement>
         <Statement description="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Gather-RDPStatus.ps1" name="GetURL" continueOnFail="false" osType="Windows">
           <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/Gather-RDPStatus.ps1" />
@@ -31,22 +41,22 @@
               <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
             </Statement>
             <Statement description="Delete a lingering file just in case" name="DeleteFile" continueOnFail="true" osType="Windows">
-              <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\rdpstatus.csv" />
+              <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\#filename#" />
             </Statement>
             <Statement description="Execute the powershell" name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
-              <Parameter xsi:type="StringParameter" name="Command" value="powershell &quot;#ktemp#\Gather-RDPStatus.ps1 -AgentName '#vAgentConfiguration.agentGuid#' -Path '#ktemp#\rdpstatus.csv'&quot;" />
+              <Parameter xsi:type="StringParameter" name="Command" value="powershell &quot;#ktemp#\Gather-RDPStatus.ps1 -AgentName '#vAgentConfiguration.agentGuid#' -Path '#ktemp#\' -FileName '#filename#' -LogIt #debug#&quot;" />
               <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
               <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
             </Statement>
             <If description="checks if the file was created">
               <Condition name="TestFile">
-                <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\rpdstatus.csv" />
+                <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\#filename#" />
                 <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
                 <Parameter xsi:type="StringParameter" name="Value" value="" />
               </Condition>
               <Then>
                 <Statement description="pulls the file to the VSA in a unique folder in the UserProfiles directory" name="GetFile" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#ktemp#\rdpstatus.csv" />
+                  <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#ktemp#\#filename#" />
                   <Parameter xsi:type="StringParameter" name="KServerFileName" value="#vsa_path#" />
                   <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
                 </Statement>

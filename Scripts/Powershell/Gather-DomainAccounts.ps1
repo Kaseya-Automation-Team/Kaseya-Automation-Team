@@ -11,6 +11,7 @@
    krbtgt account: https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/active-directory-accounts#sec-krbtgt
 .EXAMPLE
    .\Gather-DomainAccounts.ps1 -AgentName '12345' -FileName 'domain_accounts.csv' -Path 'C:\TEMP'
+.EXAMPLE
    .\Gather-DomainAccounts.ps1 -AgentName '12345' -FileName 'domain_accounts.csv' -Path 'C:\TEMP' -LogIt 1
 .NOTES
    Version 0.2.2

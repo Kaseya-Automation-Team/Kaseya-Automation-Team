@@ -2,13 +2,13 @@
 .Synopsis
    Checks if screen lock is enabled and saves settings information to a csv
 .DESCRIPTION
-   Checks screen lock parameters in applied GPOs and local registry. Log found parameters to a csv-file.
+   Checks screen lock parameters in applied GPOs and local registry for each user found in the system. Log found parameters to a csv-file.
 .EXAMPLE
    .\Gather-ScreenLockParams.ps1 -FileName 'screenlock.csv' -Path 'C:\TEMP' -AgentName '123456'
-.EXAMPLE
+   .EXAMPLE
    .\Gather-ScreenLockParams.ps1 -FileName 'screenlock.csv' -Path 'C:\TEMP' -AgentName '123456' -LogIt 1
 .NOTES
-   Version 0.2.1
+   Version 0.3
    Author: Proserv Team - VS
 #>
 #region initialization
@@ -26,7 +26,7 @@ param (
 
 #region check/start transcript
 [string]$Pref = 'Continue'
-if (1 -eq $LogIt)
+if ( 1 -eq $LogIt )
 {
     $DebugPreference = $Pref
     $VerbosePreference = $Pref
@@ -37,38 +37,8 @@ if (1 -eq $LogIt)
 }
 #endregion check/start transcript
 
-#User SID to query RSOP
-$LoggedOnUser = $(
-    try {Get-WmiObject -Class Win32_ComputerSystem -ComputerName $env:COMPUTERNAME  -ErrorAction Stop `
-    | Select-Object -ExpandProperty Username `
-    | Select-Object -First 1 } 
-    catch { $null}
-)
-
-#have to use Local System if no logged on users obtained
-[string]$UserSID = 'S-1-5-18'
-
-if ($null -ne $LoggedOnUser) # if there are logged on users
-{
-    $UserSID = ([System.Security.Principal.NTAccount]$LoggedOnUser).Translate([System.Security.Principal.SecurityIdentifier]).Value
-}
-
-#To query resultant set of GPOs for the user the user's SID has to be modified
-[string]$UserNameSpace = $UserSID -replace '-', '_'
-
-#The parameters that enable Screen lock: 'ScreenSaveActive', 'ScreenSaveTimeOut' and 'ScreenSaverIsSecure'
-[string[]]$saverParameters = @('ScreenSaveActive', 'ScreenSaveTimeOut', 'ScreenSaverIsSecure')
-
-#Local Registry key
-[string]$RegKey = 'HKCU\Control Panel\Desktop'
-
-$currentDate = Get-Date -UFormat "%m/%d/%Y %T"
-
 if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
 if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
-
-[array]$outputArray = @()
-#endregion initialization
 
 #region Convert-Uint8ArrayToString
 <#
@@ -90,86 +60,114 @@ function Convert-Uint8ArrayToString
 }
 #endregion Convert-Uint8ArrayToString
 
-<#
-There are 3 parameters that enable Screen lock: 'ScreenSaveActive', 'ScreenSaveTimeOut' and 'ScreenSaverIsSecure'
-Since GPOs override local registry settings
-1. Get RSOP for the parameter
-2. If no RSOP for the parameter - Get parameter settings from from local registry
-#>
+$currentDate = Get-Date -UFormat "%m/%d/%Y %T"
 
-foreach($parameter in $saverParameters)
+[array]$outputArray = @()
+
+#The parameters that enable Screen lock: 'ScreenSaveActive', 'ScreenSaveTimeOut' and 'ScreenSaverIsSecure'
+[string[]]$saverParameters = @('ScreenSaveActive', 'ScreenSaveTimeOut', 'ScreenSaverIsSecure')
+
+# under the Registry key there are Screen lock settings
+[string]$RegKeyScreenLock = 'HKCU\Control Panel\Desktop'
+
+# under the ProfileList key there are subkeys for each user in the system. 
+[string] $RegKeyUserProfiles = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList'
+
+[string[]] $UserAccountSIDs = try {
+    (Get-ChildItem -Name Registry::$RegKeyUserProfiles -ErrorAction Stop).PSChildName | `
+    Where-Object { $_ -match "S-1-5-21-\d+" } #skip non-user accounts
+} catch {$null}
+
+if ( 0 -ne $UserAccountSIDs.Length )
 {
-    $Account = New-Object Security.Principal.SecurityIdentifier("$UserSID")
-    $NetbiosName = $Account.Translate([Security.Principal.NTAccount]) | Select-Object -ExpandProperty Value
+    Foreach ( $UserSID in $UserAccountSIDs )
+    {
+        $Account = New-Object Security.Principal.SecurityIdentifier("$UserSID")
+        $NetbiosName = $(  try { $Account.Translate([Security.Principal.NTAccount]) | Select-Object -ExpandProperty Value } catch { $_.Exception.Message } )
 
-    [hashtable]$OutputData = @{
-        AgentGuid = $AgentName
-        Hostname = $env:COMPUTERNAME
-        User = $NetbiosName 
-        Name = $parameter
-        Value = 'Not Set'
-        RegistryKey = 'Not Set'
-        SetBy = 'Not Set'
-        Date = $currentDate
-    }
-
-    #region get actual settins
-
-    #State machine approach instead of multiple nested "if"s
-    #At first try to get GPO settings defined for the parameter
-
-    [string]$State = 'LookingUpGPO'
-
-    do {
-
-        switch( $State )
+        if ( $NetbiosName -notmatch 'Exception' )
         {
-            'LookingUpGPO'
+            #To query resultant set of GPOs for the user the user's SID has to be modified
+            [string]$UserNameSpace = $UserSID -replace '-', '_'
+
+            <#
+            There are 3 parameters that enable Screen lock: 'ScreenSaveActive', 'ScreenSaveTimeOut' and 'ScreenSaverIsSecure'
+            Since GPOs override local registry settings
+            1. Get RSOP for the parameter
+            2. If no RSOP for the parameter - Get parameter settings from from local registry
+            #>
+
+            foreach($parameter in $saverParameters)
             {
-                $Query = "SELECT registryKey, value, GPOID FROM RSOP_RegistryPolicySetting WHERE Name = '$parameter'"
-                $gpoSetting = try {
-                    Get-WmiObject -Namespace "root\rsop\user\$UserNameSpace" -Query $Query -ErrorAction Stop | Select-Object -Unique } catch { $null }
-
-                if( $null -ne $gpoSetting)  #GPO setting obtained
-                {
-                    $OutputData.Value = $( Convert-Uint8ArrayToString $($gpoSetting.value) )
-                    $OutputData.RegistryKey = $($gpoSetting.registryKey )
-                    $OutputData.SetBy = $( $gpoSetting.GPOID )
-
-                    $State = 'AddingDataToOutput'
+                [hashtable]$OutputData = @{
+                    AgentGuid = $AgentName
+                    Hostname = $env:COMPUTERNAME
+                    User = $NetbiosName 
+                    Name = $parameter
+                    Value = 'Not Set'
+                    RegistryKey = 'Not Set'
+                    SetBy = 'Not Set'
+                    Date = $currentDate
                 }
-                else { $State = 'LookingUpRegistry' }
+
+                #region get actual settins
+
+                #State machine approach instead of multiple nested "if"s
+                #At first try to get GPO settings defined for the parameter
+
+                [string]$State = 'LookingUpGPO'
+
+                do {
+
+                    switch( $State )
+                    {
+                        'LookingUpGPO'
+                        {
+                            $Query = "SELECT registryKey, value, GPOID FROM RSOP_RegistryPolicySetting WHERE Name = '$parameter'"
+                            $gpoSetting = try {
+                                Get-WmiObject -Namespace "root\rsop\user\$UserNameSpace" -Query $Query -ErrorAction Stop | Select-Object -Unique } catch { $null }
+
+                            if( $null -ne $gpoSetting)  #GPO setting obtained
+                            {
+                                $OutputData.Value = $( Convert-Uint8ArrayToString $($gpoSetting.value) )
+                                $OutputData.RegistryKey = $($gpoSetting.registryKey )
+                                $OutputData.SetBy = $( $gpoSetting.GPOID )
+
+                                $State = 'AddingDataToOutput'
+                            }
+                            else { $State = 'LookingUpRegistry' }
+                        }
+
+                        'LookingUpRegistry'
+                        {
+                            $regSetting = try { ( Get-ItemProperty -Path Registry::$RegKey -Name $parameter -ErrorAction Stop ).$parameter } catch { $null }
+
+                            if ( ($null -ne $regSetting) -and ( -Not [string]::IsNullOrEmpty( $regSetting.Trim()) ) )
+                            {
+                                #non empty value exists
+                                $OutputData.Value = $regSetting
+                                $OutputData.RegistryKey = $RegKey
+                                $OutputData.setBy = 'Local Registry'
+                            }
+                            $State = 'AddingDataToOutput' #After registry search
+                        }
+
+                        'AddingDataToOutput'
+                        {
+                            $outputArray += New-Object PSObject –Property $OutputData | Select-Object AgentGuid, Hostname, User, Name, Value, RegistryKey, SetBy, Date
+                            $State = 'Processed'
+                        }
+
+                    }
+                } while ( 'Processed' -ne $State )
+                #endregion get actual settins
             }
-
-            'LookingUpRegistry'
-            {
-                $regSetting = try { ( Get-ItemProperty -Path Registry::$RegKey -Name $parameter -ErrorAction Stop ).$parameter } catch { $null }
-
-                if ( ($null -ne $regSetting) -and ( -Not [string]::IsNullOrEmpty( $regSetting.Trim()) ) )
-                {
-                    #non empty value exists
-                    $OutputData.Value = $regSetting
-                    $OutputData.RegistryKey = $RegKey
-                    $OutputData.setBy = 'Local Registry'
-                }
-                $State = 'AddingDataToOutput' #After registry search
-            }
-
-            'AddingDataToOutput'
-            {
-                $outputArray += New-Object PSObject –Property $OutputData | Select-Object AgentGuid, Hostname, User, Name, Value, RegistryKey, SetBy, Date
-                $State = 'Processed'
-            }
-
         }
-    } while ( 'Processed' -ne $State )
-    #endregion get actual settins
+    }
 }
 
-$outputArray | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation -Force
-
 #region check/stop transcript
-if (1 -eq $LogIt)
+if ( 1 -eq $LogIt )
 {
     $Pref = 'SilentlyContinue'
     $DebugPreference = $Pref

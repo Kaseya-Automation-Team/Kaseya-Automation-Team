@@ -140,13 +140,13 @@ if ( 0 -ne $UserAccountSIDs.Length )
 
                         'LookingUpRegistry'
                         {
-                            $regSetting = try { ( Get-ItemProperty -Path Registry::$RegKey -Name $parameter -ErrorAction Stop ).$parameter } catch { $null }
+                            $regSetting = try { ( Get-ItemProperty -Path Registry::$RegKeyScreenLock -Name $parameter -ErrorAction Stop ).$parameter } catch { $null }
 
                             if ( ($null -ne $regSetting) -and ( -Not [string]::IsNullOrEmpty( $regSetting.Trim()) ) )
                             {
                                 #non empty value exists
                                 $OutputData.Value = $regSetting
-                                $OutputData.RegistryKey = $RegKey
+                                $OutputData.RegistryKey = $RegKeyScreenLock
                                 $OutputData.setBy = 'Local Registry'
                             }
                             $State = 'AddingDataToOutput' #After registry search

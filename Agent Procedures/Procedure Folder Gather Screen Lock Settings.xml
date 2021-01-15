@@ -1,21 +1,31 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Gather Screen Lock Settings" treePres="3">
-    <Procedure name="Gather Screen Lock Settings" treePres="3" id="232348823" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
-      <Body description="The procedure calls PowerShell script that gathers settings related to screen lock and saves to a CSV-file&#xA;&#xA;Author: Proserv Team - VS">
-        <Statement description="The procedure calls PowerShell script that gathers settings related to screen lock&#xD;&#xA;Version: 0.2&#xD;&#xA;Author:  Proserv Team - VS" name="GetVariable" continueOnFail="false">
+    <Procedure name="Gather Screen Lock Settings" treePres="3" id="1813988886" folderId="511893177783066" treeFullPath="myProcedures - kadmin.Gather Screen Lock Settings">
+      <Body description="The procedure calls PowerShell script that gathers settings related to screen lock for each non-system user on computer and saves to a CSV-file&#xA;&#xA;Author: Proserv Team - VS">
+        <Statement description="The procedure calls PowerShell script that gathers settings related to screen lock for each non-system user on computer&#xD;&#xA;Version: 0.2&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;Set working path" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="path" />
+        </Statement>
+        <Statement description="Set script logging variable variable. 0 - no logging. 1 - log to file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="LogIt" />
         </Statement>
         <Statement description="Set output file name" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="screen_lock_settings.csv" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="output_file" />
         </Statement>
-        <Statement description="Set Powershell script name" name="GetVariable" continueOnFail="false">
+        <Statement description="Set base name for the script and/or log file" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="Gather-ScreenLockParams.ps1" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Gather-ScreenLockParams" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptName" />
+        </Statement>
+        <Statement description="The script name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#ScriptName#.ps1" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script" />
         </Statement>
         <Statement description="The scripts name &amp; path" name="GetVariable" continueOnFail="false">
@@ -41,7 +51,7 @@
           </Condition>
           <Then>
             <Statement description="Run Powershell script with required parameters and arguments" name="ExecuteShellCommand" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -AgentName #vAgentConfiguration.agentGuid# -Path #path# -FileName #output_file#" />
+              <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -AgentName #vAgentConfiguration.agentGuid# -Path #path# -FileName #output_file# -LogIt #LogIt#" />
               <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
               <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
             </Statement>
@@ -57,9 +67,6 @@
                   <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#output_file#" />
                   <Parameter xsi:type="StringParameter" name="VariableName" value="log" />
                 </Statement>
-                <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Comment" value="#log#" />
-                </Statement>
                 <Statement description="Pulls the file to the VSA in a unique folder in the UserProfiles directory" name="GetFile" continueOnFail="false">
                   <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#path#\#output_file#" />
                   <Parameter xsi:type="StringParameter" name="KServerFileName" value="#vsa_path#" />
@@ -70,6 +77,23 @@
             <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
               <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
             </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#LogIt#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="1" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ScriptName#.log" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="LogContent" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#LogContent#" />
+                </Statement>
+              </Then>
+            </If>
           </Then>
           <Else>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">

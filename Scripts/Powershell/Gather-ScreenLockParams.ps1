@@ -166,6 +166,8 @@ if ( 0 -ne $UserAccountSIDs.Length )
     }
 }
 
+$outputArray | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation -Force
+
 #region check/stop transcript
 if ( 1 -eq $LogIt )
 {

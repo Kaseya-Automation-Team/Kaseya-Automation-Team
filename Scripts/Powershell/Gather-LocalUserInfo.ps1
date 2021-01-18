@@ -27,6 +27,7 @@ if (1 -eq $LogIt)
 
 Write-Debug "Script execution started"
 
+#Import .Net Framework AccountManagement library
 Add-Type -AssemblyName System.DirectoryServices.AccountManagement
 
 [string]$ContextType = 'Machine'
@@ -34,13 +35,14 @@ $PrincipalContext = New-Object -TypeName System.DirectoryServices.AccountManagem
 $UserPrincipal = New-Object System.DirectoryServices.AccountManagement.UserPrincipal($PrincipalContext)
 $GroupPrincipal = New-Object System.DirectoryServices.AccountManagement.GroupPrincipal($PrincipalContext)
 $searcher = New-Object System.DirectoryServices.AccountManagement.PrincipalSearcher
-$searcher.QueryFilter = $UserPrincipal
 
 #Create array where all objects for export will be storred
 [array]$Results = @()
 
 #Find local users
+$searcher.QueryFilter = $UserPrincipal
 $LocalUsers = $searcher.FindAll() | Select-Object -Property Name, LastLogon, Enabled
+
 Write-Debug ($LocalUsers| Select-Object * | Out-String)
 
 #Find local admins

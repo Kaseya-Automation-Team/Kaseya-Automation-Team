@@ -27,16 +27,27 @@ if (1 -eq $LogIt)
 
 Write-Debug "Script execution started"
 
+Add-Type -AssemblyName System.DirectoryServices.AccountManagement
+
+[string]$ContextType = 'Machine'
+$PrincipalContext = New-Object -TypeName System.DirectoryServices.AccountManagement.PrincipalContext($ContextType, $env:COMPUTERNAME)
+$UserPrincipal = New-Object System.DirectoryServices.AccountManagement.UserPrincipal($PrincipalContext)
+$GroupPrincipal = New-Object System.DirectoryServices.AccountManagement.GroupPrincipal($PrincipalContext)
+$searcher = New-Object System.DirectoryServices.AccountManagement.PrincipalSearcher
+$searcher.QueryFilter = $UserPrincipal
+
 #Create array where all objects for export will be storred
-$Results = @()
+[array]$Results = @()
 
-$LocalUsers = Get-LocalUser
-
+#Find local users
+$LocalUsers = $searcher.FindAll() | Select-Object -Property Name, LastLogon, Enabled
 Write-Debug ($LocalUsers| Select-Object * | Out-String)
 
-$AdminGroup = Get-LocalGroupMember -SID 'S-1-5-32-544' | Where-Object {$_.PrincipalSource -eq "Local"}
+#Find local admins
+$searcher.QueryFilter = $GroupPrincipal
+[string[]]$LocalAdmins = ($searcher.FindAll() | Where-Object {'S-1-5-32-544' -eq $_.Sid} ).Members | Where-Object { $ContextType -eq $_.ContextType } | Select-Object -ExpandProperty Name
 
-Write-Debug ($AdminGroup | Select-Object * |Out-String)
+Write-Debug ($LocalAdmins | Select-Object * |Out-String)
 
 $Counter = 0
 
@@ -47,28 +58,21 @@ ForEach ($User in $LocalUsers){
     Write-Debug $Counter
     Write-Debug $User.Name
     
-    $Output = New-Object psobject
-
-    Add-Member -InputObject $Output -MemberType NoteProperty -Name MachineID -Value $AgentName
-    Add-Member -InputObject $Output -MemberType NoteProperty -Name UserName -Value $User.Name
-    Add-Member -InputObject $Output -MemberType NoteProperty -Name Enabled -Value $User.Enabled
-    
-    $LastLogonString = $User.LastLogon
-
-     if ($LastLogonString) {
-
-        $LastLogonString = $LastLogonString|Get-Date
-        $LastLogonString = Get-Date $LastLogonString -Format 'MM-dd-yyyy HH:mm:ss:ms'
-        $LastLogonString = $LastLogonString -replace "-", "/"
-
-    } else {
-
-        $LastLogonString = "Never"
+    $Output = New-Object PSObject -Property @{
+                        UserName = $User.Name
+                        MachineID = $AgentName
+                        Enabled = $User.Enabled
+                        LastLogon = 'Never'
+                        }
+    if ( -not [string]::IsNullOrEmpty($User.LastLogon) )
+    {
+        $Output.LastLogon = "{0:MM'/'dd'/'yyyy H:mm:ss}" -f ($User.LastLogon)
     }
+    
+    
+    Write-Debug ( "{0:MM'/'dd'/'yyyy H:mm:ss}" -f ($User.LastLogon) )
 
-    Write-Debug ($LastLogonString|Out-String)
-
-    if ($AdminGroup.Name -contains "$env:COMPUTERNAME\$User")
+    if ( $LocalAdmins -contains $($User.Name) )
     {
         Add-Member -InputObject $Output -MemberType NoteProperty -Name IsLocalAdmin -Value "True"
 
@@ -76,9 +80,6 @@ ForEach ($User in $LocalUsers){
 
         Add-Member -InputObject $Output -MemberType NoteProperty -Name IsLocalAdmin -Value "False"
     }
-
-    Add-Member -InputObject $Output -MemberType NoteProperty -Name LastLogon -Value $LastLogonString
-
     #Add object to the previously created array
     $Results += $Output
 
@@ -87,15 +88,15 @@ ForEach ($User in $LocalUsers){
         if ($Counter -eq $Limit) {
 
             Write-Debug "Limit of $Limit records has been reached"
-            Exit
-
+            Break
         }
             
     }
 }
 
 #Export results to csv file
-$Results| Export-Csv -Path $Path\$Filename -NoTypeInformation -Encoding UTF8
+
+try {$Results | Export-Csv -Path "$Path\$FileName" -Encoding UTF8 -NoTypeInformation -Force -ErrorAction Stop -Verbose} catch {$_.Exception.Message}
 
 if (1 -eq $LogIt)
 {

@@ -42,6 +42,7 @@ setup.exe /configure Config.xml
 #endregion creating the batch file
 
 $FilePath = Join-Path -Path $WorkDir -ChildPath "Config.xml"
+
 #region creating the config file
 @"
 <Configuration>
@@ -55,4 +56,4 @@ $FilePath = Join-Path -Path $WorkDir -ChildPath "Config.xml"
   <Property Name="AUTOACTIVATE" Value="1" />
 </Configuration>
 "@ -f @($DownloadTo, $BitVersion, $OfficeEdition, $ActivationKey) | Out-File -FilePath $FilePath -Force -Encoding utf8
-#endregion creating the batch file
+#endregion creating the config file

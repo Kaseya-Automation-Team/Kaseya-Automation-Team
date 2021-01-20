@@ -87,7 +87,7 @@ ForEach ($User in $LocalUsers){
         if ($Counter -eq $Limit) {
 
             Write-Debug "Limit of $Limit records has been reached"
-            Exit
+            break
 
         }
             

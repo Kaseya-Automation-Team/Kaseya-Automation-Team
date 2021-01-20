@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Uninstall MS Office" treePres="3" id="792526001" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
+    <Body description="The procedure calls script that uninstalls MS Office 2013&#xA;Version 0.1&#xA;Author: Proserv Team - VS">
+      <Statement description="The procedure calls script that uninstalls MS Office&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Version 0.1&#xD;&#xA;Get local path" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="path" />
+      </Statement>
+      <Statement description="Set VB script name" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="OffScrubC2R.vbs" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="vbs_script" />
+      </Statement>
+      <Statement description="The scripts name &amp; path" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#vbs_script#" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="vbs_script_path_name" />
+      </Statement>
+      <Statement description="download the script" name="GetURL" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/#vbs_script#" />
+        <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vbs_script_path_name#" />
+        <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+      </Statement>
+      <Statement description="Run VB script with required parameters and arguments." name="ExecuteShellCommand" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Command" value="cscript.exe #vbs_script_path_name# ALL /SkipSD /NoCancel /Quiet" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+    </Body>
+  </Procedure>
+</ScriptExport>

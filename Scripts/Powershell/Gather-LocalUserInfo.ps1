@@ -3,11 +3,11 @@
 
 param (
     [parameter(Mandatory=$true)]
-    [string]$AgentName = "",
+    [string]$AgentName,
     [parameter(Mandatory=$true)]
-	[string]$Path = "",
+	[string]$Path,
     [parameter(Mandatory=$true)]
-	[string]$Filename = "",
+	[string]$Filename,
     [parameter(Mandatory=$false)]
     [int]$Limit = 3,
     [parameter(Mandatory=$false)]

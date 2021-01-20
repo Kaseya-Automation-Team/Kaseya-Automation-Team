@@ -1,8 +1,8 @@
 ﻿<#
 .Synopsis
-   Prepare config file and call office installation using ODT setup
+   Prepare config file and create office installation batch file using ODT setup
 .DESCRIPTION
-   Prepare config file and call office installation using ODT setup
+   Prepare config file and create office installation batch file using ODT setup
 .EXAMPLE
    .\Install-Office.ps1 -DownloadTo '\\Server\Share' -BitVersion '64' -OfficeEdition 'ProPlusRetail' -ActivationKey '12345-12345-12345-12345-12345'
 .NOTES

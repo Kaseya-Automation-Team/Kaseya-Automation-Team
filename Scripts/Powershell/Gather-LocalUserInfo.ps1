@@ -43,6 +43,7 @@ $searcher = New-Object System.DirectoryServices.AccountManagement.PrincipalSearc
 [array]$Results = @()
 
 #Find local users
+$ErrorActionPreference = 'SilentlyContinue'
 $searcher.QueryFilter = $UserPrincipal
 $LocalUsers = $searcher.FindAll() | Select-Object -Property Name, LastLogon, Enabled
 
@@ -51,7 +52,7 @@ $LocalUsers = $searcher.FindAll() | Select-Object -Property Name, LastLogon, Ena
 #Find local admins
 $searcher.QueryFilter = $GroupPrincipal
 [string[]]$LocalAdmins = ($searcher.FindAll() | Where-Object {'S-1-5-32-544' -eq $_.Sid} ).Members | Where-Object { $ContextType -eq $_.ContextType } | Select-Object -ExpandProperty Name
-
+$ErrorActionPreference = 'Continue'
 #Write-Debug ($LocalAdmins | Select-Object * |Out-String)
 
 $Counter = 0

@@ -28,7 +28,7 @@ if (1 -eq $LogIt)
 if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
 if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
-Write-Debug "Script execution started"
+#Write-Debug "Script execution started"
 
 #Import .Net Framework AccountManagement library
 Add-Type -AssemblyName System.DirectoryServices.AccountManagement
@@ -46,13 +46,13 @@ $searcher = New-Object System.DirectoryServices.AccountManagement.PrincipalSearc
 $searcher.QueryFilter = $UserPrincipal
 $LocalUsers = $searcher.FindAll() | Select-Object -Property Name, LastLogon, Enabled
 
-Write-Debug ($LocalUsers| Select-Object * | Out-String)
+#Write-Debug ($LocalUsers| Select-Object * | Out-String)
 
 #Find local admins
 $searcher.QueryFilter = $GroupPrincipal
 [string[]]$LocalAdmins = ($searcher.FindAll() | Where-Object {'S-1-5-32-544' -eq $_.Sid} ).Members | Where-Object { $ContextType -eq $_.ContextType } | Select-Object -ExpandProperty Name
 
-Write-Debug ($LocalAdmins | Select-Object * |Out-String)
+#Write-Debug ($LocalAdmins | Select-Object * |Out-String)
 
 $Counter = 0
 
@@ -60,8 +60,8 @@ ForEach ($User in $LocalUsers){
 
     $Counter = $Counter+1
 
-    Write-Debug $Counter
-    Write-Debug $User.Name
+    #Write-Debug $Counter
+    #Write-Debug $User.Name
     
     $Output = New-Object PSObject -Property @{
                         UserName = $User.Name
@@ -75,7 +75,7 @@ ForEach ($User in $LocalUsers){
     }
     
     
-    Write-Debug ( "{0:MM'/'dd'/'yyyy H:mm:ss}" -f ($User.LastLogon) )
+    #Write-Debug ( "{0:MM'/'dd'/'yyyy H:mm:ss}" -f ($User.LastLogon) )
 
     if ( $LocalAdmins -contains $($User.Name) )
     {
@@ -92,7 +92,7 @@ ForEach ($User in $LocalUsers){
 
         if ($Counter -eq $Limit) {
 
-            Write-Debug "Limit of $Limit records has been reached"
+            #Write-Debug "Limit of $Limit records has been reached"
             Break
         }
             

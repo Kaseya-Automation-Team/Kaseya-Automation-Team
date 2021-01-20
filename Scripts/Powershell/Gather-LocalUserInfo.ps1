@@ -25,6 +25,9 @@ if (1 -eq $LogIt)
     Start-Transcript -Path $LogFile
 }
 
+if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
+if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
+
 Write-Debug "Script execution started"
 
 #Import .Net Framework AccountManagement library
@@ -98,7 +101,7 @@ ForEach ($User in $LocalUsers){
 
 #Export results to csv file
 
-try {$Results | Export-Csv -Path "$Path\$FileName" -Encoding UTF8 -NoTypeInformation -Force -ErrorAction Stop -Verbose} catch {$_.Exception.Message}
+try {$Results | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation -Force -ErrorAction Stop -Verbose} catch {$_.Exception.Message}
 
 if (1 -eq $LogIt)
 {

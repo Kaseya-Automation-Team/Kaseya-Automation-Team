@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Procedure name="Install MS Office 2019" treePres="3" id="445648569" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
-    <Body description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office 2016.&#xA;&#xA;Author: Proserv Team - VS">
-      <Statement description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office 2016.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;The procedure requires setup.exe, which is contained in self-extract Office Deployment Tool from https://www.microsoft.com/en-us/download/details.aspx?id=49117&#xD;&#xA;Set Local folder or a File share path for software distribution.  For instance \\Server\ShareName" name="GetVariable" continueOnFail="false">
+    <Body description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office.&#xA;&#xA;Author: Proserv Team - VS">
+      <Statement description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;The procedure requires setup.exe, which is contained in self-extract Office Deployment Tool from https://www.microsoft.com/en-us/download/details.aspx?id=49117&#xD;&#xA;Set Local folder or a File share path for software distribution.  For instance \\Server\ShareName" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="C:\Temp" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="shared_folder" />

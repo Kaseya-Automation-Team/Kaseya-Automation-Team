@@ -96,7 +96,9 @@ if (-not [string]::IsNullOrEmpty( $Path) )
 [string[]]$IncludeSettings = @('PasswordHistorySize', 'MinimumPasswordAge', 'MaximumPasswordAge', 'MinimumPasswordLength', 'PasswordComplexity', 'ClearTextPassword')
 
 $PasswordSettings = New-Object PSObject -Property $([hashtable](Get-SecurityPolicy -FileName $FileName).'System Access') | Select-Object $IncludeSettings
+
 Write-Verbose $PasswordSettings
+
 $PasswordSettings | Select-Object -Property `
 @{Name = 'AgentGuid'; Expression = {$AgentName}}, `
 @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `

@@ -10,9 +10,14 @@
    Version 0.1
    Author: Proserv Team - VS
 #>
-$AgentName ='12345'
-$FileName = 'password_settings.csv'
-$Path = 'C:\TEMP'
+param (
+    [parameter(Mandatory=$true)]
+    [string]$AgentName,
+    [parameter(Mandatory=$true)]
+    [string]$FileName,
+    [parameter(Mandatory=$true)]
+    [string]$Path
+)
 
 #region functions
 Function Get-SecurityPolicy { 

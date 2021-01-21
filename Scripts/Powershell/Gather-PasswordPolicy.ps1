@@ -28,10 +28,10 @@ Param(
     [string]$FileName  
 )
 #run secedit and save output
-    secedit /export /cfg "$SeceditOutput" | Out-Null
+    secedit /export /cfg "$FileName" | Out-Null
               
     [hashtable]$Content = @{}  
-    switch -regex -file $SeceditOutput 
+    switch -regex -file $FileName
     {  
         "^\[(.+)\]$" # Section  
         {  

@@ -70,7 +70,7 @@ if ( $Domain -notmatch 'Exception' )
 
         #scan the registry for the domain profiles' SIDs
         $DomainAccountSIDs = try {
-            (Get-ChildItem -Name Registry::$RegKeyPath -ErrorAction Stop).PSChildName | Where-Object { $_ -match $DomainSID }
+            Get-ChildItem -Name Registry::$RegKeyPath -ErrorAction Stop | Where-Object { $_ -match $DomainSID }
         }
         catch {$null}
         

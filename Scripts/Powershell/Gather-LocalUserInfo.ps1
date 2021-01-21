@@ -21,9 +21,9 @@ param (
     [parameter(Mandatory=$true)]
 	[string]$Filename,
     [parameter(Mandatory=$false)]
-    [int]$Limit = 3,
+    [int]$Limit = 0,
     [parameter(Mandatory=$false)]
-    [int]$LogIt = 1
+    [int]$LogIt = 0
 )
 
 [string]$Pref = "Continue"

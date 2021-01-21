@@ -1,5 +1,17 @@
-﻿## Kaseya Automation Team
-## Used by the "Gather Local User Info" Agent Procedure
+﻿<#
+.Synopsis
+   Gathers domain users accounts that have logged on the computer.
+.DESCRIPTION
+   Used by the "Gather Local User Info" Agent Procedure
+   Gathers local users' accounts and saves information to a CSV-file.
+.EXAMPLE
+   .\Gather-LocalUserInfo.ps1 -AgentName '12345' -FileName 'local_accounts.csv' -Path 'C:\TEMP' -Limit 0
+.EXAMPLE
+   .\Gather-LocalUserInfo.ps1 -AgentName '12345' -FileName 'local_accounts.csv' -Path 'C:\TEMP' -LogIt 0
+.NOTES
+   Version 0.2.2
+   Author: Proserv Team - VS
+#>
 
 param (
     [parameter(Mandatory=$true)]
@@ -51,7 +63,7 @@ $LocalUsers = $searcher.FindAll() | Select-Object -Property Name, LastLogon, Ena
 
 #Find local admins
 $searcher.QueryFilter = $GroupPrincipal
-[string[]]$LocalAdmins = ($searcher.FindAll() | Where-Object {'S-1-5-32-544' -eq $_.Sid} ).Members | Where-Object { $ContextType -eq $_.ContextType } | Select-Object -ExpandProperty Name
+[string[]]$LocalAdmins = $( ($searcher.FindAll() | Where-Object {'S-1-5-32-544' -eq $_.Sid} ).Members | Where-Object { $ContextType -eq $_.ContextType } | Select-Object -ExpandProperty Name )
 $ErrorActionPreference = 'Continue'
 #Write-Debug ($LocalAdmins | Select-Object * |Out-String)
 
@@ -69,6 +81,7 @@ ForEach ($User in $LocalUsers){
                         MachineID = $AgentName
                         Enabled = $User.Enabled
                         LastLogon = 'Never'
+                        IsLocalAdmin = 'False'
                         }
     if ( -not [string]::IsNullOrEmpty($User.LastLogon) )
     {
@@ -80,12 +93,10 @@ ForEach ($User in $LocalUsers){
 
     if ( $LocalAdmins -contains $($User.Name) )
     {
-        Add-Member -InputObject $Output -MemberType NoteProperty -Name IsLocalAdmin -Value "True"
+        $Output.IsLocalAdmin = 'True'
 
-    } else {
-
-        Add-Member -InputObject $Output -MemberType NoteProperty -Name IsLocalAdmin -Value "False"
     }
+
     #Add object to the previously created array
     $Results += $Output
 

@@ -6,6 +6,8 @@
    Gathers password settings and saves information to a CSV-file
 .EXAMPLE
    .\Gather-PasswordPolicy.ps1 -AgentName '12345' -FileName 'password_settings.csv' -Path 'C:\TEMP'
+.EXAMPLE
+   .\Gather-PasswordPolicy.ps1 -AgentName '12345' -FileName 'password_settings.csv' -Path 'C:\TEMP' -LogIt 1
 .NOTES
    Version 0.1
    Author: Proserv Team - VS
@@ -16,8 +18,21 @@ param (
     [parameter(Mandatory=$true)]
     [string]$FileName,
     [parameter(Mandatory=$true)]
-    [string]$Path
+    [string]$Path,
+    [parameter(Mandatory=$false)]
+    [int]$LogIt = 0
 )
+
+[string]$Pref = "Continue"
+if (1 -eq $LogIt)
+{
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    $ScriptName = [io.path]::GetFileNameWithoutExtension( $($MyInvocation.MyCommand.Name) )
+    $LogFile = "$Path\$ScriptName.log"
+    Start-Transcript -Path $LogFile
+}
 
 #region functions
 Function Get-SecurityPolicy { 
@@ -29,7 +44,7 @@ Param(
 )
 #run secedit and save output
     secedit /export /cfg "$FileName" | Out-Null
-              
+    
     [hashtable]$Content = @{}  
     switch -regex -file $FileName
     {  
@@ -81,7 +96,7 @@ if (-not [string]::IsNullOrEmpty( $Path) )
 [string[]]$IncludeSettings = @('PasswordHistorySize', 'MinimumPasswordAge', 'MaximumPasswordAge', 'MinimumPasswordLength', 'PasswordComplexity', 'ClearTextPassword')
 
 $PasswordSettings = New-Object PSObject -Property $([hashtable](Get-SecurityPolicy -FileName $FileName).'System Access') | Select-Object $IncludeSettings
-
+Write-Verbose $PasswordSettings
 $PasswordSettings | Select-Object -Property `
 @{Name = 'AgentGuid'; Expression = {$AgentName}}, `
 @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `
@@ -91,7 +106,16 @@ $PasswordSettings | Select-Object -Property `
 @{Name = 'MaximumPasswordAge'; Expression = {$_.MaximumPasswordAge}}, `
 @{Name = 'MinimumPasswordLength'; Expression = {$_.MinimumPasswordLength}}, `
 @{Name = 'StorePasswordUsingReversibleEncryption'; Expression = {$_.ClearTextPassword}} `
-| Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation
+| Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation -Verbose
 
 #cleanup
-if (test-Path $SeceditOutput) { Remove-Item $SeceditOutput -Force -Confirm:$false | Out-Null}
+if (Test-Path $SeceditOutput -Verbose ) { Remove-Item $SeceditOutput -Force -Confirm:$false | Out-Null}
+
+if (1 -eq $LogIt)
+{
+    $Pref = "SilentlyContinue"
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    Stop-Transcript
+}

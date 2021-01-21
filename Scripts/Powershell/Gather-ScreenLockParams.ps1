@@ -74,7 +74,8 @@ $currentDate = Get-Date -UFormat "%m/%d/%Y %T"
 [string] $RegKeyUserProfiles = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList'
 
 [string[]] $UserAccountSIDs = try {
-    (Get-ChildItem -Name Registry::$RegKeyUserProfiles -ErrorAction Stop).PSChildName | `
+    #(Get-ChildItem -Name Registry::$RegKeyUserProfiles -ErrorAction Stop).PSChildName | `
+    Get-ChildItem -Name Registry::$RegKeyUserProfiles -ErrorAction Stop | `
     Where-Object { $_ -match "S-1-5-21-\d+" } #skip non-user accounts
 } catch {$null}
 

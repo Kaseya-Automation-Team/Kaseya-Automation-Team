@@ -10,15 +10,9 @@
    Version 0.1
    Author: Proserv Team - VS
 #>
-
-param (
-    [parameter(Mandatory=$true)]
-    [string]$AgentName,
-    [parameter(Mandatory=$true)]
-    [string]$FileName,
-    [parameter(Mandatory=$true)]
-    [string]$Path
- )
+$AgentName ='12345'
+$FileName = 'password_settings.csv'
+$Path = 'C:\TEMP'
 
 #region functions
 Function Get-SecurityPolicy { 
@@ -66,26 +60,7 @@ Param(
     Return $Content
 }
 
-function Update-HashTable {
-[CmdletBinding()]
-param (
-    [Parameter(Mandatory,ValueFromPipeline)][Hashtable]$Hashtable,
-    [String[]]$Include = ($HashTable.Keys),
-    [String[]]$Exclude
-)
 
-    if (-not $Include) {$Include = $HashTable.Keys}
-
-    $filteredHashTable = @{}
-    $HashTable.keys.where{
-        $PSItem -in $Include
-    }.where{
-        $PSItem -notin $Exclude
-    }.foreach{
-        $filteredHashTable[$PSItem] = $HashTable[$PSItem]
-    }
-    return $FilteredHashTable
-}
 #endregion functions
 
 [string]$currentDate = Get-Date -UFormat "%m/%d/%Y %T"
@@ -100,9 +75,9 @@ if (-not [string]::IsNullOrEmpty( $Path) )
 
 [string[]]$IncludeSettings = @('PasswordHistorySize', 'MinimumPasswordAge', 'MaximumPasswordAge', 'MinimumPasswordLength', 'PasswordComplexity', 'ClearTextPassword')
 
-[hashtable]$PasswordSettings = (Get-SecurityPolicy -FileName $FileName).'System Access' | Update-HashTable -Include $IncludeSettings
+$PasswordSettings = New-Object PSObject -Property $([hashtable](Get-SecurityPolicy -FileName $FileName).'System Access') | Select-Object $IncludeSettings
 
-[pscustomobject]$PasswordSettings | Select-Object -Property `
+$PasswordSettings | Select-Object -Property `
 @{Name = 'AgentGuid'; Expression = {$AgentName}}, `
 @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `
 @{Name = 'Date'; Expression = {$currentDate}}, `

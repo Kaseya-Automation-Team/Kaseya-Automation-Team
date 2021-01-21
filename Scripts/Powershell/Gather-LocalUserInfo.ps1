@@ -70,8 +70,8 @@ $ErrorActionPreference = 'Continue'
 $Counter = 0
 
 ForEach ($User in $LocalUsers){
-
-    $Counter = $Counter+1
+    
+    $Counter++
 
     #Write-Debug $Counter
     #Write-Debug $User.Name
@@ -113,7 +113,7 @@ ForEach ($User in $LocalUsers){
 
 #Export results to csv file
 
-try {$Results | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation -Force -ErrorAction Stop -Verbose} catch {$_.Exception.Message}
+try { $Results | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation -Force -ErrorAction Stop } catch { $_.Exception.Message }
 
 if (1 -eq $LogIt)
 {

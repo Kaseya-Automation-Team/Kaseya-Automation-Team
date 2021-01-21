@@ -40,10 +40,10 @@
     The parameters FileName, Path, AgentName are mandatory.
     By default the script gets all the local administrators, including AD domain objects
 .EXAMPLE
-   Get-LocalAdmins -FileName 'localadmins.csv' -Path 'C:\TEMP' -AgentName '123456'
+   .\Gather-Local-Admins.ps1 -FileName 'localadmins.csv' -Path 'C:\TEMP' -AgentName '123456'
    Gets all the local administrators and saves the list to the localadmins.csv in the C:\TEMP folder
 .EXAMPLE
-   Get-LocalAdmins -FileName 'localadmins.csv' -Path 'C:\TEMP' -AgentName '123456' -localUsersOnly
+   .\Gather-Local-Admins.ps1 -FileName 'localadmins.csv' -Path 'C:\TEMP' -AgentName '123456' -localUsersOnly
    Gets local users only. AD Domain objects are skipped 
 .NOTES
    Version 0.1
@@ -89,7 +89,7 @@ function Get-LocalAdmins
         [string]$regexp = '\"\S+\",Name=\"(.+?)\"$'
 
         $admins =  try {
-            (Get-WmiObject win32_groupuser -Filter $query).PartComponent | 
+            Get-WmiObject win32_groupuser -Filter $query | Select -ExpandProperty PartComponent | `
             ForEach-Object{ [regex]::match($_,$regexp).Groups[0].Value -replace '",Name="', '\' -replace '"', ''} | Sort-Object
         } catch { $null }
 

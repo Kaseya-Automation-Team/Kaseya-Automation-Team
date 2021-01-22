@@ -87,6 +87,12 @@ foreach ($UserSID in $UserAccountSIDs)
 
 $outputArray | Export-Csv -Path "FileSystem::$FileName" -Encoding UTF8 -NoTypeInformation -Force
 
+# Rewrite the output file with No BOM
+$Content = Get-Content $FileName -Raw
+$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+Remove-Item -Path $FileName -Confirm:$false -Force
+[System.IO.File]::WriteAllLines($FileName, $Content, $Utf8NoBomEncoding)
+
 #region check/stop transcript
 if ( 1 -eq $LogIt )
 {

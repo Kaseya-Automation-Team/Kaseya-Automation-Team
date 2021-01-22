@@ -4,9 +4,9 @@
 .DESCRIPTION
    Checks if MS Teams is installed on users' accounts and saves information to a CSV-file.
 .EXAMPLE
-   .\Gather-MSTeams.ps1 -AgentName '12345' -FileName 'domain_accounts.csv' -Path 'C:\TEMP'
+   .\Gather-MSTeams.ps1 -AgentName '12345' -FileName 'teams_info.csv' -Path 'C:\TEMP'
 .EXAMPLE
-   .\Gather-MSTeams.ps1 -AgentName '12345' -FileName 'domain_accounts.csv' -Path 'C:\TEMP' -LogIt 1
+   .\Gather-MSTeams.ps1 -AgentName '12345' -FileName 'teams_info.csv' -Path 'C:\TEMP' -LogIt 1
 .NOTES
    Version 0.1
    Author: Proserv Team - VS

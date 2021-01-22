@@ -70,7 +70,7 @@ Select-Object -ExpandProperty ProfileImagePath                                  
       $TeamsInfo = New-Object PSObject -Property @{
          AgentGuid = $AgentName
          Hostname = $env:COMPUTERNAME
-         User = $UserNetbiosName 
+         User = $NetbiosName
          Version = 'NULL'
          Date = $currentDate
       }

@@ -65,7 +65,7 @@ foreach ($UserSID in $UserAccountSIDs)
       Select-Object -ExpandProperty Value
    } catch { $null }
 
-   if ( ($null -ne $Path) -and ($null -ne $NetbiosName) )
+   if ( ($null -ne $ProfilePath) -and ($null -ne $NetbiosName) )
    {
       $TeamsInfo = New-Object PSObject -Property @{
          AgentGuid = $AgentName

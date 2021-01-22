@@ -57,7 +57,7 @@ if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 foreach ($UserSID in $UserAccountSIDs)
 {
    [string] $ProfilePath = try {Get-ItemProperty -Path Registry::$(Join-Path -Path $RegKeyUserProfiles -ChildPath $UserSID) | `
-Select-Object -ExpandProperty ProfileImagePath                                                                             # get Profile path
+      Select-Object -ExpandProperty ProfileImagePath                                      # get Profile path
    } catch { $null }
 
    $Principal = New-Object Security.Principal.SecurityIdentifier("$UserSID")

@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Adobe Reader DC Pro Install/Uninstall" treePres="3">
+    <Procedure name="Install Adobe Reader DC Pro trial" treePres="3" id="2141230442" folderId="869753215121921" treeFullPath="myProcedures - admin.Adobe Reader DC Pro Install/Uninstall">
+      <Body description="Agent procedure to execute PowerShell script which downloads and installs Adobe Reader DC Pro application">
+        <Statement description="Agent procedure to execute PowerShell script which downloads and installs Adobe Reader DC Pro application&#xD;&#xA;Version: 0.1" name="GetVariable" continueOnFail="false" osType="Windows">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="Upload PowerShell script into working directory on target machine" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Install-AdobeDCProTrial.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\AdobeReaderDCPro\Install-AdobeDCProTrial.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement name="GetURL" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="URL" value="http://trials.adobe.com/AdobeProducts/APRO/20/win32/Acrobat_DC_Web_WWMUI.exe" />
+          <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ktemp#\Acrobat_DC_Web_WWMUI.exe" />
+          <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+        </Statement>
+        <Statement description="Set execution policy to required level" name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+          <Parameter xsi:type="StringParameter" name="Command" value="Powershell Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine -force" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <Statement description="Execute PowerShell script and wait for results" name="Execute Shell Command - Get Results to Variable" continueOnFail="true">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell &quot;#ktemp#\Install-AdobeDCProTrial.ps1 -Path '#ktemp#\'&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <Statement description="Provide output into procedure log" name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+    <Procedure name="Uninstall Adobe Reader DC Pro trial" treePres="3" id="308111931" folderId="869753215121921" treeFullPath="myProcedures - admin.Adobe Reader DC Pro Install/Uninstall">
+      <Body description="Agent procedure to execute PowerShell script which uninstalls Adobe Reader DC Pro application if it's installed">
+        <Statement description="Agent procedure to execute PowerShell script which uninstalls Adobe Reader DC Pro application if it's installed&#xD;&#xA;Version: 0.1" name="GetVariable" continueOnFail="false" osType="Windows">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="Upload PowerShell script into working directory on target machine" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Uninstall-AdobeDCProTrial.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\AdobeReaderDCPro\Uninstall-AdobeDCProTrial.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement description="Set execution policy to required level" name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+          <Parameter xsi:type="StringParameter" name="Command" value="Powershell Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine -force" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <Statement description="Execute PowerShell script and wait for results" name="Execute Shell Command - Get Results to Variable" continueOnFail="true">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell &quot;#ktemp#\Uninstall-AdobeDCProTrial.ps1&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <Statement description="Provide output into procedure log" name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

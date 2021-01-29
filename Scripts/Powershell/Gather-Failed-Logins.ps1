@@ -46,8 +46,8 @@ If ($AllEvents -eq $null) {
     $Output = New-Object psobject
 
     Add-Member -InputObject $Output -MemberType NoteProperty -Name AgentGuid -Value $AgentName
-    Add-Member -InputObject $Output -TypeName Username -MemberType NoteProperty -Name Username -Value "NULL"
-    Add-Member -InputObject $Output -TypeName DateTime -MemberType NoteProperty -Name DateTime -Value "NULL"
+    Add-Member -InputObject $Output -MemberType NoteProperty -Name Username -Value "NULL"
+    Add-Member -InputObject $Output -MemberType NoteProperty -Name DateTime -Value "NULL"
     $Results += $Output
 
 } else {
@@ -72,9 +72,9 @@ If ($AllEvents -eq $null) {
         Write-Debug ($UserName|Out-String)
 
         If ($UserName -ne $null) {
-            Add-Member -InputObject $Output -TypeName Username -MemberType NoteProperty -Name Username -Value $UserName
+            Add-Member -InputObject $Output -MemberType NoteProperty -Name Username -Value $UserName
         } else {
-            Add-Member -InputObject $Output -TypeName Username -MemberType NoteProperty -Name Username -Value "NULL"
+            Add-Member -InputObject $Output -MemberType NoteProperty -Name Username -Value "NULL"
         }
 
         $Time = $Event.TimeGenerated
@@ -87,9 +87,9 @@ If ($AllEvents -eq $null) {
         Write-Debug ($Time|Out-String)
 
         If ($UserName -ne $null) {
-            Add-Member -InputObject $Output -TypeName Username -MemberType NoteProperty -Name DateTime -Value $Time
+            Add-Member -InputObject $Output -MemberType NoteProperty -Name DateTime -Value $Time
         } else {
-            Add-Member -InputObject $Output -TypeName Username -MemberType NoteProperty -Name DateTime -Value "NULL"
+            Add-Member -InputObject $Output -MemberType NoteProperty -Name DateTime -Value "NULL"
         }
         #Add object to the previously created array
         $Results += $Output

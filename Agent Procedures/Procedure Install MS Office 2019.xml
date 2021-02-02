@@ -65,12 +65,7 @@
                 <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
               </Statement>
             </Then>
-          </If>
-          <If description="">
-            <Condition name="Windows 32 or 64 Bit Check">
-              <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
-            </Condition>
-            <Then>
+            <Else>
               <Statement name="GetVariable" continueOnFail="false">
                 <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
                 <Parameter xsi:type="StringParameter" name="SourceContent" value="Choose 32/64 bit version. Valid values are  32 and 64" />
@@ -89,22 +84,15 @@
                     <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
                   </Statement>
                 </Then>
-              </If>
-              <If description="">
-                <Condition name="CheckVariable">
-                  <Parameter xsi:type="StringParameter" name="VariableName" value="#bit_version#" />
-                  <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
-                  <Parameter xsi:type="StringParameter" name="Value" value="64" />
-                </Condition>
-                <Then>
+                <Else>
                   <Statement name="ExecuteShellCommand" continueOnFail="false">
                     <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -DownloadTo #shared_folder# -BitVersion '64' -OfficeEdition #office_edition#" />
                     <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
                     <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
                   </Statement>
-                </Then>
+                </Else>
               </If>
-            </Then>
+            </Else>
           </If>
         </Then>
       </If>

@@ -1,0 +1,525 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Monitor Logins" treePres="3">
+    <Procedure name="AlertWhenFailedLogin" treePres="3" id="1311798870" folderId="698164697782213" treeFullPath="Monitor Logins">
+      <Body description="This procedure will notify administrator via email if detects successful authentication of user">
+        <Statement description="This procedure will notify administrator via email if detects failed login attempt of user&#xD;&#xA;Version: 0.3&#xD;&#xA;Author: Proserv Team&#xD;&#xA;Set event lookup period (in minutes)" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="60" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PeriodInMinutes" />
+        </Statement>
+        <Statement description="Set working path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="path" />
+        </Statement>
+        <Statement description="Set script logging variable variable. 0 - no logging. 1 - log to file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="LogIt" />
+        </Statement>
+        <Statement description="Set event ID" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="4625" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="EventID" />
+        </Statement>
+        <Statement description="Set output file name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="failed.txt" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="output_file" />
+        </Statement>
+        <Statement description="Set base name for the script and/or log file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Get-LoginEvents" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptName" />
+        </Statement>
+        <Statement description="The script name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#ScriptName#.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script" />
+        </Statement>
+        <Statement description="The scripts name &amp; path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ps_script#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script_path_name" />
+        </Statement>
+        <Statement description="download the script" name="GetURL" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/#ps_script#" />
+          <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ps_script_path_name#" />
+          <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+        </Statement>
+        <If description="check if script downloaded">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <If description="Check if output file already exists">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="DeleteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+                </Statement>
+              </Then>
+            </If>
+            <Statement description="Execute script" name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -EventID #EventID# -Path #path# -MachineID #vAgentConfiguration.machName# -PeriodInMinutes #PeriodInMinutes# -LogIt #LogIt#" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <Statement name="PauseScript" continueOnFail="false">
+              <Parameter xsi:type="IntegerParameter" name="Seconds" value="5" />
+            </Statement>
+            <If description="Check if script found event and created output file">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="true">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#output_file#" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="EventDetails" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#EventDetails#" />
+                </Statement>
+                <Statement name="SendEmail" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="To" value="&lt;alertemail&gt;" />
+                  <Parameter xsi:type="StringParameter" name="Subject" value="#EventDetails#" />
+                  <Parameter xsi:type="MultiLineStringParameter" name="Body" value="#EventDetails#" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="No events with ID #EventID# during last #PeriodInMinutes# minutes" />
+                </Statement>
+              </Else>
+            </If>
+            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#LogIt#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="1" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ScriptName#.log" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="LogContent" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#LogContent#" />
+                </Statement>
+              </Then>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Script was not downloaded" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="AlertWhenLockedOut" treePres="3" id="132614580" folderId="698164697782213" treeFullPath="Monitor Logins">
+      <Body description="This procedure will notify administrator via email if detects successful authentication of user">
+        <Statement description="This procedure will notify administrator via email if detects locked account&#xD;&#xA;Version: 0.3&#xD;&#xA;Author: Proserv Team&#xD;&#xA;Set event lookup period (in minutes)" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="60" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PeriodInMinutes" />
+        </Statement>
+        <Statement description="Set working path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="path" />
+        </Statement>
+        <Statement description="Set script logging variable variable. 0 - no logging. 1 - log to file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="LogIt" />
+        </Statement>
+        <Statement description="Set event ID" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="4740" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="EventID" />
+        </Statement>
+        <Statement description="Set output file name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="lockedout.txt" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="output_file" />
+        </Statement>
+        <Statement description="Set base name for the script and/or log file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Get-LoginEvents" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptName" />
+        </Statement>
+        <Statement description="The script name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#ScriptName#.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script" />
+        </Statement>
+        <Statement description="The scripts name &amp; path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ps_script#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script_path_name" />
+        </Statement>
+        <Statement description="download the script" name="GetURL" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/#ps_script#" />
+          <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ps_script_path_name#" />
+          <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+        </Statement>
+        <If description="check if script downloaded">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <If description="Check if output file already exists">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="DeleteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+                </Statement>
+              </Then>
+            </If>
+            <Statement description="Execute script" name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -EventID #EventID# -Path #path# -MachineID #vAgentConfiguration.machName# -PeriodInMinutes #PeriodInMinutes# -LogIt #LogIt#" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <Statement name="PauseScript" continueOnFail="false">
+              <Parameter xsi:type="IntegerParameter" name="Seconds" value="5" />
+            </Statement>
+            <If description="Check if script found event and created output file">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="true">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#output_file#" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="EventDetails" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#EventDetails#" />
+                </Statement>
+                <Statement name="SendEmail" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="To" value="&lt;alertemail&gt;" />
+                  <Parameter xsi:type="StringParameter" name="Subject" value="#EventDetails#" />
+                  <Parameter xsi:type="MultiLineStringParameter" name="Body" value="#EventDetails#" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="No events with ID #EventID# during last #PeriodInMinutes# minutes" />
+                </Statement>
+              </Else>
+            </If>
+            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#LogIt#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="1" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ScriptName#.log" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="LogContent" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#LogContent#" />
+                </Statement>
+              </Then>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Script was not downloaded" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="AlertWhenLogIn" treePres="3" id="1041536508" folderId="698164697782213" treeFullPath="Monitor Logins">
+      <Body description="This procedure will notify administrator via email if detects successful authentication of user">
+        <Statement description="This procedure will notify administrator via email if detects successful login of user&#xD;&#xA;Version: 0.3&#xD;&#xA;Author: Proserv Team&#xD;&#xA;Set event lookup period (in minutes)" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="60" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PeriodInMinutes" />
+        </Statement>
+        <Statement description="Set working path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="path" />
+        </Statement>
+        <Statement description="Set script logging variable variable. 0 - no logging. 1 - log to file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="LogIt" />
+        </Statement>
+        <Statement description="Set event ID" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="4624" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="EventID" />
+        </Statement>
+        <Statement description="Set output file name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="login.txt" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="output_file" />
+        </Statement>
+        <Statement description="Set base name for the script and/or log file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Get-LoginEvents" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptName" />
+        </Statement>
+        <Statement description="The script name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#ScriptName#.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script" />
+        </Statement>
+        <Statement description="The scripts name &amp; path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ps_script#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script_path_name" />
+        </Statement>
+        <Statement description="download the script" name="GetURL" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/#ps_script#" />
+          <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ps_script_path_name#" />
+          <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+        </Statement>
+        <If description="check if script downloaded">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <If description="Check if output file already exists">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="DeleteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+                </Statement>
+              </Then>
+            </If>
+            <Statement description="Execute script" name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -EventID #EventID# -Path #path# -MachineID #vAgentConfiguration.machName# -PeriodInMinutes #PeriodInMinutes# -LogIt #LogIt#" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <Statement name="PauseScript" continueOnFail="false">
+              <Parameter xsi:type="IntegerParameter" name="Seconds" value="5" />
+            </Statement>
+            <If description="Check if script found event and created output file">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="true">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#output_file#" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="EventDetails" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#EventDetails#" />
+                </Statement>
+                <Statement name="SendEmail" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="To" value="&lt;alertemail&gt;" />
+                  <Parameter xsi:type="StringParameter" name="Subject" value="#EventDetails#" />
+                  <Parameter xsi:type="MultiLineStringParameter" name="Body" value="#EventDetails#" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="No events with ID #EventID# during last #PeriodInMinutes# minutes" />
+                </Statement>
+              </Else>
+            </If>
+            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#LogIt#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="1" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ScriptName#.log" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="LogContent" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#LogContent#" />
+                </Statement>
+              </Then>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Script was not downloaded" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="AlertWhenLogOut" treePres="3" id="278234014" folderId="698164697782213" treeFullPath="Monitor Logins">
+      <Body description="This procedure will notify administrator via email if detects successful authentication of user">
+        <Statement description="This procedure will notify administrator via email if detects successful logout of user&#xD;&#xA;Version: 0.3&#xD;&#xA;Author: Proserv Team&#xD;&#xA;Set event lookup period (in minutes)" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="60" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PeriodInMinutes" />
+        </Statement>
+        <Statement description="Set working path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="path" />
+        </Statement>
+        <Statement description="Set script logging variable variable. 0 - no logging. 1 - log to file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="LogIt" />
+        </Statement>
+        <Statement description="Set event ID" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="4634" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="EventID" />
+        </Statement>
+        <Statement description="Set output file name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="logout.txt" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="output_file" />
+        </Statement>
+        <Statement description="Set base name for the script and/or log file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Get-LoginEvents" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptName" />
+        </Statement>
+        <Statement description="The script name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#ScriptName#.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script" />
+        </Statement>
+        <Statement description="The scripts name &amp; path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ps_script#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script_path_name" />
+        </Statement>
+        <Statement description="download the script" name="GetURL" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Scripts/Powershell/#ps_script#" />
+          <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ps_script_path_name#" />
+          <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+        </Statement>
+        <If description="check if script downloaded">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <If description="Check if output file already exists">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="DeleteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+                </Statement>
+              </Then>
+            </If>
+            <Statement description="Execute script" name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -EventID #EventID# -Path #path# -MachineID #vAgentConfiguration.machName# -PeriodInMinutes #PeriodInMinutes# -LogIt #LogIt#" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <Statement name="PauseScript" continueOnFail="false">
+              <Parameter xsi:type="IntegerParameter" name="Seconds" value="5" />
+            </Statement>
+            <If description="Check if script found event and created output file">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="true">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#output_file#" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="EventDetails" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#EventDetails#" />
+                </Statement>
+                <Statement name="SendEmail" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="To" value="&lt;alertemail&gt;" />
+                  <Parameter xsi:type="StringParameter" name="Subject" value="#EventDetails#" />
+                  <Parameter xsi:type="MultiLineStringParameter" name="Body" value="#EventDetails#" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="No events with ID #EventID# during last #PeriodInMinutes# minutes" />
+                </Statement>
+              </Else>
+            </If>
+            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#LogIt#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="1" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ScriptName#.log" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="LogContent" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#LogContent#" />
+                </Statement>
+              </Then>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Script was not downloaded" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

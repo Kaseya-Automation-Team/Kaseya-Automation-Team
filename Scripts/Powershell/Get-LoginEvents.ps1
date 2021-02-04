@@ -9,7 +9,7 @@
 .EXAMPLE
    .\Get-LoginEvents.ps1 -EventID 4625 -Path 'C:\Temp' -LogIt 1
 .NOTES
-   Version 0.2
+   Version 0.3.2
    Author: Proserv Team - VS
 #>
 
@@ -27,6 +27,18 @@ param (
                    ValueFromRemainingArguments=$false, 
                    Position=1)]
     [string] $Path,
+    [parameter(Mandatory=$true, 
+                   ValueFromPipeline=$true,
+                   ValueFromPipelineByPropertyName=$true, 
+                   ValueFromRemainingArguments=$false, 
+                   Position=2)]
+    [string] $MachineID,
+    [parameter(Mandatory=$true, 
+                   ValueFromPipeline=$true,
+                   ValueFromPipelineByPropertyName=$true, 
+                   ValueFromRemainingArguments=$false, 
+                   Position=3)]
+    [int] $PeriodInMinutes,
     [parameter(Mandatory=$false)]
     [int] $LogIt = 0
 )
@@ -124,19 +136,18 @@ Function Get-WinEventData {
 }
 
 
-
+[string]$DateFormat = "{0:MM'/'dd'/'yyyy H:mm:ss}"
 switch ( $EventID )
 {
 ## Successful Login
     4624 {
         $FileName = 'login.txt'
-        [array] $SelectFields = @('EventDataTargetUserName', 'EventDataTargetDomainName', 'EventDataElevatedToken')
+        [array] $SelectFields = @('EventDataTargetUserName', 'EventDataTargetDomainName', 'EventDataElevatedToken', 'TimeCreated')
         [string] $XMLQuery= @"
 <QueryList>
-  <Query Id="0"
-         Path="Security">
+  <Query Id="0" Path="Security">
     <Select Path="Security">
-*[System[(EventID=4624)]]
+*[System[(EventID=$EventID) and TimeCreated[timediff(@SystemTime) &lt;= $($PeriodInMinutes*60000)]]]
 and
 (
 (*[EventData[Data[@Name="LogonType"] and (Data='2')]]) or
@@ -144,7 +155,7 @@ and
 (*[EventData[Data[@Name="LogonType"] and (Data='10')]]) or
 (*[EventData[Data[@Name="LogonType"] and (Data='11')]])
 )
-    </Select>
+</Select>
   </Query>
 </QueryList>
 "@
@@ -153,11 +164,11 @@ and
         | ForEach-Object {
                 if($_.EventDataElevatedToken -match '1842')
                 {
-                    $OutputData += "Admin $($_.EventDataTargetDomainName)\$($_.EventDataTargetUserName)"                            
+                    $OutputData += "Admin $($_.EventDataTargetDomainName)\$($_.EventDataTargetUserName) logged in to $MachineID at $($DateFormat -f ($_.TimeCreated))"                            
                 }
                 else
                 {
-                    $OutputData += "$($_.EventDataTargetDomainName)\$($_.EventDataTargetUserName)"
+                    $OutputData += "$($_.EventDataTargetDomainName)\$($_.EventDataTargetUserName) logged in to $MachineID at $($DateFormat -f ($_.TimeCreated))"
                 }
             }
     } #4624
@@ -165,9 +176,11 @@ and
 ## User Logged Off
     4634 {
         $FileName = 'logout.txt'
+        [array] $SelectFields = @('EventDataTargetUserName', 'EventDataTargetDomainName', 'TimeCreated')
                 [hashtable] $LogFilter = @{
                     LogName = 'Security'
                     ID = $EventID
+                    StartTime = $((get-date).AddMinutes(-$PeriodInMinutes))
                     }
 
         [hashtable] $WinEventArgs = @{
@@ -177,15 +190,17 @@ and
                     }
 
         Get-WinEvent @WinEventArgs | Get-WinEventData | Select-Object $SelectFields `
-            | ForEach-Object { $OutputData += "$($_.EventDataTargetDomainName)\$($_.EventDataTargetUserName)" }
+            | ForEach-Object { $OutputData += "$($_.EventDataTargetDomainName)\$($_.EventDataTargetUserName) logged out of $MachineID at $($DateFormat -f ($_.TimeCreated))" }
     } #4634
 
 ## Failed to Login
     4625 {
         $FileName = 'failed.txt'
+        [array] $SelectFields = @('EventDataTargetUserName', 'EventDataTargetDomainName', 'TimeCreated')
         [hashtable] $LogFilter = @{
                     LogName = 'Security'
                     ID = $EventID
+                    StartTime = $((get-date).AddMinutes(-$PeriodInMinutes))
                     }
 
         [hashtable] $WinEventArgs = @{
@@ -195,16 +210,17 @@ and
                     }
 
         Get-WinEvent @WinEventArgs | Get-WinEventData | Select-Object $SelectFields `
-            | ForEach-Object { $OutputData += "$($_.EventDataTargetDomainName)\$($_.EventDataTargetUserName)" }
+            | ForEach-Object { $OutputData += "$($_.EventDataTargetDomainName)\$($_.EventDataTargetUserName) failed to login to $MachineID at $($DateFormat -f ($_.TimeCreated))" }
         } #4625
 
 ## Account Locked Out
     4740 {
         $FileName = 'lockedout.txt'
-        [array] $SelectFields = @('EventDataTargetUserName', 'EventDataTargetDomainName')
+        [array] $SelectFields = @('EventDataTargetUserName', 'EventDataTargetDomainName', 'TimeCreated')
         [hashtable] $LogFilter = @{
                     LogName = 'Security'
                     ID = $EventID
+                    StartTime = $((get-date).AddMinutes(-$PeriodInMinutes))
                     }
 
         [hashtable] $WinEventArgs = @{
@@ -214,11 +230,14 @@ and
                     }
 
         Get-WinEvent @WinEventArgs | Get-WinEventData | Select-Object $SelectFields `
-            | ForEach-Object { $OutputData += "$($_.EventDataTargetDomainName)\$($_.EventDataTargetUserName)" }
+            | ForEach-Object { $OutputData += "$($_.EventDataTargetDomainName)\$($_.EventDataTargetUserName) locked out on $MachineID at $($DateFormat -f ($_.TimeCreated))" }
     } #4740
 }
 
-$OutputData | Out-File -FilePath "$Path\$FileName" -Encoding UTF8 -Force
+if( $null -ne $OutputData )
+{
+    $OutputData | Out-File -FilePath "$Path\$FileName" -Encoding UTF8 -Force
+}
 
 #region check/stop transcript
 if ( 1 -eq $LogIt )

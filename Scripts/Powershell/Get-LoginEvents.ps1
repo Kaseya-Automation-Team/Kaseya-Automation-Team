@@ -236,7 +236,8 @@ and
 
 if( $null -ne $OutputData )
 {
-    $OutputData | Out-File -FilePath "$Path\$FileName" -Encoding UTF8 -Force
+    $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+    [System.IO.File]::WriteAllLines("$Path\$FileName", $OutputData, $Utf8NoBomEncoding)
 }
 
 #region check/stop transcript

@@ -148,7 +148,7 @@ Foreach ($Profile in $ProfileList) {
     }
  
     #####################################################################
-    # This is where you can read/modify a users portion of the registry
+    # Modifying a user`s hive of the registry
     "{0} {1}" -f "`tUser:", $($Profile.UserName) | Write-Verbose
     foreach($item in $RegParameters)
     {

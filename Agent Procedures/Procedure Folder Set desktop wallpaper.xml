@@ -3,7 +3,7 @@
   <Folder name="Set desktop wallpaper" treePres="3">
     <Procedure name="Set desktop wallpaper" treePres="3" id="599061144" folderId="387704344693433" treeFullPath="myProcedures - admin.Set desktop wallpaper">
       <Body description="This agent procedure will upload and set desktop wallpaper on the target computer">
-        <Statement description="This agent procedure will upload and set desktop wallpaper on the target computer&#xD;&#xA;Version: 0.1&#xD;&#xA;Get path of the working directory - it will be used as temporary storage for wallpaper file" name="GetVariable" continueOnFail="false">
+        <Statement description="This agent procedure will upload and set desktop wallpaper on the target computer&#xD;&#xA;Version: 0.2&#xD;&#xA;Get path of the working directory - it will be used as temporary storage for wallpaper file" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
@@ -23,13 +23,13 @@
           <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Wallpaper\Set-DesktopWallpaper.ps1" />
           <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
         </Statement>
-        <Statement name="ExecuteShellCommand" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Command" value="powershell -ExecutionPolicy Bypass -File #ktemp#\Set-DesktopWallpaper.ps1 -FileName &quot;#ktemp#\wallpaper.jpg&quot; -LogIt #debug#" />
-          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="User" />
-          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File #ktemp#\Set-DesktopWallpaper.ps1 -Path &quot;#ktemp#&quot; -FileName &quot;wallpaper.jpg&quot; -LogIt #debug#" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
         </Statement>
-        <Statement description="Clean up - delete PowerShell script" name="DeleteFile" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Set-DesktopWallpaper.ps1" />
+        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
         </Statement>
       </Body>
     </Procedure>

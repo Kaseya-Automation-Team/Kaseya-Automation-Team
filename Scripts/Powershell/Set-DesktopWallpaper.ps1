@@ -2,6 +2,8 @@
 ## Used by the "Set desktop wallpaper" Agent Procedure
 
 param (
+	[parameter(Mandatory=$true)]
+    [string]$Path = "",
     [parameter(Mandatory=$true)]
     [string]$FileName = "",
     [parameter(Mandatory=$false)]
@@ -21,7 +23,7 @@ if (1 -eq $LogIt)
 }
 
 Write-Debug "Script execution started"
-Write-Debug $FileName
+Write-Debug $Path\$FileName
 
 $Code = @' 
 using System.Runtime.InteropServices; 
@@ -40,7 +42,7 @@ namespace Win32{
 
 Add-type $Code 
 
-[Win32.Wallpaper]::SetWallpaper($FileName)
+[Win32.Wallpaper]::SetWallpaper("$Path\$FileName")
 
 if (1 -eq $LogIt)
 {

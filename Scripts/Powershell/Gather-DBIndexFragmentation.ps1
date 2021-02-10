@@ -123,7 +123,6 @@ Server = {0}; User ID = {1}; Password = {2};
         $SqlAdapter.Dispose()
         $SqlCmd.Dispose()
         $SqlConnection.Close()
-        $SqlConnection.Dispose()
     }
 }
 

@@ -40,17 +40,6 @@ if ( 1 -eq $LogIt )
     Start-Transcript -Path $LogFile
 }
 #endregion check/start transcript
-
-if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
-if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
-
-
-#region Connection settings
-[string] $ConnectionString = @"
-Server = {0}; User ID = {1}; Password = {2};
-"@ -f @($SQLServer, $SQLUser, $SQLPwd)
-#endregion Connection settings
-
 #region SQL query
 [string] $SQLQuery= @"
 DECLARE @INDEXFRAGINFO TABLE (
@@ -94,31 +83,48 @@ WHERE DatabaseID > 4
 ORDER BY [Fragmentation, %] DESC;
 "@
 #endregion SQL query
-try {
-    $SqlConnection = New-Object System.Data.SqlClient.SqlConnection  
-    $SqlConnection.ConnectionString = $ConnectionString
-    $SqlConnection.Open()
-    #creating command object
-    $SqlCmd = New-Object System.Data.SqlClient.SqlCommand  
-    $SqlCmd.CommandText = $SQLQuery  
-    $SqlCmd.Connection = $SqlConnection  
-    $SqlAdapter = New-Object System.Data.SqlClient.SqlDataAdapter  
-    $SqlAdapter.SelectCommand = $SqlCmd
-    #Creating Dataset  
-    $DataSet = New-Object System.Data.DataSet  
-    $SqlAdapter.Fill($DataSet)
-    $DataSet.Tables[0] | Select-Object -Property `
-    @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `
-    * | Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation
-} catch {
-    $_.Exception.Message
-} finally {
-    ## Close the connection when we're done
-    $DataSet.Dispose()
-    $SqlAdapter.Dispose()
-    $SqlCmd.Dispose()
-    $SqlConnection.Close()
-    $SqlConnection.Dispose()
+
+if ( 'Running' -ne (Get-Service -Name 'MSSQLSERVER').Status)
+{
+    Write-Warning "MS SQL Server is not running"
+}
+else
+{
+#region Connection settings
+[string] $ConnectionString = @"
+Server = {0}; User ID = {1}; Password = {2};
+"@ -f @($SQLServer, $SQLUser, $SQLPwd)
+#endregion Connection settings
+
+    if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
+    if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
+
+    try {
+        $SqlConnection = New-Object System.Data.SqlClient.SqlConnection  
+        $SqlConnection.ConnectionString = $ConnectionString
+        $SqlConnection.Open()
+        #creating command object
+        $SqlCmd = New-Object System.Data.SqlClient.SqlCommand  
+        $SqlCmd.CommandText = $SQLQuery  
+        $SqlCmd.Connection = $SqlConnection  
+        $SqlAdapter = New-Object System.Data.SqlClient.SqlDataAdapter  
+        $SqlAdapter.SelectCommand = $SqlCmd
+        #Creating Dataset  
+        $DataSet = New-Object System.Data.DataSet  
+        $SqlAdapter.Fill($DataSet)
+        $DataSet.Tables[0] | Select-Object -Property `
+        @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `
+        * | Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation
+    } catch {
+        $_.Exception.Message
+    } finally {
+        ## Close the connection when work done
+        $DataSet.Dispose()
+        $SqlAdapter.Dispose()
+        $SqlCmd.Dispose()
+        $SqlConnection.Close()
+        $SqlConnection.Dispose()
+    }
 }
 
 #region check/stop transcript

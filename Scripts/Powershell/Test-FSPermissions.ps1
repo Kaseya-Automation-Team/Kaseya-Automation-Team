@@ -130,11 +130,11 @@ foreach ( $Path in $($RefAccessParams.Path | Select-Object -Unique) )
             {
                 if ( '=>' -eq $item.SideIndicator)
                 {
-                    $Deficiencies += "$($item.InputObject) permissions added for $UserOrGroup to $Path"
+                    $Deficiencies += "$($item.InputObject) Permissions added for $UserOrGroup to $Path"
                 }
                 else
                 {
-                    $Deficiencies += "$($item.InputObject) permissions removed for $UserOrGroup to $Path"
+                    $Deficiencies += "$($item.InputObject) Permissions removed for $UserOrGroup to $Path"
                 }
             }
         }

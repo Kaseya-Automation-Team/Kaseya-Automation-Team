@@ -5,45 +5,72 @@ param (
     [string]$FileName,
     [parameter(Mandatory=$true)]
     [string]$Path,
-    #list of filesystem objects to check
-    # Path to the JSON file that contains filesystem objects with elegible users/groups & their permissions
+    # Path to the JSON file that lists filesystem objects with corresponding users/groups & their permissions
     [parameter(Mandatory=$true)]
-    [string[]]$ReferenceJSON
+    [string[]] $RefJSON,
+    # Create transcript file
+    [parameter(Mandatory=$false)]
+    [int] $LogIt = 1
  )
+#region check/start transcript
+[string]$Pref = 'Continue'
+if ( 1 -eq $LogIt )
+{
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    $ScriptName = [io.path]::GetFileNameWithoutExtension( $($MyInvocation.MyCommand.Name) )
+    $ScriptPath = Split-Path $script:MyInvocation.MyCommand.Path
+    $LogFile = "$ScriptPath\$ScriptName.log"
+    Start-Transcript -Path $LogFile
+}
+#endregion check/start transcript
 
-[array] $RefPermissions = Get-Content -Raw -Path $ReferenceJSON  | ConvertFrom-Json
+[array] $RefAccessParams = Get-Content -Raw -Path $ReferenceJSON  | ConvertFrom-Json
 [string[]] $Deficiencies = @()
 
-foreach ( $Path in $($RefPermissions.Path | Select-Object -Unique) )
+foreach ( $Path in $($RefAccessParams.Path | Select-Object -Unique) )
 {
+    Write-Debug "Path: $Path`nActual Permissions"
     #region get actual ACL & replace enumerated permissions
-    $AclAccess = foreach ($Access in (Get-Acl -Path $Path).Access) {
+    $ActualAcl = foreach ( $Access in (Get-Acl -Path $Path).Access )
+    {
         # see https://docs.microsoft.com/en-us/dotnet/api/system.security.accesscontrol.filesystemrights
-        $permissions = switch($Access.FileSystemRights.value__) {
-            2032127     { 'FullControl'; break}
-            1179785     { 'Read'; break}
-            1180063     { 'Read, Write'; break}
-            1179817     { 'ReadAndExecute'; break}
-            1245631     { 'ReadAndExecute, Modify, Write'; break}
-            1180095     { 'ReadAndExecute, Write'; break}
-            268435456   { 'FullControl'; break}
-            -1610612736 { 'ReadAndExecute, Synchronize '; break}
-            -536805376  { 'Modify, Synchronize '; break}
+        $Permissions = switch($Access.FileSystemRights.value__)
+        {
+            2032127     { 'FullControl' }
+            1179785     { 'Read' }
+            1180063     { 'Read, Write' }
+            1179817     { 'ReadAndExecute' }
+            1245631     { 'ReadAndExecute, Modify, Write' }
+            1180095     { 'ReadAndExecute, Write' }
+            268435456   { 'FullControl' }
+            -1610612736 { 'ReadAndExecute, Synchronize ' }
+            -536805376  { 'Modify, Synchronize ' }
             default     { $Access.FileSystemRights.ToString()}
         }
         [PSCustomObject] @{
             'IdentityReference' = $Access.IdentityReference
-            'FileSystemRights'  = $permissions
+            'FileSystemRights'  = $Permissions
         }
+        [string] $Info = "{0} : {1}" -f $($Access.IdentityReference), $Permissions
+        Write-Debug $Info
     }
     #endregion get actual ACL & replace enumerated permissions
-    $RefAccess = $RefPermissions | Where-Object {$Path -eq $_.Path}
-    # Gather users/groups that have permission to the FS object
-    [string[]] $ActualUsersOrGroups = ( $AclAccess | Select-Object -Unique -ExpandProperty IdentityReference).Value
-    # Gather users/groups that must have permission to the path according to the JSON
-    [string[]] $RefUsersOrGroups = ( $RefAccess | Select-Object -Unique -ExpandProperty UserOrGroup )
-    
+
     #region detect if security members changed
+
+    $RefAcl = $RefAccessParams | Where-Object {$Path -eq $_.Path}
+
+    Write-Debug "Path: $Path`nReference Permissions"
+    $RefAcl | Select-Object UserOrGroup, Permission | `
+    ForEach-Object {[string] $Info = "{0} : {1}" -f $_.UserOrGroup, $_.Permission; Write-Debug $Info }
+
+    # Gather users/groups that have permission to the FS object
+    [string[]] $ActualUsersOrGroups = ( $ActualAcl | Select-Object -Unique -ExpandProperty IdentityReference).Value
+    # Gather users/groups that must have permission to the path according to the JSON
+    [string[]] $RefUsersOrGroups = ( $RefAcl | Select-Object -Unique -ExpandProperty UserOrGroup )
+    
     [array] $DiffUsersOrGroups = Compare-Object -ReferenceObject $RefUsersOrGroups -DifferenceObject $ActualUsersOrGroups
 
     if (0 -ne $DiffUsersOrGroups.Count)
@@ -61,19 +88,21 @@ foreach ( $Path in $($RefPermissions.Path | Select-Object -Unique) )
         }
     }
     #endregion detect if security members changed
+
     #region detect if permissions changed
+
     foreach( $UserOrGroup in $RefUsersOrGroups)
     {
         #Reference access rights from the JSON
         [string[]] $RefAccessRights = (
-            $RefAccess | `
+            $RefAcl | `
             Where-Object { $UserOrGroup -eq $_.UserOrGroup } | `
             Select-Object -ExpandProperty Permission | `
             ForEach-Object {$_ -split ','}
         ).Trim()
         #Actual access rights from the FS
         [string[]] $ActualAccessRights = @()
-        $ActualAccessRights += $AclAccess |  `
+        $ActualAccessRights += $ActualAcl |  `
             Where-Object { $_.IdentityReference -eq $UserOrGroup} | `
             Select-Object -ExpandProperty FileSystemRights | `
             Where-Object {$null -ne $_} | `
@@ -105,3 +134,14 @@ if( 0 -lt $Deficiencies.Count )
     $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
     [System.IO.File]::WriteAllLines("$Path\$FileName", $Deficiencies, $Utf8NoBomEncoding)
 }
+
+#region check/stop transcript
+if ( 1 -eq $LogIt )
+{
+    $Pref = 'SilentlyContinue'
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    Stop-Transcript
+}
+#endregion check/stop transcript

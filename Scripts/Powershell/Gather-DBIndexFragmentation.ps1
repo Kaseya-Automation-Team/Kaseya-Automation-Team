@@ -112,9 +112,9 @@ Server = {0}; User ID = {1}; Password = {2};
         #Creating Dataset  
         $DataSet = New-Object System.Data.DataSet  
         $SqlAdapter.Fill($DataSet)
-        $DataSet.Tables[0] | Select-Object -Property `
-        @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `
-        * | Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation
+        $DataSet.Tables[0] | `
+        Select-Object @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, * -ExcludeProperty RowError,RowState,Table,ItemArray,HasErrors | `
+        Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation
     } catch {
         $_.Exception.Message
     } finally {

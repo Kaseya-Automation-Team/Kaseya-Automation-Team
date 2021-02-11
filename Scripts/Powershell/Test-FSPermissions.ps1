@@ -1,9 +1,9 @@
 <#
 .Synopsis
-   Detect filesystem permissions changes.
+   Compares actual filesystem permissions with permissions provided in the JSON file.
 .DESCRIPTION
    Used by Agent Procedure
-   Detects filesystem permissions changes and saves information on changes to a TXT-file.
+   Compares actual filesystem permissions with permissions provided in the JSON file and saves deficiency information on changes to a TXT-file.
 .EXAMPLE
    .\Test-FSPermissions.ps1  -AgentName '123456' -OutputFilePath 'C:\TEMP\fs_deficiency.txt' -RefJSON 'C:\FS_Permissions.json'
 .EXAMPLE

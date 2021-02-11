@@ -2,14 +2,14 @@
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Procedure name="Gather MS SQL DB Index Fragmentation" treePres="3" id="1207971520" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
     <Body description="The procedure calls PowerShell script that gathers MS SQL DB Index fragmentation on the host.">
-      <Statement description="The procedure calls PowerShell script that gathers MS SQL DB Index fragmentation on the host.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Set SQL user name" name="GetVariable" continueOnFail="false">
+      <Statement description="The procedure calls PowerShell script that gathers MS SQL DB Index fragmentation on the host and saves it as a CSV-file on the VSA server.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Set SQL user name" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-        <Parameter xsi:type="StringParameter" name="SourceContent" value="your_user" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="your_login" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="SQLUser" />
       </Statement>
       <Statement description="Set the SQL user's password" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-        <Parameter xsi:type="StringParameter" name="SourceContent" value="your_pasword" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="your_password" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="SQLPwd" />
       </Statement>
       <Statement description="Set working path" name="GetVariable" continueOnFail="false">

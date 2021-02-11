@@ -39,7 +39,7 @@ if ( 1 -eq $LogIt )
 }
 #endregion check/start transcript
 
-[array] $RefAccessParams = Get-Content -Raw -Path $ReferenceJSON  | ConvertFrom-Json
+[array] $RefAccessParams = Get-Content -Raw -Path $RefJSON | ConvertFrom-Json
 [string[]] $Deficiencies = @()
 
 foreach ( $Path in $($RefAccessParams.Path | Select-Object -Unique) )

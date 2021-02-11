@@ -1,10 +1,23 @@
+<#
+.Synopsis
+   Detect filesystem permissions changes.
+.DESCRIPTION
+   Used by Agent Procedure
+   Detects filesystem permissions changes and saves information on changes to a TXT-file.
+.EXAMPLE
+   .\Test-FSPermissions.ps1  -AgentName '123456' -OutputFilePath 'C:\TEMP\fs_deficiency.txt' -RefJSON 'C:\FS_Permissions.json'
+.EXAMPLE
+   .\Test-FSPermissions.ps1  -AgentName '123456' -OutputFilePath 'C:\TEMP\fs_deficiency.txt' -RefJSON 'C:\FS_Permissions.json' -LogIt 0
+.NOTES
+   Version 0.1
+   Author: Proserv Team - VS
+#>
+
 param (
     [parameter(Mandatory=$true)]
     [string]$AgentName,
     [parameter(Mandatory=$true)]
-    [string]$FileName,
-    [parameter(Mandatory=$true)]
-    [string]$Path,
+    [string]$OutputFilePath,
     # Path to the JSON file that lists filesystem objects with corresponding users/groups & their permissions
     [parameter(Mandatory=$true)]
     [string[]] $RefJSON,
@@ -127,13 +140,20 @@ foreach ( $Path in $($RefAccessParams.Path | Select-Object -Unique) )
         }
     }    
     #endregion detect if permissions changed
-}
+}# foreach ( $Path in $($RefAccessParams.Path | Select-Object -Unique) )
 
+#region write results
+$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
 if( 0 -lt $Deficiencies.Count )
 {
-    $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
-    [System.IO.File]::WriteAllLines("$Path\$FileName", $Deficiencies, $Utf8NoBomEncoding)
+    $Deficiencies = , "Host: $($env:ComputerName)" + $Deficiencies
+    [System.IO.File]::WriteAllLines("$OutputFilePath", $Deficiencies, $Utf8NoBomEncoding)
 }
+else
+{
+    [System.IO.File]::WriteAllLines("$OutputFilePath", "No Deficiencies", $Utf8NoBomEncoding)
+}
+#endregion write results
 
 #region check/stop transcript
 if ( 1 -eq $LogIt )

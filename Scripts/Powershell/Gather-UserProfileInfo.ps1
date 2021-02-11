@@ -5,9 +5,9 @@
    Used by Agent Procedure
    Gathers users' profiles information on the computer and saves information to a CSV-file.
 .EXAMPLE
-   .\Gather-UserProfileInfo.ps1 -AgentName '12345' -FileName 'profiles_info.csv' -Path 'C:\TEMP'
+   .\Gather-UserProfileInfo.ps1 -AgentName '12345' -OutputFilePath 'C:\TEMP\profiles_info.csv'
 .EXAMPLE
-   .\Gather-UserProfileInfo.ps1 -AgentName '12345' -FileName 'profiles_info.csv' -Path 'C:\TEMP' -LogIt 0
+   .\Gather-UserProfileInfo.ps1 -AgentName '12345' -OutputFilePath 'C:\TEMP\profiles_info.csv' -LogIt 0
 .NOTES
    Version 0.1
    Author: Proserv Team - VS
@@ -16,9 +16,7 @@ param (
     [parameter(Mandatory=$true)]
     [string] $AgentName,
     [parameter(Mandatory=$true)]
-    [string] $FileName,
-    [parameter(Mandatory=$true)]
-    [string] $Path,
+    [string] $OutputFilePath,
     [parameter(Mandatory=$false)]
     [int] $LogIt = 1
 )
@@ -36,9 +34,6 @@ if ( 1 -eq $LogIt )
     Start-Transcript -Path $LogFile
 }
 #endregion check/start transcript
-
-if ( $FileName -notmatch '\.csv$') { $FileName += '.csv' }
-if (-not [string]::IsNullOrEmpty( $Path) ) { $FileName = "$Path\$FileName" }
 
 [string] $DateFormat = "{0:MM'/'dd'/'yyyy H:mm:ss}"
 [string] $SIDPattern = 'S-1-5-21-\d+-\d+\-\d+\-\d+$'
@@ -65,7 +60,7 @@ Foreach ( $Profile in $ProfileList )
 $ProfileList | Select-Object -Property `
     @{Name = 'Hostname'; Expression= {$env:COMPUTERNAME}}, `
     @{Name = 'AgentGuid'; Expression = {$AgentName}}, `
-* | Sort-Object "Size,MB" -Descending | Export-Csv -Path "FileSystem::$FileName" -Force -Encoding UTF8 -NoTypeInformation
+* | Sort-Object "Size,MB" -Descending | Export-Csv -Path "FileSystem::$OutputFilePath" -Force -Encoding UTF8 -NoTypeInformation
 
 #region check/stop transcript
 if ( 1 -eq $LogIt )

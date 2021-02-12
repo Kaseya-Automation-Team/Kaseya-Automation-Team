@@ -2,20 +2,20 @@
     
 param (
     [parameter(Mandatory=$false)]
-    [int]$LogIt = 1
+    [int]$LogIt = 0
 )
 
 #Start execution timer
 $stopwatch = [system.diagnostics.stopwatch]::StartNew()
-
-#Specify folder to log files and file mask here
-$LogsPath = "c:\work\vsa\parser\audit.log.*"
 
 #Read files from folder
 $LogsFiles = Get-ChildItem $LogsPath
 
 #Get folder where this script remains
 $ScriptDir = Split-Path ($MyInvocation.MyCommand.Path) -Parent
+
+#Specify folder to log files and file mask here
+$LogsPath = "$ScriptDir\logs\webapp\audit.log.*"
 
 [string]$Pref = "Continue"
 if (1 -eq $LogIt)
@@ -28,7 +28,6 @@ if (1 -eq $LogIt)
 }
 
 Write-Debug "Script execution started"
-Write-Debug ($LogsPath|Out-String)
 Write-Debug ($LogsFiles|Out-String)
 Write-Debug ($ScriptDir|Out-String)
 

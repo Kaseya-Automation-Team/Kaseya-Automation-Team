@@ -1,9 +1,11 @@
 ﻿<#
 .Synopsis
-   Searches logs for the most recent stop error events (BSOD).
+   Searches logs for the most recent stop error events (BSOD) within a given period of time (24 hours as default) and saves error information into a file.
 .DESCRIPTION
-   Searches logs for the most recent stop error events (BSOD) within a given period of time and saves error information into a file.
-   For more detailed investigation of the stop error please refer to the Bug Check Code Reference
+   When OS Windows encounters a condition that compromises safe system operation, the system halts.
+   This condition is called a 'bug check'. It is also commonly referred to as a blue screen of death, a system crash, a kernel error, or a stop error.
+   The script looks up logs for the BugCheck events, gathers information on the errors and saves the information for the further investigation.
+   For further detailed investigation of the stop error please refer to the Bug Check Code Reference
    https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/bug-check-code-reference
 .EXAMPLE
    .\Get-BSOD.ps1 -AgentName 123456 -FilePath 'C:\TEMP\bsod-data.txt'

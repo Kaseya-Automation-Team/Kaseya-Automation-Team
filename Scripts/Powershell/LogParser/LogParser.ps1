@@ -2,20 +2,20 @@
     
 param (
     [parameter(Mandatory=$false)]
-    [int]$LogIt = 1
+    [int]$LogIt = 0
 )
 
 #Start execution timer
 $stopwatch = [system.diagnostics.stopwatch]::StartNew()
 
+#Get folder where this script remains
+$ScriptDir = Split-Path ($MyInvocation.MyCommand.Path) -Parent
+
 #Specify folder to log files and file mask here
-$LogsPath = "c:\work\vsa\parser\audit.log.*"
+$LogsPath = "$ScriptDir\logs\webapp\audit.log.*"
 
 #Read files from folder
 $LogsFiles = Get-ChildItem $LogsPath
-
-#Get folder where this script remains
-$ScriptDir = Split-Path ($MyInvocation.MyCommand.Path) -Parent
 
 [string]$Pref = "Continue"
 if (1 -eq $LogIt)
@@ -28,7 +28,6 @@ if (1 -eq $LogIt)
 }
 
 Write-Debug "Script execution started"
-Write-Debug ($LogsPath|Out-String)
 Write-Debug ($LogsFiles|Out-String)
 Write-Debug ($ScriptDir|Out-String)
 
@@ -39,7 +38,7 @@ Function Parse-String {
         $Line = $Line.Replace("`n", "")
 
         #Regex which parses the line from log
-        $Line -match "^(\d+-\d+-\d+ \d+:\d+:\d+,\d+)\s.+deviceName=(.+), address=(.+), macaddress=(.+),.+suspended=(.+),.+$"
+        $Line -match "^(\d+-\d+-\d+ \d+:\d+:\d+,\d+)\s.+deviceName=(.+), address=(.+), macaddress=(.+),.+suspended=(.+),.+$" | Out-Null
     
         $DateTime = $Matches[1]
         $DeviceName = $Matches[2]
@@ -94,15 +93,15 @@ Foreach ($Log in $LogsFiles) {
     Foreach ($Line in $AllLines) {
 
         If ($Line -like "*CreateNetworkDevice*") {
-            Export-to-CSV
+        Export-to-CSV
         }
 
         elseif ($Line -like "*DeleteTestContainer*") {
-            Export-to-CSV
+        Export-to-CSV
         }
 
         elseif ($Line -like "*UpdateNetworkDevice*") {
-            Export-to-CSV
+        Export-to-CSV
         }
 
     }

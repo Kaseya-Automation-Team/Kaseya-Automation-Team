@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Check FS Permissions" treePres="3" id="856490168" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
+    <Body description="The procedure calls PowerShell script that Compares actual filesystem permissions with permissions provided in the JSON file and sends alert if deficiencies are detected.">
+      <Statement description="The procedure calls PowerShell script that Compares actual filesystem permissions with permissions provided in the JSON file and sends alert if deficiencies are detected.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Set JSON file name that lists filesystem objects with corresponding users/groups &amp; their permissions" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="FS_Permissions.json" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="JSONFile" />
+      </Statement>
+      <Statement description="Set working path" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="path" />
+      </Statement>
+      <Statement description="Set script logging variable variable. 0 - no logging. 1 - log to file" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="1" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="LogIt" />
+      </Statement>
+      <Statement description="Set output file name" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="fs_deficiency.txt" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="output_file" />
+      </Statement>
+      <If description="Remove previous output file if it exists">
+        <Condition name="TestFile">
+          <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <Statement name="DeleteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+          </Statement>
+        </Then>
+      </If>
+      <Statement description="Set base name for the script and/or log file" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Test-FSPermissions" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptName" />
+      </Statement>
+      <Statement description="The script name" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="#ScriptName#.ps1" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script" />
+      </Statement>
+      <Statement description="The scripts name &amp; path" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ps_script#" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script_path_name" />
+      </Statement>
+      <Statement description="download the script" name="WriteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+        <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#ps_script#" />
+        <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+      </Statement>
+      <Statement description="download the JSON-file" name="WriteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="#path#\#JSONFile#" />
+        <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#JSONFile#" />
+        <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+      </Statement>
+      <If description="check if script downloaded">
+        <Condition name="TestFile">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <If description="">
+            <Condition name="TestFile">
+              <Parameter xsi:type="StringParameter" name="Path" value="#path#\#JSONFile#" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              <Parameter xsi:type="StringParameter" name="Value" value="" />
+            </Condition>
+            <Then>
+              <Statement description="Execute script" name="ExecuteShellCommand" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -AgentName '#vAgentConfiguration.agentGuid#' -OutputFilePath '#path#\#output_file#' -RefJSON '#path#\#JSONFile#' -LogIt #LogIt#" />
+                <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+              </Statement>
+              <Statement description="Get check results from the output file" name="GetVariable" continueOnFail="false">
+                <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#output_file#" />
+                <Parameter xsi:type="StringParameter" name="VariableName" value="outcome" />
+              </Statement>
+              <If description="">
+                <Condition name="CheckVariable">
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="#outcome#" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="Permissions" />
+                </Condition>
+                <Then>
+                  <Statement name="GetVariable" continueOnFail="false">
+                    <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                    <Parameter xsi:type="StringParameter" name="SourceContent" value="File system permissions deficiency detected on machine &lt;&lt;id&gt;&gt;" />
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="alertSubject" />
+                  </Statement>
+                  <Statement name="GetVariable" continueOnFail="false">
+                    <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                    <Parameter xsi:type="StringParameter" name="SourceContent" value="FS permissions deficiencies detected by &lt;&lt;apn&gt;&gt; on machine &lt;&lt;id&gt;&gt; at &lt;&lt;ata&gt;&gt;. Detailed information: #outcome#" />
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="alertBody" />
+                  </Statement>
+                  <Statement name="SendAlert" continueOnFail="false" />
+                  <Statement name="SendEmail" continueOnFail="false">
+                    <Parameter xsi:type="StringParameter" name="To" value="&lt;alertemail&gt;" />
+                    <Parameter xsi:type="StringParameter" name="Subject" value="File system permissions deficiency detected" />
+                    <Parameter xsi:type="MultiLineStringParameter" name="Body" value="#outcome#" />
+                  </Statement>
+                </Then>
+              </If>
+              <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+              </Statement>
+              <If description="">
+                <Condition name="CheckVariable">
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="#LogIt#" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="1" />
+                </Condition>
+                <Then>
+                  <Statement name="GetVariable" continueOnFail="false">
+                    <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                    <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ScriptName#.log" />
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="LogContent" />
+                  </Statement>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="#LogContent#" />
+                  </Statement>
+                </Then>
+              </If>
+            </Then>
+          </If>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="#JSONFile# was not downloaded" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Script #ps_script# was not downloaded" />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScriptExport>

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Check For Windows KB Status" treePres="3">
+    <Procedure name="Check For Windows KB Status" treePres="3" id="1160235536" folderId="314736316080548" treeFullPath="Shared\Check For Windows KB Status">
+      <Body description="">
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="KB Number:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="hotfix" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="workDir" />
+        </Statement>
+        <Statement name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#workDir#\Get-Installed-KB.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Get-Installed-KB.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #workDir#\Get-Installed-KB.ps1 #hotfix# #workDir#" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#workDir#\#hotfix#.txt" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="#workDir#\#hotfix#.txt" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="contents" />
+            </Statement>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#contents#" />
+            </Statement>
+            <Statement name="GetFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#workDir#\#hotfix#.txt" />
+              <Parameter xsi:type="StringParameter" name="KServerFileName" value="Windows Update\#hotfix#.txt" />
+              <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteNoAlert" />
+            </Statement>
+            <Statement name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#workDir#\#hotfix#.txt" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="The requested Windows Update (#hotfix#) is not installed on this machine." />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

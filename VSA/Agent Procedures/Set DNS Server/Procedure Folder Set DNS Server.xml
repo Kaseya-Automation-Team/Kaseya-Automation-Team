@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Set DNS Server" treePres="3">
+    <Procedure name="Set DNS Server" treePres="3" id="425980417" folderId="323978384828185" treeFullPath="Set DNS Server">
+      <Body description="">
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Primary DNS Server IP" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="primaryDns" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Secondary DNS Server IP" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="secondaryDns" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="workDir" />
+        </Statement>
+        <Statement name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#workDir#\Set-DNS-Server.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Set-DNS-Server.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="powershell -ExecutionPolicy Bypass -File #workDir#\Set-DNS-Server.ps1 #primaryDns# #secondaryDns#" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

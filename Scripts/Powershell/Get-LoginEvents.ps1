@@ -7,7 +7,7 @@
 .EXAMPLE
    .\Get-LoginEvents.ps1 4624 'C:\Temp'
 .EXAMPLE
-   .\Get-LoginEvents.ps1 -EventID 4625 -Path 'C:\Temp' -LogIt 1
+   .\Get-LoginEvents.ps1 -EventID 4625 -Path 'C:\Temp\login_events.txt' -LogIt 1
 .NOTES
    Version 0.3.2
    Author: Proserv Team - VS

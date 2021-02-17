@@ -57,11 +57,6 @@ For further detailed investigation of the stop error please refer to the Bug Che
 https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/bug-check-code-reference
 "@
 
-if( Test-Path -Path $FilePath )
-{
-    Remove-Item -Path $FilePath -Force -Confirm:$false
-}
-
 Function Get-WinEventData {
 <#
 .SYNOPSIS

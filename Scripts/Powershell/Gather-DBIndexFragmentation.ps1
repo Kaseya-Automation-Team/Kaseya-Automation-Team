@@ -1,13 +1,13 @@
 ﻿<#
 .Synopsis
-   Gathers SQL Server index fragmentation information.
+   Gathers SQL Server index fragmentation information. By default it checks default SQL instance on the local host.
 .DESCRIPTION
    Used by Agent Procedure
    Gathers SQL Server index fragmentation information from all non-system databases on the computer and saves information to a CSV-file.
 .EXAMPLE
    .\Gather-DBIndexFragmentation.ps1 -FileName 'frag_indexes.csv' -Path 'C:\TEMP' -SQLUser 'sa' -SQLPwd '12345'
 .EXAMPLE
-   .\Gather-DBIndexFragmentation.ps1 -FileName 'frag_indexes.csv' -Path 'C:\TEMP' -SQLUser 'sa' -SQLPwd '12345' -LogIt 0
+   .\Gather-DBIndexFragmentation.ps1 -FileName 'frag_indexes.csv' -Path 'C:\TEMP' -SQLServer 'RemoteHostName' -SQLUser 'sa' -SQLPwd '12345' -SQLInstance 'AnotherSQLInstance' -LogIt 0
 .NOTES
    Version 0.1
    Author: Proserv Team - VS
@@ -23,6 +23,8 @@ param (
     [string] $SQLPwd,
     [parameter(Mandatory=$false)]
     [string] $SQLServer = 'localhost',
+    [parameter(Mandatory=$false)]
+    [string] $SQLInstance = 'MSSQLSERVER',
     [parameter(Mandatory=$false)]
     [int] $LogIt = 1
 )
@@ -84,7 +86,7 @@ ORDER BY [Fragmentation, %] DESC;
 "@
 #endregion SQL query
 
-if ( 'Running' -ne (Get-Service -Name 'MSSQLSERVER').Status)
+if ( 'Running' -ne (Get-Service -Name $SQLInstance).Status)
 {
     Write-Warning "MS SQL Server is not running"
 }

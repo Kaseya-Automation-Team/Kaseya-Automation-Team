@@ -5,8 +5,7 @@
    When OS Windows encounters a condition that compromises safe system operation, the system halts.
    This condition is called a 'bug check'. It is also commonly referred to as a blue screen of death, a system crash, a kernel error, or a stop error.
    The script looks up logs for the BugCheck events, gathers information on the errors and saves the information for the further investigation.
-   For further detailed investigation of the stop error please refer to the Bug Check Code Reference
-   https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/bug-check-code-reference
+   See also https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/bug-check-code-reference
 .EXAMPLE
    .\Get-BSOD.ps1 -AgentName 123456 -FilePath 'C:\TEMP\bsod-data.txt'
 .EXAMPLE
@@ -34,7 +33,7 @@ param (
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
                    Position=2)]
-    [int] $PeriodInMinutes = 1440,
+    [int] $PeriodInMinutes = 1440, # 0 for any time
     [parameter(Mandatory=$false)]
     [int] $LogIt = 1
 )
@@ -52,6 +51,16 @@ if ( 1 -eq $LogIt )
     Start-Transcript -Path $LogFile
 }
 #endregion check/start transcript
+
+[string] $BugCheckCodeReference = @"
+For further detailed investigation of the stop error please refer to the Bug Check Code Reference
+https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/bug-check-code-reference
+"@
+
+if( Test-Path -Path $FilePath )
+{
+    Remove-Item -Path $FilePath -Force -Confirm:$false
+}
 
 Function Get-WinEventData {
 <#
@@ -132,57 +141,56 @@ Function Get-WinEventData {
     }
 }
 
+[string] $TimePeriod = ''
+if (0 -lt $PeriodInMinutes) 
+{
+    $TimePeriod = "and TimeCreated[timediff(@SystemTime) &lt;= $($PeriodInMinutes*60000)]"
+}
+
+
+#Query to scan logs for the BugCheck errors (a.k.a. BSOD)
 [string] $XMLQueryBSOD= @"
 <QueryList>
     <Query Id="0" Path="System">
-        <Select Path="System">*[System[Provider[@Name='Microsoft-Windows-WER-SystemErrorReporting'] and (Level=2) and TimeCreated[timediff(@SystemTime) &lt;= $($PeriodInMinutes*60000)]]]</Select>
-        <Select Path="Application">*[System[Provider[@Name='Microsoft-Windows-WER-SystemErrorReporting'] and (Level=2) and TimeCreated[timediff(@SystemTime) &lt;= $($PeriodInMinutes*60000)]]]</Select>
-        <Select Path="Security">*[System[Provider[@Name='Microsoft-Windows-WER-SystemErrorReporting'] and (Level=2) and TimeCreated[timediff(@SystemTime) &lt;= $($PeriodInMinutes*60000)]]]</Select>
-        <Select Path="Setup">*[System[Provider[@Name='Microsoft-Windows-WER-SystemErrorReporting'] and (Level=2) and TimeCreated[timediff(@SystemTime) &lt;= $($PeriodInMinutes*60000)]]]</Select>
+        <Select Path="System">*[System[Provider[@Name='Microsoft-Windows-WER-SystemErrorReporting'] and (Level=2) {0}]]</Select>
+        <Select Path="Application">*[System[Provider[@Name='Microsoft-Windows-WER-SystemErrorReporting'] and (Level=2) {0}]]</Select>
+        <Select Path="Security">*[System[Provider[@Name='Microsoft-Windows-WER-SystemErrorReporting'] and (Level=2) {0}]]</Select>
+        <Select Path="Setup">*[System[Provider[@Name='Microsoft-Windows-WER-SystemErrorReporting'] and (Level=2) {0}]]</Select>
     </Query>
 </QueryList>
-"@
-<#
-#Critical system event is logged after BSOD error has been raised. It means that system was shut down to prevent data loss
-[string] $XMLQueryCritical= @"
-<QueryList>
-    <Query Id="0" Path="System">
-        <Select Path="System">
-            *[System[(Level=1 )
-            and 
-            TimeCreated[timediff(@SystemTime) &lt;= $($PeriodInMinutes*60000)]]]
-            and
-            *[EventData[Data[@Name="BugcheckCode"] and (Data !='')]]
-        </Select>
-    </Query>
-</QueryList>
-"@
-#>
+"@ -f $TimePeriod
 
+#Get the latest event & put its info to an object
 $BSODData = Get-WinEvent -FilterXml $XMLQueryBSOD -MaxEvents 1 | Get-WinEventData
 
 if( $null -ne $BSODData )
 {
     #only properties that have values
-    [array] $PopulatedProperties = $($BSODData.PSObject.Properties | Where-Object {$null -ne $_.Value} | Select-Object -ExpandProperty Name)
+    [string[]] $PopulatedProperties = $BSODData.PSObject.Properties | Where-Object { $null -ne $_.Value } | Select-Object -ExpandProperty Name
     $BSODData = $BSODData | Select-Object $PopulatedProperties
+
     #Proper date format
     [string]$DateFormat = "{0:MM'/'dd'/'yyyy H:mm:ss}"
-    #Load code reference
+
+    #Load error codes and their descriptions
     [string] $BSODCodesPath = Join-Path -Path $ScriptPath -ChildPath 'BSOD-codes.xml'
     
     if( Test-Path -Path $BSODCodesPath )
     {
         #Find & replace stop code with meaningful values
         $BSODCodes = Import-Clixml -Path $BSODCodesPath
+
         #The EventDataparam1 field contains error codes
         if ($BSODData.EventDataparam1 -match '\w+')
         {
             #first code in the field EventDataparam1 is the stop code
-            $StopCode = $BSODCodes.$($Matches[0])
-            Add-Member -InputObject $BSODData -MemberType NoteProperty -Name StopCode -Value $StopCode
+            [string] $StopCode = $BSODCodes.$($Matches[0])
+            if ( -not [string]::IsNullOrEmpty($StopCode) )
+            {
+                Add-Member -InputObject $BSODData -MemberType NoteProperty -Name StopCode -Value $StopCode
+            }
         }
-        #The EventDataparam1 field may also contain Bugcheck Parameters as a comma-separated list in parentheses
+        #The EventDataparam1 field may also contain Bugcheck Parameters as a comma-separated list in parentheses. Add those parameters as the object's properties
         if ($BSODData.EventDataparam1 -match '\(\w+(?:,\s*\w+)*\)')
         {
             [int] $ParamNumber = 1
@@ -195,16 +203,16 @@ if( $null -ne $BSODData )
                     }
         }
 
-        $BSODData = $BSODData | Select-Object -Property `
+        $BSODData = $BSODData | Select-Object -Property *,`
                 @{Name = 'AgentGuid'; Expression = {$AgentName}}, `
                 @{Name = 'MemoryDump'; Expression = {$_.EventDataparam2}}, `
                 @{Name = 'ReportID'; Expression = {$_.EventDataparam3}}, `
                 @{Name = 'Time Created'; Expression = { $($DateFormat -f ($_.TimeCreated)) }}, `
-                * -ExcludeProperty EventDataparam2, EventDataparam3, TimeCreated, Properties
+                @{Name = 'Reference'; Expression = { $BugCheckCodeReference }} `
+                -ExcludeProperty EventDataparam2, EventDataparam3, TimeCreated, Properties
     }
     
-    $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
-    [System.IO.File]::WriteAllLines($FilePath, $BSODData, $Utf8NoBomEncoding)
+    Out-File -FilePath $FilePath -InputObject $BSODData -Encoding utf8 -Force
 }
 
 #region check/stop transcript

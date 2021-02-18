@@ -2,7 +2,17 @@
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Procedure name="Gather MS SQL DB Index Fragmentation" treePres="3" id="1207971520" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
     <Body description="The procedure calls PowerShell script that gathers MS SQL DB Index fragmentation on the host.">
-      <Statement description="The procedure calls PowerShell script that gathers MS SQL DB Index fragmentation on the host and saves it as a CSV-file on the VSA server.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Set SQL user name" name="GetVariable" continueOnFail="false">
+      <Statement description="The procedure calls PowerShell script that gathers MS SQL DB Index fragmentation on the host and saves it as a CSV-file on the VSA server.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Set SQL server" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="localhost" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="SQLServer" />
+      </Statement>
+      <Statement description="Set instance" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="MSSQLSERVER" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="SQLInstance" />
+      </Statement>
+      <Statement description="Set SQL user name" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="your_login" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="SQLUser" />
@@ -49,12 +59,7 @@
         <Parameter xsi:type="StringParameter" name="SourceContent" value="#ScriptName#.ps1" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script" />
       </Statement>
-      <Statement description="The scripts name &amp; path" name="GetVariable" continueOnFail="false">
-        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-        <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ps_script#" />
-        <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script_path_name" />
-      </Statement>
-      <Statement description="output file on the VSA server" name="GetVariable" continueOnFail="false">
+      <Statement description="The scripts name &amp; path&#xD;&#xA;output file on the VSA server" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="..\..\PSQueIn\SQLIndexFragmentation\#vAgentConfiguration.agentGuid#.csv" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="vsa_path" />
@@ -72,7 +77,7 @@
         </Condition>
         <Then>
           <Statement description="Execute script" name="ExecuteShellCommand" continueOnFail="false">
-            <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -FileName '#output_file#' -Path '#path#' -SQLUser '#SQLUser#' -SQLPwd '#SQLPwd#' -LogIt #LogIt#" />
+            <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -FileName '#output_file#' -Path '#path#' -SQLUser '#SQLUser#' -SQLPwd '#SQLPwd#' -SQLServer '#SQLServer#' -SQLInstance '#SQLInstance#' -LogIt #LogIt#" />
             <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
             <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
           </Statement>

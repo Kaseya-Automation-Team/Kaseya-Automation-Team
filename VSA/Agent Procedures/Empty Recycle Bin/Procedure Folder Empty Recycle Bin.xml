@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Empty Recycle Bin" treePres="3">
+    <Procedure name="Empty Recycle Bin" treePres="3" id="1896795812" folderId="476547465322794" treeFullPath="Empty Recycle Bin">
+      <Body description="">
+        <Statement description="Agent Procedure To Empty Recycle Bin" name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="rd /s /q %systemdrive%\$Recycle.Bin" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="Recycle Bin has been cleared." />
+        </Statement>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

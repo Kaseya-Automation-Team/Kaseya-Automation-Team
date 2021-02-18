@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Check MS SQL Index Fragmentation" treePres="3">
+    <Procedure name="Check MS SQL Index Fragmentation" treePres="3" id="5844911" folderId="657139949620301" treeFullPath="myProcedures - kadmin.Check MS SQL Index Fragmentation">
+      <Body description="The procedure calls PowerShell script that gathers MS SQL DB Index fragmentation on the host.">
+        <Statement description="The procedure calls PowerShell script that gathers MS SQL DB Index fragmentation on the host and saves it as a CSV-file on the VSA server.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Set SQL server" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="SQL Server (use 'localhost' if on same machine):" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="SQLServer" />
+        </Statement>
+        <Statement description="Set instance" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="SQL Instance: (MSSQLSERVER is default):" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="SQLInstance" />
+        </Statement>
+        <Statement description="Set SQL user name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="SQL Username:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="SQLUser" />
+        </Statement>
+        <Statement description="Set the SQL user's password" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="SQL Password:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="SQLPwd" />
+        </Statement>
+        <Statement description="Set working path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="path" />
+        </Statement>
+        <Statement description="Set script logging variable variable. 0 - no logging. 1 - log to file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="LogIt" />
+        </Statement>
+        <Statement description="Set output file name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="frag_indexes.csv" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="output_file" />
+        </Statement>
+        <If description="Remove previous output file if it exists">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+            </Statement>
+          </Then>
+        </If>
+        <Statement description="Set base name for the script and/or log file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Gather-DBIndexFragmentation" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptName" />
+        </Statement>
+        <Statement description="The script name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#ScriptName#.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script" />
+        </Statement>
+        <Statement description="The scripts name &amp; path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ps_script#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ps_script_path_name" />
+        </Statement>
+        <Statement description="output file on the VSA server" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="SQLIndexFragmentation\#vAgentConfiguration.agentGuid#.csv" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="vsa_path" />
+        </Statement>
+        <Statement description="download the script" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Gather-DBIndexFragmentation.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <If description="check if script downloaded">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement description="Execute script" name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ps_script_path_name# -FileName '#output_file#' -Path '#path#' -SQLUser '#SQLUser#' -SQLPwd '#SQLPwd#' -SQLServer '#SQLServer#' -SQLInstance '#SQLInstance#' -LogIt #LogIt#" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <If description="">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement description="Pulls the file to the VSA in a unique folder in the UserProfiles directory" name="GetFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#path#\#output_file#" />
+                  <Parameter xsi:type="StringParameter" name="KServerFileName" value="#vsa_path#" />
+                  <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
+                </Statement>
+              </Then>
+            </If>
+            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ps_script_path_name#" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#LogIt#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="1" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#path#\#ScriptName#.log" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="LogContent" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#LogContent#" />
+                </Statement>
+              </Then>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Script #ps_script# was not downloaded" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

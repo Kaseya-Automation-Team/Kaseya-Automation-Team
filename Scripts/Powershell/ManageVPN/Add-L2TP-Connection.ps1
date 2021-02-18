@@ -36,6 +36,7 @@ Write-Debug ($EncryptionLevel|Out-String)
 if (($EncryptionLevel -eq "Required") -or ($EncryptionLevel -eq "NoEncryption") -or ($EncryptionLevel -eq "Optional") -or ($EncryptionLevel -eq "Maximum")) {
 } else {
     Write-Host "Specified encryption level $EncryptionLevel is not supported."
+    Break
 }
 
 if ($Presharedkey) {

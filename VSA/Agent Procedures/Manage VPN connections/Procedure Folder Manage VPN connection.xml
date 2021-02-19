@@ -1,0 +1,355 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Manage VPN connection" treePres="3">
+    <Procedure name="Add L2TP connection" treePres="3" id="1172814720" folderId="463315261976474" treeFullPath="myProcedures - admin.Manage VPN connection">
+      <Body description="This agent procedure will upload and execute PowerShell script which creates L2TP VPN connection">
+        <Statement description="This agent procedure will upload and execute PowerShell script which creates L2TP VPN connection&#xD;&#xA;Version: 0.1&#xD;&#xA;Get working directory path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="Prompt for name of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Name of VPN connection (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="name" />
+        </Statement>
+        <Statement description="Prompt for server address of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Server address (host or ip) (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="server" />
+        </Statement>
+        <Statement description="Prompt for encryption level of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Encryption level (Required, NoEncryption, Optional, Maximum) (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="encryption" />
+        </Statement>
+        <Statement description="Prompt for preshared key of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Preshared key (optional)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="presharedkey" />
+        </Statement>
+        <Statement description="Set value to 1, to enable debug mode" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="debug" />
+        </Statement>
+        <Statement description="Upload PowerShell script to the working directory on target machine" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Add-L2TP-Connection.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\ManageVPN\Add-L2TP-Connection.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement description="Execute PowerShell script" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File #ktemp#\Add-L2TP-Connection.ps1 -Name &quot;#name#&quot; -Server &quot;#server#&quot; -EncryptionLevel &quot;#encryption#&quot; -PresharedKey &quot;#presharedkey#&quot; -LogIt #debug#" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <Statement description="Clean up - delete PowerShell script" name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Add-L2TP-Connection.ps1" />
+        </Statement>
+        <Statement description="Send output to Procedure Log" name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+    <Procedure name="Add L2TP connection (with credentials)" treePres="3" id="1694391947" folderId="463315261976474" treeFullPath="myProcedures - admin.Manage VPN connection">
+      <Body description="This agent procedure will upload and execute PowerShell script which creates L2TP VPN connection with credentials">
+        <Statement description="This agent procedure will upload and execute PowerShell script which creates L2TP VPN connection with credentials&#xD;&#xA;Version: 0.1&#xD;&#xA;Get working directory path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="Prompt for name of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Name of VPN connection (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="name" />
+        </Statement>
+        <Statement description="Prompt for server address" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Server address (host or ip) (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="server" />
+        </Statement>
+        <Statement description="Prompt for username" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Username (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="username" />
+        </Statement>
+        <Statement description="Prompt for password" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Password (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="password" />
+        </Statement>
+        <Statement description="Prompt for encryption level" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Encryption level (Required, NoEncryption, Optional, Maximum) (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="encryption" />
+        </Statement>
+        <Statement description="Prompt for preshared key" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Preshared key (optional)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="presharedkey" />
+        </Statement>
+        <Statement description="Set value to 1, to enable debug mode" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="debug" />
+        </Statement>
+        <Statement description="Upload PowerShell script to the working directory on target machine" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Add-L2TP-Connection-Creds.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\ManageVPN\Add-L2TP-Connection-Creds.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement description="Execute PowerShell script" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File #ktemp#\Add-L2TP-Connection-Creds.ps1 -Name &quot;#name#&quot; -Server &quot;#server#&quot; -EncryptionLevel &quot;#encryption#&quot; -PresharedKey &quot;#presharedkey#&quot; -Username &quot;#username#&quot; -Password &quot;#password#&quot; -LogIt #debug#" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <Statement description="Clean up - delete PowerShell script" name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Add-L2TP-Connection-Creds.ps1" />
+        </Statement>
+        <Statement description="Send output to Procedure Log" name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+    <Procedure name="Add PPTP connection" treePres="3" id="888618683" folderId="463315261976474" treeFullPath="myProcedures - admin.Manage VPN connection">
+      <Body description="This agent procedure will upload and execute PowerShell script which creates PPTP VPN connection with credentials">
+        <Statement description="This agent procedure will upload and execute PowerShell script which creates PPTP VPN connection with credentials&#xD;&#xA;Version: 0.1&#xD;&#xA;Get working directory path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="Prompt for name of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Name of VPN connection (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="name" />
+        </Statement>
+        <Statement description="Prompt for server address" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Server address (host or ip) (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="server" />
+        </Statement>
+        <Statement description="Prompt for username" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Username (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="username" />
+        </Statement>
+        <Statement description="Prompt for password" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Password (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="password" />
+        </Statement>
+        <Statement description="Prompt for encryption level" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Encryption level (Required, NoEncryption, Optional, Maximum) (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="encryption" />
+        </Statement>
+        <Statement description="Set value to 1, to enable debug mode" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="debug" />
+        </Statement>
+        <Statement description="Upload PowerShell script to the working directory on target machine" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Add-PPTP-Connection-Creds.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\ManageVPN\Add-PPTP-Connection-Creds.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement description="Execute PowerShell script" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File #ktemp#\Add-PPTP-Connection-Creds.ps1 -Name &quot;#name#&quot; -Server &quot;#server#&quot; -EncryptionLevel &quot;#encryption#&quot; -Username &quot;#username#&quot; -Password &quot;#password#&quot; -LogIt #debug#" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <Statement description="Clean up - delete PowerShell script" name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Add-PPTP-Connection-Creds.ps1" />
+        </Statement>
+        <Statement description="Send output to Procedure Log" name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+    <Procedure name="Add PPTP connection (with credentials)" treePres="3" id="1275165828" folderId="463315261976474" treeFullPath="myProcedures - admin.Manage VPN connection">
+      <Body description="This agent procedure will upload and execute PowerShell script which creates PPTP VPN connection with credentials entered">
+        <Statement description="This agent procedure will upload and execute PowerShell script which creates PPTP VPN connection with credentials entered&#xD;&#xA;Version: 0.1&#xD;&#xA;Get working directory path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="Prompt for name of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Name of VPN connection (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="name" />
+        </Statement>
+        <Statement description="Prompt for server address of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Server address (host or ip) (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="server" />
+        </Statement>
+        <Statement description="Prompt for username" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Username (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="username" />
+        </Statement>
+        <Statement description="Prompt for password" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Password (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="password" />
+        </Statement>
+        <Statement description="Prompt for encryption level of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Encryption level (Required, NoEncryption, Optional, Maximum) (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="encryption" />
+        </Statement>
+        <Statement description="Set value to 1, to enable debug mode" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="debug" />
+        </Statement>
+        <Statement description="Upload PowerShell script to the working directory on target machine" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Add-PPTP-Connection-Creds.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\ManageVPN\Add-PPTP-Connection-Creds.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement description="Execute PowerShell script" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File #ktemp#\Add-PPTP-Connection-Creds.ps1 -Name &quot;#name#&quot; -Server &quot;#server#&quot; -EncryptionLevel &quot;#encryption#&quot; -Username &quot;#username#&quot; -Password &quot;#password&quot; -LogIt #debug#" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <Statement description="Clean up - delete PowerShell script" name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Add-PPTP-Connection-Creds.ps1" />
+        </Statement>
+        <Statement description="Send output to Procedure Log" name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+    <Procedure name="Add SSTP connection" treePres="3" id="1907246464" folderId="463315261976474" treeFullPath="myProcedures - admin.Manage VPN connection">
+      <Body description="This agent procedure will upload and execute PowerShell script which creates SSTP VPN connection">
+        <Statement description="This agent procedure will upload and execute PowerShell script which creates SSTP VPN connection&#xD;&#xA;Version: 0.1&#xD;&#xA;Get working directory path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="Prompt for name of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Name of VPN connection (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="name" />
+        </Statement>
+        <Statement description="Prompt for server address of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Server address (host or ip) (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="server" />
+        </Statement>
+        <Statement description="Prompt for encryption level of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Encryption level (Required, NoEncryption, Optional, Maximum) (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="encryption" />
+        </Statement>
+        <Statement description="Set value to 1, to enable debug mode" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="debug" />
+        </Statement>
+        <Statement description="Upload PowerShell script to the working directory on target machine" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Add-SSTP-Connection.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\ManageVPN\Add-SSTP-Connection.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement description="Execute PowerShell script" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File #ktemp#\Add-SSTP-Connection.ps1 -Name &quot;#name#&quot; -Server &quot;#server#&quot; -EncryptionLevel &quot;#encryption#&quot; -LogIt #debug#" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <Statement description="Clean up - delete PowerShell script" name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Add-SSTP-Connection.ps1" />
+        </Statement>
+        <Statement description="Send output to Procedure Log" name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+    <Procedure name="Add SSTP connection (with credentials)" treePres="3" id="699723949" folderId="463315261976474" treeFullPath="myProcedures - admin.Manage VPN connection">
+      <Body description="This agent procedure will upload and execute PowerShell script which creates SSTP VPN connection">
+        <Statement description="This agent procedure will upload and execute PowerShell script which creates SSTP VPN connection with credentials&#xD;&#xA;Version: 0.1&#xD;&#xA;Get working directory path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="Prompt for name of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Name of VPN connection (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="name" />
+        </Statement>
+        <Statement description="Prompt for server address" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Server address (host or ip) (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="server" />
+        </Statement>
+        <Statement description="Prompt for username" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Username (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="username" />
+        </Statement>
+        <Statement description="Prompt for password" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Password (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="password" />
+        </Statement>
+        <Statement description="Prompt for encryption level" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Encryption level (Required, NoEncryption, Optional, Maximum) (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="encryption" />
+        </Statement>
+        <Statement description="Set value to 1, to enable debug mode" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="debug" />
+        </Statement>
+        <Statement description="Upload PowerShell script to the working directory on target machine" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Add-SSTP-Connection-Creds.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\ManageVPN\Add-SSTP-Connection-Creds.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement description="Execute PowerShell script" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File #ktemp#\Add-SSTP-Connection-Creds.ps1 -Name &quot;#name#&quot; -Server &quot;#server#&quot; -EncryptionLevel &quot;#encryption#&quot; -Username &quot;#username#&quot; -Password &quot;#password#&quot; -LogIt #debug#" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <Statement description="Clean up - delete PowerShell script" name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Add-SSTP-Connection-Creds.ps1" />
+        </Statement>
+        <Statement description="Send output to Procedure Log" name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+    <Procedure name="Remove VPN connection" treePres="3" id="658849265" folderId="463315261976474" treeFullPath="myProcedures - admin.Manage VPN connection">
+      <Body description="This agent procedure will upload and execute PowerShell script which finds VPN connection by name and deletes it">
+        <Statement description="This agent procedure will upload and execute PowerShell script which finds VPN connection by name and deletes it&#xD;&#xA;Version: 0.1&#xD;&#xA;Get working directory path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="Prompt for name of the vpn connection" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Name of VPN connection (required)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="name" />
+        </Statement>
+        <Statement description="Upload PowerShell script to the working directory on target machine" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Remove-VPN.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\ManageVPN\Remove-VPN.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement description="Execute PowerShell script" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File #ktemp#\Remove-VPN.ps1 -Name &quot;#name#&quot; " />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <Statement description="Clean up - delete PowerShell script" name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Remove-VPN.ps1" />
+        </Statement>
+        <Statement description="Send output to Procedure Log" name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

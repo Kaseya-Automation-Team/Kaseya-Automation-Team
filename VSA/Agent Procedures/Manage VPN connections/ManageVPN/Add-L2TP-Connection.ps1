@@ -42,7 +42,7 @@ if (($EncryptionLevel -eq "Required") -or ($EncryptionLevel -eq "NoEncryption") 
 if ($Presharedkey) {
     
     try {
-        Add-VpnConnection -Name $Name -ServerAddress $Server -TunnelType L2TP -EncryptionLevel $EncryptionLevel -L2tpPsk $Presharedkey -Force -ErrorAction Stop
+        Add-VpnConnection -Name $Name -ServerAddress $Server -TunnelType L2TP -EncryptionLevel $EncryptionLevel -L2tpPsk $Presharedkey -AllUserConnection -Force -ErrorAction Stop
         Write-Host "VPN connection $Name has been successfully created."
     } catch {
         Write-Host "Unable to create vpn connection."$_.Exception.Message

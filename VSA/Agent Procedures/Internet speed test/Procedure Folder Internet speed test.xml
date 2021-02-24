@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Internet speed test" treePres="3">
+    <Procedure name="Internet speed test" treePres="3" id="89907882" folderId="526224566728912" treeFullPath="myProcedures - admin.Internet speed test">
+      <Body description="This agent procedure will upload dedicated tool to run download/upload/latency tests">
+        <Statement description="This agent procedure will upload dedicated tool to run download/upload/latency tests&#xD;&#xA;Version: 0.1&#xD;&#xA;Get VSA working directory" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <If description="Delete previous results if exist">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ktemp\speedtest\download_speedtest.txt" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="Delete Directory" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="#ktemp#\speedtest\" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="true" />
+            </Statement>
+          </Then>
+        </If>
+        <Statement description="Upload speed test executable and PowerShell script" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\speedtest\ndt-test.exe" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\SpeedTest\ndt-test.exe" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\speedtest\Test-InternetSpeed.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\SpeedTest\Test-InternetSpeed.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement description="Execute speed test" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File #ktemp#\speedtest\Test-InternetSpeed.ps1 -Path #ktemp#\speedtest" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <If description="Check if we have speed test results">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\speedtest\download_speedtest.txt" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement description="Get speed test results to custom fields" name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="#ktemp#\speedtest\download_speedtest.txt" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="download" />
+            </Statement>
+            <Statement name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="#ktemp#\speedtest\upload_speedtest.txt" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="upload" />
+            </Statement>
+            <Statement name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="#ktemp#\speedtest\latency_speedtest.txt" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="latency" />
+            </Statement>
+            <Statement name="UpdateSystemInfo" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="ColumnName" value="PS-Download speed" />
+              <Parameter xsi:type="StringParameter" name="Value" value="#download#" />
+            </Statement>
+            <Statement name="UpdateSystemInfo" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="ColumnName" value="PS-Upload speed" />
+              <Parameter xsi:type="StringParameter" name="Value" value="#upload#" />
+            </Statement>
+            <Statement name="UpdateSystemInfo" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="ColumnName" value="PS-Latency" />
+              <Parameter xsi:type="StringParameter" name="Value" value="#latency#" />
+            </Statement>
+            <If description="Clean up">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#debug#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="0" />
+              </Condition>
+              <Then>
+                <Statement name="Delete Directory" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="#ktemp#\speedtest\" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="true" />
+                </Statement>
+              </Then>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Speed test wasn't completed successfully." />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

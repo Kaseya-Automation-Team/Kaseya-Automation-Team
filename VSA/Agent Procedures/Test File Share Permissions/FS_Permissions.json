@@ -1,0 +1,17 @@
+﻿[
+    {
+        "Path":  "C:\\Program Files\\Kaseya Live Connect",
+        "UserOrGroup":  "CREATOR OWNER",
+        "Permission":  "FullControl"
+    },
+    {
+        "Path":  "C:\\Program Files\\Bitdefender",
+        "UserOrGroup":  "NT AUTHORITY\\SYSTEM",
+        "Permission":  "FullControl"
+    },
+	{
+        "Path":  "C:\\Program Files\\Internet Explorer",
+        "UserOrGroup":  "BUILTIN\\Users",
+        "Permission":  "CreateFiles, Synchronize,AppendData, ReadAndExecute"
+    }
+]

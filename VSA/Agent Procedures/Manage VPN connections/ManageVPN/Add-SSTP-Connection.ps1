@@ -38,7 +38,7 @@ if (($EncryptionLevel -eq "Required") -or ($EncryptionLevel -eq "NoEncryption") 
 
 
 try {
-    Add-VpnConnection -Name $Name -ServerAddress $Server -TunnelType SSTP -EncryptionLevel $EncryptionLevel -ErrorAction Stop
+    Add-VpnConnection -Name $Name -ServerAddress $Server -TunnelType SSTP -EncryptionLevel $EncryptionLevel -AllUserConnection -ErrorAction Stop
     Write-Host "VPN connection $Name has been successfully created."
 } catch {
     Write-Host "Unable to create vpn connection."$_.Exception.Message

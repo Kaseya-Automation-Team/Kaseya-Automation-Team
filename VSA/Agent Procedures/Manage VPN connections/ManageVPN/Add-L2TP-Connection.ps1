@@ -50,7 +50,7 @@ if ($Presharedkey) {
 
 } else {
     try {
-        Add-VpnConnection -Name $Name -ServerAddress $Server -TunnelType L2TP -EncryptionLevel $EncryptionLevel -ErrorAction Stop
+        Add-VpnConnection -Name $Name -ServerAddress $Server -TunnelType L2TP -EncryptionLevel $EncryptionLevel -AllUserConnection -ErrorAction Stop
         Write-Host "VPN connection $Name has been successfully created."
     } catch {
         Write-Host "Unable to create vpn connection."$_.Exception.Message

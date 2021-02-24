@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Gather Stop Error Info" treePres="3">
+    <Procedure name="Gather Stop Error Info" treePres="3" id="1297981774" folderId="251850287454133" treeFullPath="myProcedures - kadmin.Gather Stop Error Info">
+      <Body description="The procedure calls PowerShell that pulls detailed information of the last stop error (Blue Screen of Death) and saves the information as a file on the VSA server.">
+        <Statement description="The procedure calls PowerShell that pulls detailed information of the last stop error (Blue Screen of Death) and saves the information as a file on the VSA server.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Set working path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="WorkingDirectory" />
+        </Statement>
+        <Statement description="Set script logging variable variable. 0 - no logging. 1 - log to file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="LogIt" />
+        </Statement>
+        <Statement description="Set period of time in minutes for searching  BSOD events. Set 0 for no time limitation" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PeriodInMinutes" />
+        </Statement>
+        <Statement description="Set output file name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="bsod-data" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="OutputFileBaseName" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="txt" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="OutputFileExtension" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#OutputFileBaseName#.#OutputFileExtension#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="OutputFileName" />
+        </Statement>
+        <Statement description="Set base name for the script and/or log file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Get-BSOD" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptBaseName" />
+        </Statement>
+        <Statement description="The scripts name &amp; path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#WorkingDirectory#\#ScriptBaseName#.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptFullPath" />
+        </Statement>
+        <Statement description="Folder and file name on the VSA server" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="..\..\LastBSODInfo" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="VSAFolder" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#VSAFolder#\#vAgentConfiguration.agentGuid#.#OutputFileExtension#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="VSAOutputFile" />
+        </Statement>
+        <If description="Remove previous output file if it exists">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\#OutputFileName#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\#OutputFileName#" />
+            </Statement>
+          </Then>
+        </If>
+        <Statement description="download the script" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#ScriptBaseName#.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <If description="check if script downloaded">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement description="Execute script" name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ScriptFullPath# -AgentName '#vAgentConfiguration.agentGuid#' -OutputFilePath '#WorkingDirectory#\#OutputFileName#' -LogIt #LogIt#" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <If description="">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\#OutputFileName#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement description="Pull the output file to the VSA server and put into the agent's folder inside the UserProfilesInfo directory" name="GetFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#WorkingDirectory#\#OutputFileName#" />
+                  <Parameter xsi:type="StringParameter" name="KServerFileName" value="#VSAOutputFile#" />
+                  <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
+                </Statement>
+              </Then>
+            </If>
+            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#LogIt#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="1" />
+              </Condition>
+              <Then>
+                <Statement description="Pull the log file to the VSA server and put into the agent's folder inside the UserProfilesInfo directory" name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#VSAFolder#\#vAgentConfiguration.agentGuid#.log" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="VSALogFile" />
+                </Statement>
+                <Statement name="GetFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#WorkingDirectory#\#ScriptBaseName#.log" />
+                  <Parameter xsi:type="StringParameter" name="KServerFileName" value="#VSALogFile#" />
+                  <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
+                </Statement>
+              </Then>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Script #ScriptBaseName#.ps1 was not downloaded" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

@@ -70,10 +70,19 @@
               <Parameter xsi:type="StringParameter" name="ColumnName" value="PS-Latency" />
               <Parameter xsi:type="StringParameter" name="Value" value="#latency#" />
             </Statement>
-            <Statement description="Clean up" name="Delete Directory" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="#ktemp#\speedtest\" />
-              <Parameter xsi:type="StringParameter" name="Parameter2" value="true" />
-            </Statement>
+            <If description="Clean up">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#debug#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="0" />
+              </Condition>
+              <Then>
+                <Statement name="Delete Directory" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="#ktemp#\speedtest\" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="true" />
+                </Statement>
+              </Then>
+            </If>
           </Then>
           <Else>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">

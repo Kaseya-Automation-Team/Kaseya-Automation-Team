@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Gather Biggest Folders" treePres="3" id="38707308" folderId="251829393045897" treeFullPath="myProcedures - kadmin">
+    <Body description="The procedure calls PowerShell script that gathers top 10 biggest folder in drives and saves info to a CSV-file.">
+      <Statement description="The procedure calls PowerShell script that gathers top 10 biggest folder in drives and saves info to a CSV-file.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Vladislav Semko (vladislav.semko@kaseya.com)" name="GetVariable" continueOnFail="false" osType="Windows">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+      </Statement>
+      <Statement description="Specify working folder" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="#ktemp#\csv" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="path" />
+      </Statement>
+      <Statement description="Set the output CSV-file name" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="biggest_folders.csv" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="output_file" />
+      </Statement>
+      <Statement description="Set Powershell script name" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Gather-BiggestFolders.ps1" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="psscript" />
+      </Statement>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#ktemp#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <If description="Check if output file already exists">
+            <Condition name="TestFile">
+              <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              <Parameter xsi:type="StringParameter" name="Value" value="" />
+            </Condition>
+            <Then>
+              <Statement name="DeleteFile" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Path" value="#path#\#output_file#" />
+              </Statement>
+            </Then>
+          </If>
+          <Statement description="Set Unrestricted execution policy" name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="Powershell Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine -force" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+          <Statement description="Upload Powershell script to the agent machine" name="WriteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#path#\#psscript#" />
+            <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#psscript#" />
+            <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+          </Statement>
+          <Statement description="Run Powershell script and pass all required arguments to it" name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="powershell #path#\#psscript# -AgentName &quot;#vAgentConfiguration.agentGuid#&quot; -Path &quot;#path#&quot; -FileName &quot;#output_file#&quot;" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+          <Statement name="GetFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#path#\#output_file#" />
+            <Parameter xsi:type="StringParameter" name="KServerFileName" value="#output_file#" />
+            <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
+          </Statement>
+          <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#path#\#psscript#" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Only Windows operating systems are supported." />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScriptExport>

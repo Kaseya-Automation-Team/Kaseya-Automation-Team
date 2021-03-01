@@ -113,7 +113,7 @@ if ( 1 -eq $LogIt )
 }
 #endregion check/start transcript
 
-#region define Registry Settings
+#region define Registry Settings needed to map share $UNCPath to drive $DriveLetter
 [array] $RegParameters = @(
     [PSCustomObject] @{ChildPath = "Network\$DriveLetter\RemotePath"; Value = $UNCPath; Type = 'String'},
     [PSCustomObject] @{ChildPath = "Network\$DriveLetter\UserName"; Value = ""; Type = 'String'},
@@ -124,8 +124,7 @@ if ( 1 -eq $LogIt )
     [PSCustomObject] @{ChildPath = "Network\$DriveLetter\DeferFlag"; Value = '0x000004'; Type = 'DWord'}
     [PSCustomObject] @{ChildPath = "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\$($UNCPath.Replace('\', '#'))"; Value = ""; Type = 'String'}
 )
-#endregion define Registry Settings
-
+#endregion define Registry Settings needed to map share $UNCPath to drive $DriveLetter
 
 #region Change Users' Hives
 [string] $SIDPattern = 'S-1-5-21-\d+-\d+\-\d+\-\d+$'

@@ -1,0 +1,24 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20210301162231
+Username: KASEYA\A.Serzhankou
+RunAs User: KASEYA\A.Serzhankou
+Configuration Name: 
+Machine: LAPTOP-F1MS8NM6 (Microsoft Windows NT 10.0.18363.0)
+Host Application: C:\WINDOWS\system32\WindowsPowerShell\v1.0\PowerShell_ISE.exe
+Process ID: 15596
+PSVersion: 5.1.18362.1171
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.18362.1171
+BuildVersion: 10.0.18362.1171
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+DEBUG: Script execution started
+Legal notice message and caption have been successfully removed.
+**********************
+Windows PowerShell transcript end
+End time: 20210301162231
+**********************

@@ -141,9 +141,15 @@ $LoadedHives = Get-ChildItem Registry::HKEY_USERS | `
     Where-Object {$_.PSChildname -match $SIDPattern} | `
     Select-Object @{name="SID";expression={$_.PSChildName}}
 
-# Get all users that are not currently logged
-$HivesToLoad = Compare-Object -ReferenceObject $ProfileList.SID -DifferenceObject $LoadedHives.SID | `
+[string[]] $HivesToLoad = $ProfileList.SID
+
+#Excluding SIDs of currently logged on users
+if ($null -ne $LoadedHives)
+{
+    # Get all users that are not currently logged
+    $HivesToLoad = Compare-Object -ReferenceObject $ProfileList.SID -DifferenceObject $LoadedHives.SID | `
     Select-Object -ExpandProperty InputObject
+}
 
 # Loop through each profile on the machine
 Foreach ($Profile in $ProfileList) {
@@ -159,6 +165,7 @@ Foreach ($Profile in $ProfileList) {
     foreach($item in $RegParameters)
     {
         [string] $RegPath = Join-Path -Path "HKEY_USERS\$($Profile.SID)" -ChildPath $($item.ChildPath) -Verbose
+        Write-Debug "Set-RegParam -RegPath $RegPath -RegValue $($item.Value) -ValueType $($item.Type)"
         Set-RegParam -RegPath $RegPath -RegValue $($item.Value) -ValueType $($item.Type)
     }
     #####################################################################

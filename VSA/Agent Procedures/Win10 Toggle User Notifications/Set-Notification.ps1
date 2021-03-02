@@ -125,19 +125,25 @@ foreach($item in $RegParameters)
 [string] $RegKeyUserProfiles = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\*'
 
 [array] $ProfileList = Get-ItemProperty -Path Registry::$RegKeyUserProfiles | `
-    Select-Object  @{name="SID";expression={$_.PSChildName}}, 
-            @{name="UserHive";expression={"$($_.ProfileImagePath)\ntuser.dat"}}, 
-            @{name="UserName";expression={$_.ProfileImagePath -replace '^(.*[\\\/])', ''}} | `
-            Where-Object {$_.SID -match $SIDPattern}
+                    Select-Object  @{name="SID";expression={$_.PSChildName}}, 
+                    @{name="UserHive";expression={"$($_.ProfileImagePath)\ntuser.dat"}}, 
+                    @{name="UserName";expression={$_.ProfileImagePath -replace '^(.*[\\\/])', ''}} | `
+                    Where-Object {$_.SID -match $SIDPattern}
 
 # Get all user SIDs found in HKEY_USERS (ntuder.dat files that are loaded)
 $LoadedHives = Get-ChildItem Registry::HKEY_USERS | `
     Where-Object {$_.PSChildname -match $SIDPattern} | `
     Select-Object @{name="SID";expression={$_.PSChildName}}
 
-# Get all users that are not currently logged
-$HivesToLoad = Compare-Object -ReferenceObject $ProfileList.SID -DifferenceObject $LoadedHives.SID | `
+[string[]] $HivesToLoad = $ProfileList.SID
+
+#Excluding SIDs of currently logged on users
+if ($null -ne $LoadedHives)
+{
+    # Get all users that are not currently logged
+    $HivesToLoad = Compare-Object -ReferenceObject $ProfileList.SID -DifferenceObject $LoadedHives.SID | `
     Select-Object -ExpandProperty InputObject
+}
 
 # Loop through each profile on the machine
 Foreach ($Profile in $ProfileList) {

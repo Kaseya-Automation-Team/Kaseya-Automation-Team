@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Internet speed test" treePres="3">
-    <Procedure name="Internet speed test" treePres="3" id="89907882" folderId="526224566728912" treeFullPath="myProcedures - admin.Internet speed test">
+    <Procedure name="Internet speed test" treePres="3" id="89907882" folderId="594090677981306" treeFullPath="myProcedures - kadmin.Internet speed test">
       <Body description="This agent procedure will upload dedicated tool to run download/upload/latency tests">
         <Statement description="This agent procedure will upload dedicated tool to run download/upload/latency tests&#xD;&#xA;Version: 0.1&#xD;&#xA;Get VSA working directory" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
@@ -23,12 +23,12 @@
         </If>
         <Statement description="Upload speed test executable and PowerShell script" name="WriteFile" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\speedtest\ndt-test.exe" />
-          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\SpeedTest\ndt-test.exe" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Speedtest\ndt-test.exe" />
           <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
         </Statement>
         <Statement name="WriteFile" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\speedtest\Test-InternetSpeed.ps1" />
-          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\SpeedTest\Test-InternetSpeed.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Speedtest\Test-InternetSpeed.ps1" />
           <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
         </Statement>
         <Statement description="Execute speed test" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
@@ -70,19 +70,10 @@
               <Parameter xsi:type="StringParameter" name="ColumnName" value="PS-Latency" />
               <Parameter xsi:type="StringParameter" name="Value" value="#latency#" />
             </Statement>
-            <If description="Clean up">
-              <Condition name="CheckVariable">
-                <Parameter xsi:type="StringParameter" name="VariableName" value="#debug#" />
-                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
-                <Parameter xsi:type="StringParameter" name="Value" value="0" />
-              </Condition>
-              <Then>
-                <Statement name="Delete Directory" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Parameter1" value="#ktemp#\speedtest\" />
-                  <Parameter xsi:type="StringParameter" name="Parameter2" value="true" />
-                </Statement>
-              </Then>
-            </If>
+            <Statement name="Delete Directory" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="#ktemp#\speedtest\" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="true" />
+            </Statement>
           </Then>
           <Else>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">

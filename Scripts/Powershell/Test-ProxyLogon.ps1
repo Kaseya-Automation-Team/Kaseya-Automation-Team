@@ -192,7 +192,7 @@ process {
                             Name         = $file.Name
                         }
                     }
-                    foreach ($file in Get-ChildItem -Recurse -Path $env:ProgramData -ErrorAction SilentlyContinue | Where-Object { $_.Extension -Match "\.7z$|\.zip$|\.rar$" }) {
+                    foreach ($file in Get-ChildItem -Recurse -Exclude *Kaseya* -Path $env:ProgramData -ErrorAction SilentlyContinue | Where-Object { $_.Extension -Match "\.7z$|\.zip$|\.rar$" }) {
                         [PSCustomObject]@{
                             ComputerName = $env:COMPUTERNAME
                             Type         = 'SuspiciousArchive'

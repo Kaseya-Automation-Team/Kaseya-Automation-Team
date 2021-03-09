@@ -393,7 +393,7 @@ process {
                 }
                 if ($report.Suspicious.Count -gt 0) {
                     Write-Host "  Other suspicious files found: $(@($report.Suspicious).Count)"
-                    echo "Some Suspicious files found, consider reviewing GetFile results." | Out-File "$WorkDir\result.txt"
+                    echo "Some Suspicious activity found, consider reviewing GetFile results." | Out-File "$WorkDir\result.txt"
                     if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-other.csv"
                         $report.Suspicious | Export-Csv -Path $newFile

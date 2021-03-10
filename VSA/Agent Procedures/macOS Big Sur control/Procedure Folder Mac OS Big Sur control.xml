@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="macOS Big Sur control" treePres="3">
+    <Procedure name="Block Big Sur upgrade" treePres="3" id="1204478445" folderId="924603529518753" treeFullPath="myProcedures - admin.macOS Big Sur control">
+      <Body description="This procedure will prevent macOS upgrade to Big Sur release">
+        <Statement description="This procedure will prevent macOS upgrade to Big Sur release&#xD;&#xA;Version 0.1" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="MacOS">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="sudo softwareupdate --ignore 'macOS Big Sur'" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+    <Procedure name="Reset All Ignored Patches" treePres="3" id="413056408" folderId="924603529518753" treeFullPath="myProcedures - admin.macOS Big Sur control">
+      <Body description="This procedure will reset all ignored updates/patches for macOS">
+        <Statement description="This procedure will reset all ignored updates/patches for macOS&#xD;&#xA;Version 0.1" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="sudo softwareupdate --reset-ignored" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+    <Procedure name="Reset Ignored Big Sur" treePres="3" id="1069236210" folderId="924603529518753" treeFullPath="myProcedures - admin.macOS Big Sur control">
+      <Body description="This procedure will reset macOS upgrade to Big Sur release">
+        <Statement description="This procedure will reset macOS upgrade to Big Sur release&#xD;&#xA;Version 0.1" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="sudo softwareupdate --reset-ignored 'macOS Big Sur'" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

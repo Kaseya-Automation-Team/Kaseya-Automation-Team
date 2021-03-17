@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Remove KB-BSOD" treePres="3">
+    <Procedure name="RemoveKB5000802KB5000808" treePres="3" id="937409248" folderId="976415324386402" treeFullPath="myProcedures - kadmin.Remove KB-BSOD">
+      <Body description="The procedure removes notorious KB5000802 and KB5000808&#xA;Author: Proserv Team - VS">
+        <If description="The procedure removes notorious KB5000802 and KB5000808&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;################################">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#vMachine.OsType#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+            <Parameter xsi:type="StringParameter" name="Value" value="10" />
+          </Condition>
+          <Then>
+            <Statement description="Dism detects KB5000802 by &quot;19041.867.1.8&quot; substring, KB5000808 by &quot;18362.1440.1.7&quot; substring." name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;Get-WindowsPackage -Online | Where-Object {$_.PackageName -match '19041\.867\.1\.8|18362\.1440\.1\.7'} | Remove-WindowsPackage -Online -NoRestart&quot;" />
+            </Statement>
+            <Statement name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;Get-WindowsPackage -Online | Where-Object {$_.PackageName -match '19041\.867\.1\.8|18362\.1440\.1\.7'} | Remove-WindowsPackage -Online -NoRestart&quot;" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Procedure designed for Windows 10" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

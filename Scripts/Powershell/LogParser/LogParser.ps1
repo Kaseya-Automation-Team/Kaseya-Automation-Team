@@ -33,48 +33,6 @@ Write-Debug ($ScriptDir|Out-String)
 
 $AllDevices = @()
 
-<#
-Function Parse-String {
-
-    try {
-        #Replace line brake characters
-        $Line = $Line.Replace("`n", "")
-
-        #Regex which parses the line from log
-        $Line -match "^\d+-\d+-\d+ \d+:\d+:\d+,\d+\s.+deviceName=(.+?), address=(.+), macaddress.+$" | Out-Null
-    
-        $DeviceName = $Matches[1]
-        $DeviceAddress = $Matches[2]
-        $DeviceID = $DeviceName+$DeviceAddress
-
-        $Device += $DeviceID
-
-        return "$DeviceID"
-    }
-    catch {
-        Write-Debug "Unable to parse following string:"
-        Write-Debug ($Line|Out-String)
-        Write-Debug ($_.Exception|Out-String)
-    }
-}
-#>
-
-<#
-Function Export-to-CSV
-{
-    try {
-        $Content = Parse-String
-		Write-Host $Content
-        #$Export.WriteLine($content)
-    }
-    catch {
-        Write-Debug "Unable to parse following string:"
-        Write-Debug ($Line|Out-String)
-
-    }
-}
-#>
-
 #Create TEMP and CSV folders
 $null = New-Item -Name "temp" -ItemType "Directory" -Force -Path $ScriptDir
 $null = New-Item -Name "csv" -ItemType "Directory" -Force -Path $ScriptDir
@@ -87,7 +45,7 @@ Foreach ($Log in $LogsFiles) {
     $LogName = $Log.Name
 
     #Export to CSV file, which has the same name as log file
-    #$Export = [System.IO.StreamWriter] "$ScriptDir\csv\$Logname.csv"
+    $Export = [System.IO.StreamWriter] "$ScriptDir\csv\$Logname.csv"
 
     #Parse only strings which are ralted to devices and put them into file in TEMP folder
     Select-String -Path $Log.FullName -Pattern "on device" | Select-Object -ExpandProperty Line | Out-File -FilePath "$ScriptDir\temp\$LogName"
@@ -108,16 +66,7 @@ Foreach ($Log in $LogsFiles) {
             $DeviceName = $Matches[1]
             $DeviceAddress = $Matches[2]
 
-            #$DeviceItem = New-Object psobject
-
-            #Add-Member -InputObject $DeviceItem -MemberType NoteProperty -Name DeviceName -Value $DeviceName
-            #Add-Member -InputObject $DeviceItem -MemberType NoteProperty -Name DeviceAddress -Value $DeviceAddress
-
-            #$AllDevices += $DeviceItem
-
             $AllDevices +=$DeviceName
-
-           # $AllDevices = $AllDevices |Select-Object -Unique
 
         }
         catch {
@@ -128,27 +77,29 @@ Foreach ($Log in $LogsFiles) {
         
      }
 
-     $AllDevices = $AllDevices|Get-Unique
+     $AllDevices = $AllDevices|Sort-Object -Unique
 
      Foreach ($Device in $AllDevices) {
-        #$SecondDeviceAddress = $Device.DeviceAddress
-        #$SecondDeviceName = $Device.DeviceName
 
-        Write-Host "==============="
-        #Select-String -Path $LogName -Pattern "(CreateNetworkDevice.*$Device|DeleteTestContainer.*$Device|UpdateNetworkDevice.*$Device)"
+        Write-Debug ($Device|Out-String)
+
+        #Create event
         $CreateEvent = Select-String -Path $LogName -Pattern "(CreateNetworkDevice.*$Device)"|Select-Object -Last 1| Foreach {$_.Line}
+
+        Write-Debug ($CreateEvent|Out-String)
 
         if (!$CreateEvent) {
             $CreateEventTimeStamp = "NULL"
         } else {
-            $CreateEvent -match "^(.+) a.d.c." | Out-Null
+            $CreateEvent -match "^(.+) a.d.c.+\saddress=(.+?)," | Out-Null
             $CreateEventTimeStamp = $Matches[1]
+            $DeviceIpAddress = $Matches[2]
         }
 
-#        Write-Host $CreateEventTimeStamp
-
-#        Write-Host "Delete events:"
+        #Delete event
         $DeleteEvent = Select-String -Path $LogName -Pattern "(DeleteTestContainer.*$Device)"|Select-Object -Last 1| Foreach {$_.Line}
+
+        Write-Debug ($DeleteEvent|Out-String)
 
         if (!$DeleteEvent) {
             $DeleteEventTimeStamp = "NULL"
@@ -156,10 +107,11 @@ Foreach ($Log in $LogsFiles) {
             $DeleteEvent -match "^(.+) a.d.c." | Out-Null
             $DeleteEventTimeStamp = $Matches[1]
         }
-#        Write-Host $DeleteEventTimeStamp
 
-#        Write-Host "Update events:"
+        #UpdateEvent
         $UpdateEvent = Select-String -Path $LogName -Pattern "(UpdateNetworkDevice.*$Device)"|Select-Object -Last 1| Foreach {$_.Line}
+
+        Write-Debug ($UpdateEvent|Out-String)
 
         if (!$UpdateEvent) {
             $UpdateEventTimeStamp = "NULL"
@@ -168,30 +120,13 @@ Foreach ($Log in $LogsFiles) {
             $updateEventTimeStamp = $Matches[1]
         }
 
-        Write-Host "$Device`: created: $CreateEventTimeStamp, updated: $UpdateEventTimeStamp, deleted: $DeleteEventTimeStamp"
+        $Content = "$Device`, $DeviceIpAddress, created: $CreateEventTimeStamp, updated: $UpdateEventTimeStamp, deleted: $DeleteEventTimeStamp"
 
-        #Write-Host $UpdateEventTimeStamp
-        Write-Host "==============="
+        $Export.WriteLine($Content)
+
      }
- <#      
-    Foreach ($Line in $AllLines) {
 
-        If ($Line -like "*CreateNetworkDevice*") {
-        Export-to-CSV
-        }
-
-        elseif ($Line -like "*DeleteTestContainer*") {
-        Export-to-CSV
-        }
-
-        elseif ($Line -like "*UpdateNetworkDevice*") {
-        Export-to-CSV
-        }
-
-    }
-
-    #$Export.close()
-#>
+     $Export.close()
 }
 
 #Stop timer here

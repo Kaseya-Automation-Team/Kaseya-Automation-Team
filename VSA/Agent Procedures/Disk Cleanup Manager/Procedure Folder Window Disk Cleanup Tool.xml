@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Window Disk Cleanup Tool" treePres="3">
+    <Procedure name="Windows Disk Cleanup (wdc)" treePres="3" id="715050076" folderId="105118024863823" treeFullPath="myProcedures - admin.Window Disk Cleanup Tool">
+      <Body description="This procedure runs the native application in Windows to clean temp files, IE cache files, check disk files, etc.">
+        <Statement description="This procedure runs the native application in Windows to clean temp files, IE cache files, check disk files, etc.&#xD;&#xA;Version 0.1&#xD;&#xA;Make preparations" name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Active Setup Temp Folders\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Content Indexer Cleaner\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Downloaded Program Files\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Internet Cache Files\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Memory Dump Files\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Old ChkDsk Files\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Recycle Bin\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Remote Desktop Cache Files\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Setup Log Files\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Temporary Files\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Temporary Offline Files\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\WebClient and WebPublisher Cache\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Temporary Setup Files\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement name="SetRegistryValue" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Previous Installations\StateFlags0001" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          <Parameter xsi:type="EnumParameter" name="DataType" value="Integer" />
+        </Statement>
+        <Statement description="Run disk clean up tool" name="ExecuteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="c:\windows\system32\cleanmgr.exe" />
+          <Parameter xsi:type="StringParameter" name="Arguments" value="/sagerun:1" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="User" />
+          <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+        </Statement>
+        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="Clean up has been completed." />
+        </Statement>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

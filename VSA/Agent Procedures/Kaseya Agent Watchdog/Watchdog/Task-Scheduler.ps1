@@ -20,7 +20,7 @@ if (1 -eq $LogIt)
 }
 
 #Path to Kaseya Agent Watchdog script
-$ScriptPath = "$Path\Watch-AgentService.ps1"
+$ScriptPath = "$Path\WatchDog-AgentService.ps1"
 
 #Check if task already exists
 $TaskExists = Get-ScheduledTask -TaskName "Kaseya Agent Watchdog" -ErrorAction SilentlyContinue

@@ -24,7 +24,7 @@
           <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
         </Statement>
         <Statement description="Execute PowerShell script" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File #ktemp#\Watchdog\Install-WatchDog.ps1 -Path '#ktemp#\Watchdog' -LogIt #debug#" />
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#ktemp#\Watchdog\Install-WatchDog.ps1&quot; -Path #ktemp#\Watchdog -LogIt #debug#" />
           <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
           <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
         </Statement>

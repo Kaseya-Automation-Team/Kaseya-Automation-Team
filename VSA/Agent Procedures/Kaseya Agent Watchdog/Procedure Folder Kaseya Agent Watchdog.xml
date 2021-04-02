@@ -36,5 +36,30 @@
         </Statement>
       </Body>
     </Procedure>
+    <Procedure name="Uninstall Kaseya Agent Watchdog" treePres="3" id="1675556761" folderId="773930480784704" treeFullPath="myProcedures - admin.Kaseya Agent Watchdog">
+      <Body description="This procedures uploads PowerShell script and executes one of them to setup Watchdog scheduled task">
+        <Statement description="This procedures uploads PowerShell script and executes one of them to setup Watchdog scheduled task" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="Specify value of debug variable as 1, to enable debug log for installer script" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Watchdog\Uninstall-WatchDog.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Watchdog\Uninstall-Watchdog.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement description="Execute PowerShell script" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#ktemp#\Watchdog\Uninstall-WatchDog.ps1&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+        <Statement name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\watchdog\Uninstall-Watchdog.ps1" />
+        </Statement>
+      </Body>
+    </Procedure>
   </Folder>
 </ScriptExport>

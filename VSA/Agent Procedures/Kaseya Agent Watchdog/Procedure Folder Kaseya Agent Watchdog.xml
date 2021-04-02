@@ -56,8 +56,9 @@
         <Statement name="WriteScriptLogEntry" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
         </Statement>
-        <Statement name="DeleteFile" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\watchdog\Uninstall-Watchdog.ps1" />
+        <Statement name="Delete Directory" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="#ktemp#\Watchdog\" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="true" />
         </Statement>
       </Body>
     </Procedure>

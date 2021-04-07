@@ -129,12 +129,12 @@
                       </Condition>
                       <Then>
                         <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                          <Parameter xsi:type="StringParameter" name="Comment" value="Firefox installed successfully" />
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Firefox ESR installed successfully" />
                         </Statement>
                       </Then>
                       <Else>
                         <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                          <Parameter xsi:type="StringParameter" name="Comment" value="Could not detect Firefox" />
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Firefox ESR installation was not successful" />
                         </Statement>
                       </Else>
                     </If>
@@ -206,10 +206,7 @@
                 <Statement name="WriteScriptLogEntry" continueOnFail="false">
                   <Parameter xsi:type="StringParameter" name="Comment" value="Firefox detected" />
                 </Statement>
-                <Statement description="double-check" name="PauseScript" continueOnFail="false">
-                  <Parameter xsi:type="IntegerParameter" name="Seconds" value="5" />
-                </Statement>
-                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                <Statement description="double-check" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
                   <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command  &quot;&amp; '#ScriptFullPath#' -RemoveDetected&quot;" />
                   <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
                   <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
@@ -232,7 +229,7 @@
                   </Then>
                   <Else>
                     <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                      <Parameter xsi:type="StringParameter" name="Comment" value="Please make sure that Firefox was removed " />
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Firefox uninstallation was not successful" />
                     </Statement>
                   </Else>
                 </If>
@@ -249,7 +246,7 @@
           </Then>
           <Else>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Comment" value="Could not detect #ScriptFullPath#" />
+              <Parameter xsi:type="StringParameter" name="Comment" value="Could not find #ScriptBaseName#.ps1 in  #WorkingDirectory#" />
             </Statement>
           </Else>
         </If>

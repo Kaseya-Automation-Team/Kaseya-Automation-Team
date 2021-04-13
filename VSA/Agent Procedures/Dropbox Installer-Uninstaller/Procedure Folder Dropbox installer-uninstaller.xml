@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Dropbox installer/uninstaller" treePres="3">
+    <Procedure name="Dropbox Installer" treePres="3" id="418857832" folderId="666963734182977" treeFullPath="myProcedures - admin.Dropbox installer/uninstaller">
+      <Body description="This script will download and silently install latest version of Dropbox Enterprise edition">
+        <Statement description="This script will download and silently install latest version of Dropbox Enterprise edition&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="Store command in variable to use it multiple times" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="powershell -Command &quot;Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq 'Dropbox' } | Select-Object -ExpandProperty installLocation -First 1&quot;" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="command" />
+        </Statement>
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="#command#" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <If description="Check if Dropbox is already installed">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#global:cmdresults#\Dropbox.exe" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement description="Download Dropbox installer" name="GetURL" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="URL" value="https://www.dropbox.com/download?full=1&amp;plat=win" />
+              <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ktemp#\dropbox.exe" />
+              <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+            </Statement>
+            <If description="Check if download has been completed">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\dropbox.exe" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Dropbox installer has been downloaded. Starting installation." />
+                </Statement>
+                <Statement description="Execute installer with a switch for silent mode and no popup after installation" name="ExecuteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\dropbox.exe" />
+                  <Parameter xsi:type="StringParameter" name="Arguments" value="/NOLAUNCH" />
+                  <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="User" />
+                  <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+                </Statement>
+                <Statement name="PauseScript" continueOnFail="false">
+                  <Parameter xsi:type="IntegerParameter" name="Seconds" value="60" />
+                </Statement>
+                <Statement description="Get Dropbox destination folder from Windows Registyr" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="#command#" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+                </Statement>
+                <If description="Check if Dropbox.exe exist in destination folder">
+                  <Condition name="TestFile">
+                    <Parameter xsi:type="StringParameter" name="Path" value="#global:cmdresults#\Dropbox.exe" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="" />
+                  </Condition>
+                  <Then>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Dropbox has been successfully installed." />
+                    </Statement>
+                    <Statement description="Delete auto update tasks from Task Manager" name="ExecuteShellCommand" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Command" value="schtasks.exe /delete /TN DropboxUpdateTaskMachineCore /F" />
+                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                    </Statement>
+                    <Statement name="ExecuteShellCommand" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Command" value="schtasks.exe /delete /TN DropboxUpdateTaskMachineUA /F" />
+                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                    </Statement>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Auto updates have been disabled. Cleaning up." />
+                    </Statement>
+                    <Statement description="Clean up - delete installation file" name="DeleteFile" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\dropbox.exe" />
+                    </Statement>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Clean up has been completed." />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Dropbox installation failed." />
+                    </Statement>
+                  </Else>
+                </If>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Dropbox installed could not be downloaded. Unable to continue." />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Dropbox is already installed on this computer." />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Dropbox Uninstaller" treePres="3" id="1393766159" folderId="666963734182977" treeFullPath="myProcedures - admin.Dropbox installer/uninstaller">
+      <Body description="This script will get path to Dropbox uninstaller executable from Windows Registry and run it in silent mode">
+        <Statement description="This script will get path to Dropbox uninstaller executable from Windows Registry and run it in silent mode&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement description="Get path to Dropbox uninstaller from Windows Registry" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -Command &quot;Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq 'Dropbox' } | Select-Object -ExpandProperty UninstallPath -First 1&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+            <Parameter xsi:type="StringParameter" name="Value" value="dropbox" />
+          </Condition>
+          <Then>
+            <Statement description="Run uninstaller with silent switch" name="ExecuteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#global:cmdresults#" />
+              <Parameter xsi:type="StringParameter" name="Arguments" value="/S" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="User" />
+              <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+            </Statement>
+            <Statement name="PauseScript" continueOnFail="false">
+              <Parameter xsi:type="IntegerParameter" name="Seconds" value="60" />
+            </Statement>
+            <If description="Check if files are not present anymore on the hard drive">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Dropbox has been successfully uninstalled." />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Dropbox uninstallation could not be completed." />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Dropbox doesn't not seem to be installed." />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

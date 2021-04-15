@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Clear Printer Queue" treePres="3">
+    <Procedure name="ClearPrinterQueue" treePres="3" id="23662362" folderId="128209053738146" treeFullPath="myProcedures - sarath.mopuri@kaseya.com.Clear Printer Queue">
+      <Body description="Agent procedure to clear all the print queue from an endpoint">
+        <Statement description="Agent procedure to clear all the print queue from an endpoint&#xD;&#xA;Version 0.1&#xD;&#xA;First count number of files in spooler folder" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="dir /a:-d /s /b &quot;%systemroot%\System32\spool\printers&quot;| find /c &quot;:\&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <Statement description="write the number to the logs" name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="Number of files in the spooler folder: #global:cmdresults#" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="NotEquals" />
+            <Parameter xsi:type="StringParameter" name="Value" value="0" />
+          </Condition>
+          <Then>
+            <Statement description="stop service" name="Stop Windows Service" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="Spooler" />
+            </Statement>
+            <Statement description="run delete command" name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="del %systemroot%\System32\spool\printers\* /s /q" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <Statement description="start service again" name="Start Windows Service" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="Spooler" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+            </Statement>
+            <Statement description="Count the number again to validate if the queue is cleared" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="dir /a:-d /s /b &quot;%systemroot%\System32\spool\printers&quot;| find /c &quot;:\&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="0" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Print Queue has been cleared successfully!" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Print queue has NOT been cleared successfully!" />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Queue is already empty, hence not running any script to clear!" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

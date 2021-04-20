@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Internet Options" treePres="3">
+    <Procedure name="Set Internet Zone Settings" treePres="3" id="1317255266" folderId="689627816150722">
+      <Body description="The procedure calls PowerShell script that sets Internet Browser Security Zone settings for all users that are not currently logged on.&#xA;&#xA;Author: Proserv Team - VS">
+        <Statement description="The procedure calls PowerShell script that sets Internet Browser Security Zone settings for all users that are not currently logged on.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;################################&#xD;&#xA;Local working folder" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="WorkingDirectory" />
+        </Statement>
+        <Statement description="Set name for the script and/or log file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Set-InternetZoneParams" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptBaseName" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#WorkingDirectory#\#ScriptBaseName#.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptFullPath" />
+        </Statement>
+        <Statement description="Download the script" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#ScriptBaseName#.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <If description="################################">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement description="Define the script's parameters &amp; execute the script" name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;&amp; '#ScriptFullPath#' -RegKeyPath 'SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\2' -LogIt" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptCommandParameters" />
+            </Statement>
+            <Statement name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ScriptCommandParameters#" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Could not download #ScriptBaseName#.ps1" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

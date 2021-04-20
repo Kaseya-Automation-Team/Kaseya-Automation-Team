@@ -118,8 +118,7 @@
         - Enables execution transcript
 		 
 .EXAMPLE
-    Get-ADInfo.ps1
-    .\Get-ADInfo.ps1 -AgentName '12345' -OutputFilePath 'C:\TEMP\ad_info.html'
+    .\Gather-ADInfo.ps1 -AgentName '12345' -OutputFilePath 'C:\TEMP\ad_info.html'
 .NOTES
     Version 0.1
     Requires: 

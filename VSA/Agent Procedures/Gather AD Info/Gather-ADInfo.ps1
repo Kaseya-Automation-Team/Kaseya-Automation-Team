@@ -716,11 +716,6 @@ function Get-OUInfoAsHtml
 #region Variables
 # Get the date for the filename 
 [string] $date = Get-Date -UFormat "%m/%d/%Y %T"
-# Where to ouput the html file
-[string] $filePATH = "$env:userprofile\Desktop\"
-# Define the filename
-[string] $fileNAME = 'AD_Info_.html'
-$File = $filePATH + $fileNAME
 
 $TheForest = Get-ADForest
 $domainInfo = Get-ADDomain
@@ -792,17 +787,18 @@ $Create_HTML_doc = "<!DOCTYPE html>
   </style>
   </head>
   <h1>Active Directory Information for: $DNSRoot </h1>
+  <h3>Collected on $date</h3>
 
-  <h2> Forest Information </h2> 
+  <h2>Forest Information</h2> 
   $($TheForest | Get-ForestInfoAsHtml)
   <br/>
 
-  <h2> Domain Information </h2> 
+  <h2>Domain Information</h2> 
   <table>
   $($TheForest | Get-DomainInfoAsHtml)
   </table>
 
-  <h2> AD Schema Information </h2> 
+  <h2>AD Schema Information</h2> 
   $(Get-SchemaInfoAsHtml)
   <br/>
 
@@ -814,7 +810,7 @@ $Create_HTML_doc = "<!DOCTYPE html>
   $($TheForest | Get-DCInfoAsHtml)
   <br/>
 
-  <h2> Domain Controller Hardware Information </h2> 
+  <h2>Domain Controller Hardware Information</h2> 
   <table>
   <tr>
     <td><h3>Name</h3></td>
@@ -827,11 +823,11 @@ $Create_HTML_doc = "<!DOCTYPE html>
   $($DCs.Name | Get-HardwareInfoAsHTML)
   </table>
 
-  <h2> AD Database Information </h2>
+  <h2>AD Database Information</h2>
   $($DCs.Name | Get-ADDatabaseInfoAsHTML)
   <br/>
 
-  <h2> Domain Controller Software Information </h2> 
+  <h2>Domain Controller Software Information</h2> 
   <table>
   <tr>
     <td><h3>Name</h3></td>
@@ -844,12 +840,12 @@ $Create_HTML_doc = "<!DOCTYPE html>
   $($DCs.Name | Get-SoftwareInfoAsHTML)
   </table>
 
-  <h2> DNS Information </h2>
+  <h2>DNS Information</h2>
   <table>
   $($PDCEmulator | Get-DNSInfoAsHtml)
   </table>
 
-  <h2> AD Site Information </h2>
+  <h2>AD Site Information</h2>
   <table>
   <tr>
     <td><h3>Forest Wide Sites</h3></td>
@@ -861,14 +857,14 @@ $Create_HTML_doc = "<!DOCTYPE html>
   </tr>
   </table>
 
-  <h2> Replication Information </h2>
+  <h2>Replication Information</h2>
   $($DCs.Name | Get-ReplicationInfoAsHTML)
   <br/>
 
-  <h2>GPO Information </h2> 
+  <h2>GPO Information</h2> 
   $(Get-GPOAsHtml)
   
-  <h2>OU Structure Information </h2> 
+  <h2>OU Structure Information</h2> 
   $(Get-OUInfoAsHtml)
 
   <h2>User Accounts</h2>
@@ -880,10 +876,9 @@ $Create_HTML_doc = "<!DOCTYPE html>
   <table>
   $(Get-ExchangeInfoAsHtml)
   </table>
-
 "
 
-$Create_HTML_doc | Out-File -Path "FileSystem::$OutputFilePath" -Force -Encoding UTF8
+$Create_HTML_doc | Out-File -FilePath "FileSystem::$OutputFilePath" -Force -Encoding UTF8
 
 #region check/stop transcript
 if ( $LogIt )

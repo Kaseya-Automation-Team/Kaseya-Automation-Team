@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Set default system web browser" treePres="3">
+    <Procedure name="Remove from startup" treePres="3" id="1241761072" folderId="940890308767971" treeFullPath="myProcedures - admin.Set default system web browser">
+      <Body description="This procedure allows to set Google Chrome as default system web browser">
+        <Statement description="This procedure allows to delete Internet Explorer or Google Chrome shortcuts from common Windows startup and delete SetDefaultBrowser.exe tool from hard disk&#xD;&#xA;Modification date: 04-26-21&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ksystem" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="SetDefaultBrowser.exe" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="filename" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\#filename#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\#filename#" />
+            </Statement>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -command &quot;$env:ALLUSERSPROFILE&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+            </Statement>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -command &quot;Remove-Item '#global:cmdresults#\Microsoft\Windows\Start Menu\Programs\StartUp\*' -Recurse -Include '*as browser.lnk'&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+            </Statement>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Clean up has been completed." />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#filename# was not found on hard disk and couldn't be removed." />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Set Google Chrome as default browser (startup)" treePres="3" id="1846524553" folderId="940890308767971" treeFullPath="myProcedures - admin.Set default system web browser">
+      <Body description="This procedure allows to set Google Chrome as default system web browser">
+        <Statement description="This procedure allows to set Google Chrome as default system web browser&#xD;&#xA;Modification date: 04-26-21&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ksystem" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="SetDefaultBrowser.exe" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="filename" />
+        </Statement>
+        <Statement name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\#filename#" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\SetDefaultBrowser.exe" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\#filename#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="ExecuteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\#filename#" />
+              <Parameter xsi:type="StringParameter" name="Arguments" value="chrome" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="User" />
+              <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+            </Statement>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -command &quot;$env:ALLUSERSPROFILE&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+            </Statement>
+            <Statement name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="powershell -command &quot;$ShortcutLocation = '#global:cmdresults#\Microsoft\Windows\Start Menu\Programs\StartUp\Google Chrome as browser.lnk'; $WScriptShell = New-Object -ComObject WScript.Shell; $Shortcut = $WScriptShell.CreateShortcut($ShortcutLocation); $Shortcut.TargetPath = '#ksystem#\#filename#'; $Shortcut.Arguments = 'chrome'; $Shortcut.Save()&quot;" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <If description="">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#global:cmdresults#\Microsoft\Windows\Start Menu\Programs\StartUp\Google Chrome as browser.lnk" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Google Chrome has been set as a default web browser." />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Unable to create common start up shortcut." />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="File couldn't not be uploaded." />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Set IE as default browser (startup)" treePres="3" id="1946892768" folderId="940890308767971" treeFullPath="myProcedures - admin.Set default system web browser">
+      <Body description="This procedure allows to set Internet Explorer as default system web browser">
+        <Statement description="This procedure allows to set Internet Explorer as default system web browser&#xD;&#xA;Modification date: 04-20-21&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ksystem" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="SetDefaultBrowser.exe" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="filename" />
+        </Statement>
+        <Statement name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\#filename#" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\SetDefaultBrowser.exe" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\#filename#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="ExecuteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\#filename#" />
+              <Parameter xsi:type="StringParameter" name="Arguments" value="ie" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="User" />
+              <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+            </Statement>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -command &quot;$env:ALLUSERSPROFILE&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+            </Statement>
+            <Statement name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="powershell -command &quot;$ShortcutLocation = '#global:cmdresults#\Microsoft\Windows\Start Menu\Programs\StartUp\IE as browser.lnk'; $WScriptShell = New-Object -ComObject WScript.Shell; $Shortcut = $WScriptShell.CreateShortcut($ShortcutLocation); $Shortcut.TargetPath = '#ksystem#\#filename#'; $Shortcut.Arguments = 'ie'; $Shortcut.Save()&quot;" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <If description="">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#global:cmdresults#\Microsoft\Windows\Start Menu\Programs\StartUp\IE as browser.lnk" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Internet Explorer has been set as a default web browser." />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Unable to create common start up shortcut." />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="File couldn't not be uploaded." />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

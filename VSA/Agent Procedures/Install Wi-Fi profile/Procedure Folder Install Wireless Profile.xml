@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Install Wireless Profile" treePres="3">
+    <Procedure name="Install Wireless Profile" treePres="3" id="1525970920" folderId="595104446120143" treeFullPath="myProcedures - admin.Install Wireless Profile">
+      <Body description="This procedure allows to install prepared wireless profile">
+        <Statement description="This procedure allows to install prepared wireless profile&#xD;&#xA;Please make sure to apply config changes in Wireless-Profile.xml&#xD;&#xA;Modification date: 04-29-21&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="kwork" />
+        </Statement>
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="netsh wlan show profile" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+            <Parameter xsi:type="StringParameter" name="Value" value="is not running" />
+          </Condition>
+          <Then>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Wireless service is not running on this computer. Unable to continue." />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\Wireless-Profile.xml" />
+              <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Wi-Fi Profiles\Wireless-Profile.xml" />
+              <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+            </Statement>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="netsh wlan add profile filename=&quot;#kwork#\Wireless-Profile.xml&quot; user=all" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                <Parameter xsi:type="StringParameter" name="Value" value="is added on interface" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Wireless profile has been successfully installed." />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Wireless profile couldn't be installed." />
+                </Statement>
+              </Else>
+            </If>
+            <Statement name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\Wireless-Profile.xml" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

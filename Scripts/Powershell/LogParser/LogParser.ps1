@@ -1,4 +1,6 @@
 ## Kaseya Automation Team
+## Modification date: 05-03-2021
+## Version 2.3
     
 param (
     [parameter(Mandatory=$false)]
@@ -108,19 +110,19 @@ Foreach ($Log in $LogsFiles) {
             $DeleteEventTimeStamp = $Matches[1]
         }
 
-        #UpdateEvent
-        $UpdateEvent = Select-String -Path $LogName -Pattern "(UpdateNetworkDevice.*$Device)"|Select-Object -Last 1| Foreach {$_.Line}
+        #SuspendEvent
+        $SuspendEvent = Select-String -Path $LogName -Pattern "(UpdateNetworkDevice.*$Device.*suspended=true)"|Select-Object -Last 1| Foreach {$_.Line}
 
-        Write-Debug ($UpdateEvent|Out-String)
-
-        if (!$UpdateEvent) {
-            $UpdateEventTimeStamp = "NULL"
+        Write-Debug ($SuspendEvent|Out-String)
+        
+        if (!$SuspendEvent) {
+            $SuspendEventTimeStamp = "NULL"
         } else {
-            $UpdateEvent -match "^(.+) a.d.c." | Out-Null
-            $updateEventTimeStamp = $Matches[1]
+            $SuspendEvent -match "^(.+) a.d.c." | Out-Null
+            $SuspendEventTimeStamp = $Matches[1]
         }
 
-        $Content = "$Device`, $DeviceIpAddress, created: $CreateEventTimeStamp, updated: $UpdateEventTimeStamp, deleted: $DeleteEventTimeStamp"
+        $Content = "$Device`, $DeviceIpAddress, created: $CreateEventTimeStamp, deleted: $DeleteEventTimeStamp, suspended: $SuspendEventTimeStamp"
 
         $Export.WriteLine($Content)
 

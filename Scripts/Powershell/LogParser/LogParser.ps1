@@ -1,6 +1,6 @@
 ## Kaseya Automation Team
-## Modification date: 05-03-2021
-## Version 2.3
+## Modification date: 05-04-2021
+## Version 2.4
     
 param (
     [parameter(Mandatory=$false)]
@@ -14,7 +14,7 @@ $stopwatch = [system.diagnostics.stopwatch]::StartNew()
 $ScriptDir = Split-Path ($MyInvocation.MyCommand.Path) -Parent
 
 #Specify folder to log files and file mask here
-$LogsPath = "$ScriptDir\logs\webapp\audit.log.*"
+$LogsPath = "$ScriptDir\logs\webapp\audit.log*"
 
 #Read files from folder
 $LogsFiles = Get-ChildItem $LogsPath
@@ -39,15 +39,15 @@ $AllDevices = @()
 $null = New-Item -Name "temp" -ItemType "Directory" -Force -Path $ScriptDir
 $null = New-Item -Name "csv" -ItemType "Directory" -Force -Path $ScriptDir
 
+    #Export to CSV file, which has the same name as log file
+    $Export = [System.IO.StreamWriter] "$ScriptDir\csv\audit.csv"
+
 Foreach ($Log in $LogsFiles) {
 
     #Run Garbage Collector
     [system.gc]::Collect()
 
     $LogName = $Log.Name
-
-    #Export to CSV file, which has the same name as log file
-    $Export = [System.IO.StreamWriter] "$ScriptDir\csv\$Logname.csv"
 
     #Parse only strings which are ralted to devices and put them into file in TEMP folder
     Select-String -Path $Log.FullName -Pattern "on device" | Select-Object -ExpandProperty Line | Out-File -FilePath "$ScriptDir\temp\$LogName"
@@ -128,8 +128,10 @@ Foreach ($Log in $LogsFiles) {
 
      }
 
-     $Export.close()
+     
 }
+
+$Export.close()
 
 #Stop timer here
 $stopwatch.Stop()

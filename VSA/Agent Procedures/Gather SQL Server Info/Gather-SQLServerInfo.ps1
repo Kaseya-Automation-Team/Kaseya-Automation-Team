@@ -170,11 +170,11 @@ function Get-SoftwareInfoAsHTML
 
         #Create an instance of the Registry Object and open the HKLM base key
 
-        $reg=[microsoft.win32.registrykey]::OpenRemoteBaseKey('LocalMachine',$ControllerName)
+        $reg = [microsoft.win32.registrykey]::OpenRemoteBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine, $server)
 
         #Drill down into the Uninstall key using the OpenSubKey Method
 
-        $regkey=$reg.OpenSubKey($UninstallKey) 
+        $regkey = $reg.OpenSubKey($UninstallKey) 
 
         #Retrieve an array of string that contain all the subkey names
 
@@ -187,10 +187,10 @@ function Get-SoftwareInfoAsHTML
             $thisKey = $UninstallKey+"\\"+$key
             $thisSubKey = $reg.OpenSubKey($thisKey)
             $hash = [ordered] @{
-                    'Publisher' = $($thisSubKey.GetValue("Publisher"))
-                    'Display Name' = $($thisSubKey.GetValue("DisplayName"))
-                    'Display Version' = $($thisSubKey.GetValue("DisplayVersion"))
-                    'Install Location' = $($thisSubKey.GetValue("InstallLocation"))
+                    'Publisher'         = $($thisSubKey.GetValue("Publisher"))
+                    'Display Name'      = $($thisSubKey.GetValue("DisplayName"))
+                    'Display Version'   = $($thisSubKey.GetValue("DisplayVersion"))
+                    'Install Location'  = $($thisSubKey.GetValue("InstallLocation"))
                     }
             $array += New-Object PSObject -Property $hash
         }
@@ -214,7 +214,7 @@ function Get-SoftwareInfoAsHTML
 #endregion Software Info
 
 if([string]::IsNullOrEmpty($SQLServer)) {$SQLServer = 'localhost'}
-$SQLServer | Write-Debug
+"Host\Instance: $SQLServer" | Write-Debug
 
 [string[]] $ConnectionParameters = @("Server = $SQLServer", 'ApplicationIntent=ReadOnly')
 
@@ -228,7 +228,7 @@ else
     $ConnectionParameters += "Password = ""$SQLPwd"""
 }
 
-[string] $HardwareInfo = Get-HardwareInfoAsHTML  -ComputerNames $env:COMPUTERNAME
+[string] $HardwareInfo = Get-HardwareInfoAsHTML -ComputerNames $env:COMPUTERNAME
 
 [string] $SoftwareInfo = Get-SoftwareInfoAsHTML -ComputerNames $env:COMPUTERNAME
 
@@ -739,7 +739,7 @@ ORDER BY [Average IO] DESC
 
         ## Close the connection when work done
         $SqlConnection.Close()
-        $SqlConnection.State | Write-Debug
+        $SqlConnection.State | Write-Verbose
     }
 #Output HTML
 @"

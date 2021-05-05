@@ -3,7 +3,12 @@
   <Folder name="SQL Tools" treePres="3">
     <Procedure name="Gather SQL Server Info" treePres="3" id="1497136642" folderId="417100370636722">
       <Body description="The procedure calls PowerShell script that gathers SQL Server information and saves it as a HTML-file on the VSA server.&#xA;Author: Proserv Team - VS">
-        <Statement description="The procedure calls PowerShell script that gathers SQL Server information and saves it as a HTML-file on the VSA server.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+        <Statement description="The procedure calls PowerShell script that gathers SQL Server information and saves it as a HTML-file on the VSA server.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;By default the AP gathers information on default instance on the computer using standard 1433 port.&#xD;&#xA;If you need to specify named instance and/or non-standard port, please change the variable ServerName using following format localhost\Instance_Name,Port_number" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="localhost" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ServerName" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="Provide user name" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="UserName" />
@@ -12,11 +17,6 @@
           <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="Provide user password" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="UserPassword" />
-        </Statement>
-        <Statement name="GetVariable" continueOnFail="false">
-          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="localhost" />
-          <Parameter xsi:type="StringParameter" name="VariableName" value="ServerName" />
         </Statement>
         <Statement name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="OfficeLicenseStatus" treePres="3">
+    <Procedure name="OfficeLicenseStatus" treePres="3" id="1697280601" folderId="274434830608988" treeFullPath="Professional Services Team.OfficeLicenseStatus">
+      <Body description="This procedure helps identify the Office License status of a windows machine">
+        <Statement description="This procedure helps identify the Office License status of a windows machine&#xD;&#xA;V:1.0" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\OfficeStatus.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\OfficeLicenseStatus.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <If description="">
+          <Condition name="Windows 32 or 64 Bit Check">
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          </Condition>
+          <Then>
+            <Statement name="Execute Powershell Command (64-bit, Run As System)" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="#ktemp#\OfficeStatus.ps1" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="Execute Powershell Command (32-bit, Run As System)" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="#ktemp#\OfficeStatus.ps1" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+            </Statement>
+          </Else>
+        </If>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:psresult#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Unable to find Office license in the system, Please verify if it is even installed!" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement description="Update the custom field" name="UpdateSystemInfo" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="ColumnName" value="OfficeLicenseStatus" />
+              <Parameter xsi:type="StringParameter" name="Value" value="#global:psresult#" />
+            </Statement>
+            <Statement name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\licenseStatus.ps1" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

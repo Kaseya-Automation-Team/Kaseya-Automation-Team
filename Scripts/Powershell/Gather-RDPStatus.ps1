@@ -32,7 +32,7 @@ Add-Member -InputObject $Output -MemberType NoteProperty -Name MachineID -Value 
 #Check if software is installed
 try {
 
-    $isInstalled = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue) | Where-Object {$_.DisplayName -like "*Bombar*"}
+    $isInstalled = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue) | Where-Object {$_.DisplayName -like "*Bomgar*"}
 
     Write-Debug ($isInstalled|Out-String)
 

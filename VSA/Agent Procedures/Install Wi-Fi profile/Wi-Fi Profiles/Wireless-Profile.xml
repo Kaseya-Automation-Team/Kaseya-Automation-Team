@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<WLANProfile xmlns="http://www.microsoft.com/networking/WLAN/profile/v1">
+	<!-- Enter SSID name here -->
+	<name>SSID_NAME</name>
+	<SSIDConfig>
+		<SSID>
+			<!-- Enter SSID name here -->
+			<name>SSID_NAME</name>
+		</SSID>
+	</SSIDConfig>
+	<connectionType>ESS</connectionType>
+	<!-- Enter connection mode: auto or manual -->
+	<connectionMode>auto</connectionMode>
+	<MSM>
+		<security>
+			<authEncryption>
+				<!-- Change encryption mode if required -->
+				<authentication>WPA2PSK</authentication>
+				<encryption>AES</encryption>
+				<useOneX>false</useOneX>
+			</authEncryption>
+			<sharedKey>
+				<keyType>passPhrase</keyType>
+				<protected>false</protected>
+				<!-- Enter Wi-Fi password here -->
+				<keyMaterial>$Password</keyMaterial>
+			</sharedKey>
+		</security>
+	</MSM>
+	<MacRandomization xmlns="http://www.microsoft.com/networking/WLAN/profile/v3">
+		<enableRandomization>false</enableRandomization>
+		<randomizationSeed>617551118</randomizationSeed>
+	</MacRandomization>
+</WLANProfile>

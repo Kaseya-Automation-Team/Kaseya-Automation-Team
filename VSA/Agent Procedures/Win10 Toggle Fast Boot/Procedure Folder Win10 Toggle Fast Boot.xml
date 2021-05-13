@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Win10 Toggle Fast Boot" treePres="3">
+    <Procedure name="Disable Windows 10 Fast Boot" treePres="3" id="1207971520" folderId="450783878355652">
+      <Body description="This procedure disables Windows 10 fast boot">
+        <If description="This procedure disables Windows 10 fast boot&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Check for Windows 10">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#vMachine.OsType#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+            <Parameter xsi:type="StringParameter" name="Value" value="10" />
+          </Condition>
+          <Then>
+            <Statement name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="powercfg -h off" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Procedure designed for Windows 10" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Enable Windows 10 Fast Boot" treePres="3" id="1768393058" folderId="450783878355652" treeFullPath="myProcedures - kadmin.Win10 Toggle Fast Boot">
+      <Body description="This procedure enables Windows 10 fast boot">
+        <If description="This procedure enables Windows 10 fast boot&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Check for Windows 10">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#vMachine.OsType#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+            <Parameter xsi:type="StringParameter" name="Value" value="10" />
+          </Condition>
+          <Then>
+            <Statement name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="powercfg -h on" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Procedure designed for Windows 10" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

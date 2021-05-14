@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Uninstall-SysAidAgent" treePres="3">
+    <Procedure name="SysAid-Uninstaller" treePres="3" id="1548600407" folderId="956001535736024" treeFullPath="myProcedures - sarath.mopuri@kaseya.com.Uninstall-SysAidAgent">
+      <Body description="This procedure will check and remove Sysaid agent from the machine">
+        <Statement description="This procedure will check and remove Sysaid agent from the machine&#xD;&#xA;V1.0" name="Execute Powershell" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="Get-Service | Where {$_.Name -like '*sysaid*'}" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:psresult#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="NotEquals" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="kTemp" />
+            </Statement>
+            <Statement name="WriteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#kTemp#\Uninstall-SysAid.ps1" />
+              <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Uninstall-SysAidAgent.ps1" />
+              <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+            </Statement>
+            <Statement name="Execute Powershell" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="#kTemp#\Uninstall-SysAid.ps1" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="False" />
+            </Statement>
+            <Statement name="PauseScript" continueOnFail="false">
+              <Parameter xsi:type="IntegerParameter" name="Seconds" value="20" />
+            </Statement>
+            <Statement name="Execute Powershell" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="Get-Service | Where {$_.Name -like '*sysaid*'}" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:psresult#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Sysaid Agent has been removed!" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="SysAid Agent hasn't been removed!" />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="SysAid agent is not installed on this machine!" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

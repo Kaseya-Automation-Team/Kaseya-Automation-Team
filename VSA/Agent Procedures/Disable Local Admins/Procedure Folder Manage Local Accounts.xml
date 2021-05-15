@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Manage Local Accounts" treePres="3">
+    <Procedure name="Disable Local Admins" treePres="3" id="947266443" folderId="415502191481882">
+      <Body description="The procedure disables local user accounts that are members of local Administrators group.">
+        <Statement description="The procedure disables local user accounts that are members of local Administrators group.&#xD;&#xA;Version: 0.1.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;The PowerShell script to Local administrators' accounts" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="$LocalAdminGroup = try { Get-WMIObject -Class Win32_Group -Filter &quot;&quot;&quot;LocalAccount=TRUE and SID='S-1-5-32-544'&quot;&quot;&quot; -ErrorAction Stop } catch { $null }; if( $null -ne $LocalAdminGroup ) { $LocalAdminGroup.GetRelated(&quot;&quot;&quot;Win32_UserAccount&quot;&quot;&quot;) | Where-Object {$($_.LocalAccount) -And $(-Not $($_.Disabled)) } | ForEach-Object {$_.Disabled = $True; $_.Put()} }" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PowerShellScript" />
+        </Statement>
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command  &quot;#PowerShellScript#&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <Statement description="Log the results" name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

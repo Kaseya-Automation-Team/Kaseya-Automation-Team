@@ -29,18 +29,21 @@ Get-ItemProperty -Path Registry::'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Co
 
 #Clear users' temp folders
 [string] $SIDPattern = 'S-1-5-21-\d+-\d+\-\d+\-\d+$'
-Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Select-Object LocalPath, SID | ForEach-Object `
-    {
-        $ProfilePath = $_.LocalPath
-        reg load "HKU\$($_.SID)" "$ProfilePath\ntuser.dat"
+Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Select-Object LocalPath, SID | `
+    ForEach-Object {
+        $UserProfilePath = $_.LocalPath
 
-        <#Usually the user's TEMP folder refers to the USERPROFILE system variable. Runtime substitutes the variable with the current process's USERPROFILE value.
-        Thus, a registry value that contains %USERPROFILE% system variable has to be modyfied by replacing process's USERPROFILE value by corect profile's owner path.
+        reg load "HKU\$($_.SID)" "$UserProfilePath\ntuser.dat"
+
+        [string]$TempFolder = Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "Environment") -Name "TEMP" | Select-Object -ExpandProperty "TEMP"
+        <#
+        Typically, the path to the user's TEMP folder in the registry contains a relative path that refers to the USERPROFILE system variable.
+        When the registry value is read, the runtime automatically places the running process owner's profile path in the USERPROFILE variable.
+        Therefore, to get the correct path to the user's TEMP folder, the registry value referencing USERPROFILE must be corrected by replacing the process owner's profile path with the user's profile path.
         #>
-        [string]$TempPath = Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "Environment") -Name "TEMP" | Select-Object -ExpandProperty "TEMP"
-        $RunningProcessProfile = $env:USERPROFILE
+        $RunningProcessProfilePath = $env:USERPROFILE
 
-        $TempPath.Replace($RunningProcessProfile, $ProfilePath) | Clear-Folder
+        $TempFolder.Replace($RunningProcessProfilePath, $UserProfilePath) | Clear-Folder
 
         [gc]::Collect()
         reg unload "HKU\$($_.SID)"

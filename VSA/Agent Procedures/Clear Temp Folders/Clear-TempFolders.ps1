@@ -35,10 +35,10 @@ Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Sel
 
         reg load "HKU\$($_.SID)" "$UserProfilePath\ntuser.dat"
 
-        [string]$TempFolder = Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "Environment") -Name "TEMP" | Select-Object -ExpandProperty "TEMP"
+        [string]$TempFolderPath = Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "Environment") -Name "TEMP" | Select-Object -ExpandProperty "TEMP"
         $RunningProcessProfilePath = $env:USERPROFILE
 
-        $TempFolder.Replace($RunningProcessProfilePath, $UserProfilePath) | Clear-Folder
+        $TempFolderPath.Replace($RunningProcessProfilePath, $UserProfilePath) | Clear-Folder
 
         [gc]::Collect()
         reg unload "HKU\$($_.SID)"

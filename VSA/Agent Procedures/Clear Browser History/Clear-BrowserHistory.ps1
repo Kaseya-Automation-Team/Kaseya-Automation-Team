@@ -2,7 +2,7 @@
 .SYNOPSIS
     Removes history entries for the most popular browsers.
 .DESCRIPTION
-    Removes history entrie for Google Chrome, Mozilla Firefox & IE.
+    Removes history entries for Google Chrome, Mozilla Firefox & IE.
 .PARAMETER DaysToKeep
     Specifies the number of days to keep browser data. Everything older that
     the given number of days will be removed.
@@ -26,9 +26,6 @@
     Author: Proserv Team - VS
 #>
 param (
-    [Parameter(Mandatory = $false, Position = 0)]
-    [int] $DaysToKeep = 7,
-
     [Parameter(ParameterSetName='ByAll')]
     [switch] $All,
 
@@ -37,8 +34,28 @@ param (
     [Parameter(ParameterSetName='ByItem')]
     [switch] $TemporaryFiles,   # folder: Cache
     [Parameter(ParameterSetName='ByItem')]
-    [switch] $History  # Archived History 
+    [switch] $History , # Archived History
+    [Parameter(ParameterSetName='ByItem')]
+    [Parameter(ParameterSetName='ByAll')]
+    [switch] $LogIt,
+    [Parameter(ParameterSetName='ByItem')]
+    [Parameter(ParameterSetName='ByAll')]
+    [int] $DaysToKeep = 7
 )
+
+#region check/start transcript
+[string]$Pref = 'Continue'
+if ( $LogIt )
+{
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    $ScriptName = [io.path]::GetFileNameWithoutExtension( $($MyInvocation.MyCommand.Name) )
+    $ScriptPath = Split-Path $script:MyInvocation.MyCommand.Path
+    $LogFile = "$ScriptPath\$ScriptName.log"
+    Start-Transcript -Path $LogFile
+}
+#endregion check/start transcript
 
 function Clear-Folder {
 [CmdletBinding()]
@@ -58,9 +75,6 @@ param (
         Get-ChildItem -Path $TheFolder -Recurse -Force | Where-Object { $_.CreationTime -lt $OlderThan } | Remove-Item -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue
     }
 }
-
-#Clear the system temp folder
-Get-ItemProperty -Path Registry::'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name "TEMP" | Select-Object -ExpandProperty "TEMP" | Clear-Folder
 
 #Clear users' cookies
 [string] $SIDPattern = 'S-1-5-21-\d+-\d+\-\d+\-\d+$'
@@ -122,3 +136,14 @@ Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Sel
         [gc]::Collect()
         reg unload "HKU\$($_.SID)"
     }
+
+#region check/stop transcript
+if ( $LogIt )
+{
+    $Pref = 'SilentlyContinue'
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    Stop-Transcript
+}
+#endregion check/stop transcript

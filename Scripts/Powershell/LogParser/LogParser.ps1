@@ -1,6 +1,6 @@
 ## Kaseya Automation Team
 ## Modification date: 25-05-2021
-## Version 2.5
+## Version 2.6
     
 param (
     [parameter(Mandatory=$false)]
@@ -37,10 +37,10 @@ $AllDevices = @()
 
 #Create TEMP and CSV folders
 $null = New-Item -Name "temp" -ItemType "Directory" -Force -Path $ScriptDir
-$null = New-Item -Name "csv" -ItemType "Directory" -Force -Path $ScriptDir
+#$null = New-Item -Name "csv" -ItemType "Directory" -Force -Path $ScriptDir
 
     #Export to CSV file, which has the same name as log file
-    $Export = [System.IO.StreamWriter] "$ScriptDir\csv\audit.csv"
+    #$Export = [System.IO.StreamWriter] "$ScriptDir\csv\audit.csv"
 
 Foreach ($Log in $LogsFiles) {
 
@@ -67,7 +67,7 @@ Foreach ($Log in $LogsFiles) {
     
             $DeviceName = $Matches[1]
             $DeviceAddress = $Matches[2]
-            
+
             $AllDevices +=$DeviceName
 
         }
@@ -81,9 +81,9 @@ Foreach ($Log in $LogsFiles) {
 
      $AllDevices = $AllDevices|Sort-Object -Unique
 
+     Write-Output "Device Name,IP Address, Created, Deleted, Suspended"
+	 
      Foreach ($Device in $AllDevices) {
-
-        $DeviceIpAddress = ""
 
         Write-Debug ($Device|Out-String)
 
@@ -99,7 +99,6 @@ Foreach ($Log in $LogsFiles) {
             $CreateEvent -match "^(.+) a.d.c.+\saddress=(.+?)," | Out-Null
             $CreateEventTimeStamp = $Matches[1]
             $DeviceIpAddress = $Matches[2]
-
         }
 
         #Delete event
@@ -127,11 +126,13 @@ Foreach ($Log in $LogsFiles) {
         }
 
         if ($DeviceIpAddress -ne "NULL") {
-        
 
-        $Content = "$Device`, $DeviceIpAddress, created: $CreateEventTimeStamp, deleted: $DeleteEventTimeStamp, suspended: $SuspendEventTimeStamp"
+        #$Content = "$Device`, $DeviceIpAddress, created: $CreateEventTimeStamp, deleted: $DeleteEventTimeStamp, suspended: $SuspendEventTimeStamp"
+        $Content = "$Device`, $DeviceIpAddress, $CreateEventTimeStamp, $DeleteEventTimeStamp, $SuspendEventTimeStamp"
 
-        $Export.WriteLine($Content)
+        #$Export.WriteLine($Content)
+
+		Write-Output $Content
 
         }
 
@@ -140,7 +141,7 @@ Foreach ($Log in $LogsFiles) {
      
 }
 
-$Export.close()
+#$Export.close()
 
 #Stop timer here
 $stopwatch.Stop()

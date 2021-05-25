@@ -1,6 +1,6 @@
 ## Kaseya Automation Team
-## Modification date: 05-04-2021
-## Version 2.4
+## Modification date: 25-05-2021
+## Version 2.5
     
 param (
     [parameter(Mandatory=$false)]
@@ -67,7 +67,7 @@ Foreach ($Log in $LogsFiles) {
     
             $DeviceName = $Matches[1]
             $DeviceAddress = $Matches[2]
-
+            
             $AllDevices +=$DeviceName
 
         }
@@ -83,6 +83,8 @@ Foreach ($Log in $LogsFiles) {
 
      Foreach ($Device in $AllDevices) {
 
+        $DeviceIpAddress = ""
+
         Write-Debug ($Device|Out-String)
 
         #Create event
@@ -92,10 +94,12 @@ Foreach ($Log in $LogsFiles) {
 
         if (!$CreateEvent) {
             $CreateEventTimeStamp = "NULL"
+            $DeviceIpAddress = "NULL"
         } else {
             $CreateEvent -match "^(.+) a.d.c.+\saddress=(.+?)," | Out-Null
             $CreateEventTimeStamp = $Matches[1]
             $DeviceIpAddress = $Matches[2]
+
         }
 
         #Delete event
@@ -122,9 +126,14 @@ Foreach ($Log in $LogsFiles) {
             $SuspendEventTimeStamp = $Matches[1]
         }
 
+        if ($DeviceIpAddress -ne "NULL") {
+        
+
         $Content = "$Device`, $DeviceIpAddress, created: $CreateEventTimeStamp, deleted: $DeleteEventTimeStamp, suspended: $SuspendEventTimeStamp"
 
         $Export.WriteLine($Content)
+
+        }
 
      }
 

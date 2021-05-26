@@ -1,6 +1,6 @@
 ## Kaseya Automation Team
-## Modification date: 25-05-2021
-## Version 2.6
+## Modification date: 26-05-2021
+## Version 2.7
     
 param (
     [parameter(Mandatory=$false)]
@@ -125,7 +125,6 @@ Foreach ($Log in $LogsFiles) {
             $SuspendEventTimeStamp = $Matches[1]
         }
 
-        if ($DeviceIpAddress -ne "NULL") {
 
         #$Content = "$Device`, $DeviceIpAddress, created: $CreateEventTimeStamp, deleted: $DeleteEventTimeStamp, suspended: $SuspendEventTimeStamp"
         $Content = "$Device`, $DeviceIpAddress, $CreateEventTimeStamp, $DeleteEventTimeStamp, $SuspendEventTimeStamp"
@@ -133,8 +132,6 @@ Foreach ($Log in $LogsFiles) {
         #$Export.WriteLine($Content)
 
 		Write-Output $Content
-
-        }
 
      }
 

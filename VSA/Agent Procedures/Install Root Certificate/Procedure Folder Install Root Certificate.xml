@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Install Root Certificate" treePres="3">
+    <Procedure name="Install Root Certificate" treePres="3" id="2059860009" folderId="582845890094921" treeFullPath="myProcedures - admin.Install Root Certificate">
+      <Body description="This procedure uploads and installs Root Certificate on target machine">
+        <Statement description="This procedure uploads and installs Root Certificate on target machine&#xD;&#xA;Modification date: 05-27-21&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ksystem" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="entrust_g3_ca.cer" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="filename" />
+        </Statement>
+        <Statement description="Upload root certificate to Ksystem folder" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\#filename#" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Certificates\#filename#" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <If description="Check if file exists under destination path">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\#filename#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement description="Run import command" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -command &quot;try {$Result = Import-Certificate -FilePath '#ksystem#\#filename#' -CertStoreLocation 'Cert:\LocalMachine\Root' -ErrorAction Stop; Write-Host 'Installation has been successfully completed:'; $Result|Select-Object -Property Thumbprint, Subject, NotAfter, NotBefore|Format-List} catch {Write-Host 'Root certificate could not be installed.'}&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <Statement description="Send result of execution to the procedure log" name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+            </Statement>
+            <Statement description="Clean up" name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\#filename#" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Unable to upload certificate to the target machine" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

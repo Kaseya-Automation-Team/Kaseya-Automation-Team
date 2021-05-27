@@ -61,28 +61,29 @@ function Clear-Path {
 [CmdletBinding()]
 param (
     [parameter(Mandatory = $true, 
-        Position = 0,
-        ValueFromPipeline=$true)]
+    Position = 0,
+    ValueFromPipeline=$true)]
     [ValidateNotNullOrEmpty()]
-    [string] $ThePath,
+    [string] $Path,
     [Parameter(Mandatory = $true,
-    Position = 1)]
+    Position = 1,
+    ValueFromPipeline=$true)]
     [int] $DaysToKeep
 )
     $OlderThan = (Get-Date).AddDays(-([Math]::Abs($DaysToKeep)))
-    if(Test-Path -Path $ThePath -Verbose)
+    if(Test-Path -Path $Path -Verbose)
     {
-        $FSObject = Get-Item -Path $ThePath -Force
+        $TheItem = Get-Item -Path $Path -Force -Verbose
 
-        If ( $FSObject -is [System.IO.DirectoryInfo] )
+        If ( $TheItem -is [System.IO.DirectoryInfo] )
         {
-            $FSObject | Get-ChildItem -Recurse -Force | Where-Object { $_.CreationTime -lt $OlderThan } | Remove-Item -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue -Verbose
+            $TheItem | Get-ChildItem -Recurse -Force | Where-Object { $_.CreationTime -lt $OlderThan } | Remove-Item -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue
         }
         else
         {
-            if( $FSObject.CreationTime -lt $OlderThan )
+            if( $TheItem.CreationTime -lt $OlderThan )
             {
-                 $FSObject | Remove-Item -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue -Verbose
+                 $TheItem | Remove-Item -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue
             }
         }        
     }
@@ -106,7 +107,7 @@ Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Sel
         #>
         $RunningProcessProfilePath = $env:USERPROFILE
         
-        $AppDataPath.Replace($RunningProcessProfilePath, $UserProfilePath)
+        $AppDataPath = $AppDataPath.Replace($RunningProcessProfilePath, $UserProfilePath)
 
         #region Cleanup
         if ($Cookies -or $All)
@@ -116,8 +117,8 @@ Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Sel
             #Chrome
             $ItemsToClear += Join-Path -Path $AppDataPath -ChildPath "Google\Chrome\User Data\Default*\Cookies*" -Resolve
             #Microsoft browsers
-            $ItemsToClear += ( Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") -Name "Cookies" `
-                | Select-Object -ExpandProperty "Cookies" ).Replace($RunningProcessProfilePath, $UserProfilePath)
+            $ItemsToClear += Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") -Name "Cookies" `
+                | Select-Object -ExpandProperty "Cookies"
         }
         if ($TemporaryFiles -or $All)
         {
@@ -127,8 +128,8 @@ Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Sel
             $ItemsToClear += Join-Path -Path $AppDataPath -ChildPath "Google\Chrome\User Data\Default\cache*" -Resolve
             $ItemsToClear += Join-Path -Path $AppDataPath -ChildPath "Google\Chrome\User Data\Default\Media Cache*" -Resolve
             #Microsoft browsers
-            $ItemsToClear += ( Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") -Name "Cache" `
-                | Select-Object -ExpandProperty "Cache" ).Replace($RunningProcessProfilePath, $UserProfilePath)
+            $ItemsToClear += Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") -Name "Cache" `
+                | Select-Object -ExpandProperty "Cache"
         }
         if ($History -or $All)
         {
@@ -138,11 +139,11 @@ Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Sel
             $ItemsToClear += Join-Path -Path $AppDataPath -ChildPath "Google\Chrome\User Data\Default\History*" -Resolve
             $ItemsToClear += Join-Path -Path $AppDataPath -ChildPath "Google\Chrome\User Data\Default\Visited Links*" -Resolve
             #Microsoft browsers
-            $ItemsToClear += ( Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") -Name "History" `
-                | Select-Object -ExpandProperty "History" ).Replace($RunningProcessProfilePath, $UserProfilePath)
+            $ItemsToClear += Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") -Name "History" `
+                | Select-Object -ExpandProperty "History"
         }
 
-        $ItemsToClear | ForEach-Object { Clear-Path -ThePath $_ -DaysToKeep 0 }
+        $ItemsToClear | ForEach-Object { $Item = $_.Replace($RunningProcessProfilePath, $UserProfilePath); Clear-Path -Path $Item -DaysToKeep $DaysToKeep }
         #endregion Cleanup
 
         [gc]::Collect()

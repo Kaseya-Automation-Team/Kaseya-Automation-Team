@@ -2,7 +2,17 @@
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Procedure name="Clear Browser History" treePres="3" id="448404463" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
     <Body description="The procedure calls PowerShell script that clears history entries for Google Chrome, Mozilla Firefox &amp; IE.&#xA;&#xA;Author: Proserv Team - VS">
-      <Statement description="The procedure calls PowerShell script that clears history entries for Google Chrome, Mozilla Firefox &amp; IE.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;################################&#xD;&#xA;Local working folder" name="GetVariable" continueOnFail="false">
+      <Statement description="The procedure calls PowerShell script that clears history entries for Google Chrome, Mozilla Firefox &amp; IE.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;################################&#xD;&#xA;WhatToClear specifies items to clear. It accepts following parameters: -All clears Cookies, Temporary files and History items; -Cookies clears Cookies; -TemporaryFiles clears Temporary Files; -History clears History" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="-All" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="WhatToClear" />
+      </Statement>
+      <Statement description="DaysToKeep specifies the number of days to keep browser data." name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="DaysToKeep" />
+      </Statement>
+      <Statement description="Local working folder" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="WorkingDirectory" />
@@ -29,13 +39,8 @@
           <Parameter xsi:type="StringParameter" name="Value" value="" />
         </Condition>
         <Then>
-          <Statement description="Define the script's parameters &amp; execute the script&#xD;&#xA;The PowerShell Script accepts following parameters: -All clears Cookies, Temporary files and History items; -Cookies clears Cookies; -TemporaryFiles clears Temporary Files; -History clears History; -DaysToKeep specifies the number of days to keep browser data, 7  by default." name="GetVariable" continueOnFail="false">
-            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-            <Parameter xsi:type="StringParameter" name="SourceContent" value="-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -Command #ScriptFullPath# -All -LogIt" />
-            <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptParameters" />
-          </Statement>
-          <Statement name="ExecuteShellCommand" continueOnFail="false">
-            <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe #ScriptParameters#" />
+          <Statement description="Define the script's parameters &amp; execute the script" name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -Command #ScriptFullPath# #WhatToClear# -DaysToKeep #DaysToKeep# -LogIt" />
             <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
             <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
           </Statement>

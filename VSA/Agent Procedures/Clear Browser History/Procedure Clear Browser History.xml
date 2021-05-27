@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
-  <Procedure name="Clear Browser History" treePres="3" id="448404463" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
+  <Procedure name="Clear Browser History" treePres="3" id="448404463" folderId="691945742625717">
     <Body description="The procedure calls PowerShell script that clears history entries for Google Chrome, Mozilla Firefox &amp; IE.&#xA;&#xA;Author: Proserv Team - VS">
       <Statement description="The procedure calls PowerShell script that clears history entries for Google Chrome, Mozilla Firefox &amp; IE.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;################################&#xD;&#xA;WhatToClear specifies items to clear. It accepts following parameters: -All clears Cookies, Temporary files and History items; -Cookies clears Cookies; -TemporaryFiles clears Temporary Files; -History clears History" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
@@ -9,7 +9,7 @@
       </Statement>
       <Statement description="DaysToKeep specifies the number of days to keep browser data." name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-        <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="7" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="DaysToKeep" />
       </Statement>
       <Statement description="Local working folder" name="GetVariable" continueOnFail="false">

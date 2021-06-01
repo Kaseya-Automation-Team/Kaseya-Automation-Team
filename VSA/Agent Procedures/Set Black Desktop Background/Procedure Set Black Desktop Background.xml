@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
-  <Procedure name="Set Black Background" treePres="3" id="250386258" folderId="691945742625717">
+  <Procedure name="Set Black Desktop Background" treePres="3" id="250386258" folderId="691945742625717">
     <Body description="The procedure calls PowerShell script that removes wallpaper and sets black desktop background for all users.&#xA;&#xA;Author: Proserv Team - VS">
       <Statement description="The procedure calls PowerShell script that removes wallpaper and sets black desktop background for all users.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;################################&#xD;&#xA;Local working folder" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
@@ -35,11 +35,21 @@
             <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptParameters" />
           </Statement>
           <Statement name="ExecuteShellCommand" continueOnFail="false">
-            <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe #ScriptParameters#" />
+            <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -Command #ScriptParameters#" />
             <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
             <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
           </Statement>
-          <Statement description="####Create scheduled task" name="GetVariable" continueOnFail="false">
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="BlackDesktop" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="TaskName" />
+          </Statement>
+          <Statement description="## Create startup task" name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -Command &quot;$WScriptShell = New-Object -ComObject WScript.Shell; $Shortcut = $WScriptShell.CreateShortcut(&quot;&quot;&quot;$($env:ProgramData)\Microsoft\Windows\Start Menu\Programs\Startup\#TaskName#.lnk&quot;&quot;&quot;); $Shortcut.TargetPath = 'Powershell.exe'; $Shortcut.Arguments =  '-WindowStyle Hidden -ExecutionPolicy Bypass -File #ScriptFullPath#'; $Shortcut.Save()&quot;" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+          <Statement description="####Create scheduled task for logged in users" name="GetVariable" continueOnFail="false">
             <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
             <Parameter xsi:type="StringParameter" name="SourceContent" value="Schedule-PSScript" />
             <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptBaseName" />
@@ -62,7 +72,7 @@
             </Condition>
             <Then>
               <Statement name="ExecuteShellCommand" continueOnFail="false">
-                <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ScriptFullPath# -TaskName SetBackgroundBlack -ScheduledTaskAction '#ScriptParameters#'" />
+                <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ScriptFullPath# -TaskName #TaskName# -ScheduledTaskAction '#ScriptParameters#'" />
                 <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
                 <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
               </Statement>

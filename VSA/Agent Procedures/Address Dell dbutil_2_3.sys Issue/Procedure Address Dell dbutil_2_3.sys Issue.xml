@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Address Dell dbutil_2_3.sys Issue" treePres="3" id="448404463" folderId="692173020025795" treeFullPath="myProcedures - Vladislav.Semko@kaseya.com">
+    <Body description="The procedure mitigates Dell CVE-2021-21551 issue as described at https://www.dell.com/support/kbdoc/en-ca/000186019/dsa-2021-088-dell-client-platform-security-update-for-dell-driver-insufficient-access-control-vulnerability.&#xA;Author: Proserv Team - VS">
+      <Statement description="The procedure mitigates Dell CVE-2021-21551 issue as described at https://www.dell.com/support/kbdoc/en-ca/000186019/dsa-2021-088-dell-client-platform-security-update-for-dell-driver-insufficient-access-control-vulnerability&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;################################&#xD;&#xA;Define if new version of Dell DBUTIL driver installation is required. 1 -required; 0 -not required" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="DbutilRequired" />
+      </Statement>
+      <Statement description="Check if manufacturer is Dell" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic BIOS get Manufacturer" />
+        <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+        <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="#global:cmdresults#" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="Manufacturer" />
+      </Statement>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#Manufacturer#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+          <Parameter xsi:type="StringParameter" name="Value" value="Dell" />
+        </Condition>
+        <Then>
+          <Statement description="Local working folder" name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="WorkingDirectory" />
+          </Statement>
+          <Statement description="Set name for the script and/or log file" name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="Remove-Dell_dbutil_2_3" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptBaseName" />
+          </Statement>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="#WorkingDirectory#\#ScriptBaseName#.ps1" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptFullPath" />
+          </Statement>
+          <Statement description="Download the script" name="WriteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+            <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#ScriptBaseName#.ps1" />
+            <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+          </Statement>
+          <If description="################################">
+            <Condition name="TestFile">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              <Parameter xsi:type="StringParameter" name="Value" value="" />
+            </Condition>
+            <Then>
+              <Statement name="ExecuteShellCommand" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -Command #ScriptFullPath# -LogIt" />
+                <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+              </Statement>
+              <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+              </Statement>
+              <If description="Install Dell DBUTIL driver installation if required">
+                <Condition name="CheckVariable">
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="#DbutilRequired#" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="1" />
+                </Condition>
+                <Then>
+                  <Statement name="GetVariable" continueOnFail="false">
+                    <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                    <Parameter xsi:type="StringParameter" name="SourceContent" value="Dell-Security-Advisory-Update-DSA-2021-088_DF8CW_WIN_2.1.0_A02.EXE" />
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="DellUpdate" />
+                  </Statement>
+                  <Statement name="GetURL" continueOnFail="false">
+                    <Parameter xsi:type="StringParameter" name="URL" value="https://dl.dell.com/FOLDER07338430M/1/#DellUpdate#" />
+                    <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#WorkingDirectory#\#DellUpdate#" />
+                    <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="False" />
+                  </Statement>
+                  <If description="">
+                    <Condition name="TestFile">
+                      <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\#DellUpdate#" />
+                      <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                      <Parameter xsi:type="StringParameter" name="Value" value="" />
+                    </Condition>
+                    <Then>
+                      <Statement name="ExecuteShellCommand" continueOnFail="false">
+                        <Parameter xsi:type="StringParameter" name="Command" value="#WorkingDirectory#\#DellUpdate# /s" />
+                        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                      </Statement>
+                      <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                        <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\#DellUpdate#" />
+                      </Statement>
+                    </Then>
+                    <Else>
+                      <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                        <Parameter xsi:type="StringParameter" name="Comment" value="Could not download #DellUpdate#" />
+                      </Statement>
+                    </Else>
+                  </If>
+                </Then>
+              </If>
+            </Then>
+            <Else>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="Could not download #ScriptBaseName#.ps1" />
+              </Statement>
+            </Else>
+          </If>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="#Manufacturer#. The procedure is designed for Dell. " />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScriptExport>

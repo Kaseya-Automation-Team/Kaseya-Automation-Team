@@ -1,26 +1,24 @@
 ﻿<#
 .Synopsis
-   Downloads the latest version of the ODT, creates config file and installation batch file for MS Office setup.
+   Creates config file and installation batch file for MS Office setup.
 .DESCRIPTION
-   Parses Office Download page, finds and downloads the latest version of the Office Deployment Tool, prepares an ODT config file and creates a batch for MS Office setup using the ODT.
+   Prepares an ODT config file and creates a batch for MS Office setup using the ODT.
 .NOTES
-   Version 0.1
+   Version 0.2
    Author: Proserv Team - VS
 .PARAMETERS
-    [string] DownloadTo
-        - Download location
+    [string] ODTPath
+        - ODT file location
     [string] BitVersion
         - Bit Version
     [string] OfficeEdition
         - Supported Product IDs according to https://docs.microsoft.com/en-us/office365/troubleshoot/installation/product-ids-supported-office-deployment-click-to-run
     [string] ActivationKey
         - The Product Activation Key
-    [string] PageUri
-        - Office Deployment Tool Download page
     [switch] LogIt
         - Enables execution transcript	
 .EXAMPLE
-   .\Create-MSOfficeInstaller -DownloadTo C:\TEMP -BitVersion 32 -OfficeEdition Standard2019Volume -ActivationKey '12345-12345-12345-12345-12345' -LogIt
+   .\Create-MSOfficeInstaller.ps1 -ODTPath C:\TEMP\ODT.exe -BitVersion 32 -OfficeEdition Standard2019Volume -ActivationKey '12345-12345-12345-12345-12345' -LogIt
 #>
 
 param (
@@ -29,12 +27,12 @@ param (
         if(-Not ($_ | Test-Path) ){
             throw "Path <$_> is not accessible" 
         }
-        if(-Not ($_ | Test-Path -PathType Container) ){
-            throw "The DownloadTo argument must be a folder. File paths are not allowed."
+        if(-Not ($_ | Test-Path -PathType Leaf) ){
+            throw "The DownloadTo argument must be a file. Folder paths are not allowed."
         }
         return $true
     })]
-    [string] $DownloadTo,
+    [string] $ODTPath,
     [parameter(Mandatory=$true)]
     [ValidateSet("32","64")]
     [string]$BitVersion,
@@ -44,8 +42,6 @@ param (
     [parameter(Mandatory=$false)]
     [ValidatePattern("^([A-Z0-9]{5}-){4}[A-Z0-9]{5}$")]
     [string]$ActivationKey,
-    [parameter(Mandatory=$false)]
-    [string] $PageUri = 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=49117',
     [parameter(Mandatory=$false)]
     [switch] $LogIt
 )
@@ -69,8 +65,7 @@ if ( -not( [Environment]::Is64BitOperatingSystem -and (64 -eq $BitVersion) ))
 {
     $BitVersion = 32
 }
-[string] $WorkDir = Split-Path $($MyInvocation.MyCommand.Path) -Parent
-[string] $OutputFilePath = Join-Path -Path $WorkDir -ChildPath "ODT.exe"
+[string] $ODTLocationFolder = Split-Path $ODTPath -Parent
 
 #--------------------------------
 #region set output files content
@@ -89,7 +84,7 @@ $ConfigContent = @"
   <Display Level="None" AcceptEULA="TRUE" />
   <Property Name="AUTOACTIVATE" Value="1" />
 </Configuration>
-"@ -f @($DownloadTo, $BitVersion, $OfficeEdition, $ActivationKey)
+"@ -f @($ODTLocationFolder, $BitVersion, $OfficeEdition, $ActivationKey)
 }
 else #no activation key
 { 
@@ -104,7 +99,7 @@ $ConfigContent = @"
   <Display Level="None" AcceptEULA="TRUE" />
   <Property Name="AUTOACTIVATE" Value="0" />
 </Configuration>
-"@ -f @($DownloadTo, $BitVersion, $OfficeEdition)
+"@ -f @($ODTLocationFolder, $BitVersion, $OfficeEdition)
 }
 #--------------------------------
 [string] $BatchContent = @"
@@ -116,56 +111,18 @@ call :LOG > %LOGFILE%
 exit /B
 
 :LOG
-$OutputFilePath /download Config.xml
-$OutputFilePath /configure Config.xml
+$ODTPath /download Config.xml
+$ODTPath /configure Config.xml
 "@
 #endregion  set output files content
 
-#--------------------------------
-#region Download ODT
-try
-{
-    $WebResponse = Invoke-WebRequest -Uri $PageUri -UseBasicParsing -ErrorAction Stop
-}
-catch
-{
-    "$PageUri response: [$($_.Exception.Response.StatusCode.Value__)]" | Write-Debug
-}
-
-if ($null -ne $WebResponse) #URL responded
-{
-    #Look for actual download URL
-    [string]$DownloadUri = $WebResponse.Links | Where-Object outerHTML -Match 'click here to download manually' | Select-Object -ExpandProperty href -Unique
-    if ( -Not [string]::IsNullOrEmpty($DownloadUri))
-    {
-        try
-        {
-            $DownloadResult = Invoke-WebRequest -Uri $DownloadUri -OutFile $OutputFilePath -TimeoutSec 600 -ErrorAction Stop -PassThru
-
-            #Status is 200 for SUCCESS
-            $DownloadResult.StatusCode | Write-Debug
-        }
-        catch
-        {
-            "$DownloadUri response: [$($_.Exception.Response.StatusCode.Value__)]" | Write-Debug
-        }
-    }
-    else
-    {
-        "Didn't get download Uri for the Office Deployment Tool" | Write-Debug
-    }
-}
-#endregion Download ODT
 
 #region creating the output files
-if( 200 -eq $DownloadResult.StatusCode)
-{
-    $OutputFilePath  = Join-Path -Path $WorkDir -ChildPath "install.cmd"
-    $BatchContent | Out-File -FilePath $OutputFilePath -Force -Encoding utf8 -Verbose
+$OutputFilePath  = Join-Path -Path $ODTLocationFolder -ChildPath "install.cmd"
+$BatchContent | Out-File -FilePath $OutputFilePath -Force -Encoding utf8 -Verbose
 
-    $OutputFilePath = Join-Path -Path $WorkDir -ChildPath "Config.xml"
-    $ConfigContent | Out-File -FilePath $OutputFilePath -Force -Encoding utf8 -Verbose
-}
+$OutputFilePath = Join-Path -Path $ODTLocationFolder -ChildPath "Config.xml"
+$ConfigContent | Out-File -FilePath $OutputFilePath -Force -Encoding utf8 -Verbose
 #endregion creating the output files
 
 #region check/stop transcript

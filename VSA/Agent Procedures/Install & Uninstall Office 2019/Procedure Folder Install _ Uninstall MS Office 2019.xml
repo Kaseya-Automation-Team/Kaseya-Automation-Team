@@ -3,7 +3,7 @@
   <Folder name="Install &amp; Uninstall MS Office 2019" treePres="3">
     <Procedure name="Install MS Office 2019" treePres="3" id="582701520" folderId="154885566167014">
       <Body description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office 2016.&#xA;&#xA;Author: Proserv Team - VS">
-        <Statement description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office 2019.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;Set path  for software distribution." name="GetVariable" continueOnFail="false">
+        <Statement description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office 2019.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Set path  for software distribution." name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="C:\TEMP" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="DownloadTo" />
@@ -144,14 +144,14 @@
                       <Then>
                         <Statement name="GetVariable" continueOnFail="false">
                           <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
-                          <Parameter xsi:type="StringParameter" name="SourceContent" value="Choose 32/64 bit version. Valid values are  32 and 64" />
+                          <Parameter xsi:type="StringParameter" name="SourceContent" value="Choose 32/64 bit Office version for 64-bit OS. Valid values are 32 and 64" />
                           <Parameter xsi:type="StringParameter" name="VariableName" value="global:BitVersion" />
                         </Statement>
                       </Then>
                     </If>
                     <Statement name="GetVariable" continueOnFail="false">
                       <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-                      <Parameter xsi:type="StringParameter" name="SourceContent" value="-ODTPath '#DownloadTo#\setup.exe' -BitVersion #global:BitVersion# -OfficeEdition #OfficeEdition# -LogIt" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="-ODTPath '#DownloadTo#\setup.exe' -BitVersion #global:BitVersion# -OfficeEdition #OfficeEdition#" />
                       <Parameter xsi:type="StringParameter" name="VariableName" value="global:ScriptParameters" />
                     </Statement>
                     <If description="">
@@ -168,12 +168,17 @@
                         </Statement>
                       </Then>
                     </If>
-                    <Statement name="ExecuteShellCommand" continueOnFail="false">
+                    <Statement name="GetVariable" continueOnFail="false">
+                      <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="#global:ScriptParameters# -LogIt" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="global:ScriptParameters" />
+                    </Statement>
+                    <Statement description="Generate install batch" name="ExecuteShellCommand" continueOnFail="false">
                       <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ScriptFullPath#  #global:ScriptParameters#" />
                       <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
                       <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
                     </Statement>
-                    <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                    <Statement name="DeleteFile" continueOnFail="false">
                       <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
                     </Statement>
                     <If description="Install">
@@ -218,7 +223,7 @@
         </If>
       </Body>
     </Procedure>
-    <Procedure name="Uninstall MS Office" treePres="3" id="1483987225" folderId="154885566167014">
+    <Procedure name="Uninstall MS Office" treePres="3" id="1483987225" folderId="154885566167014" treeFullPath="myProcedures - kadmin.Install &amp; Uninstall MS Office 2019">
       <Body description="The procedure calls script that uninstalls MS Office&#xA;Version 0.1.1&#xA;Author: Proserv Team - VS">
         <Statement description="The procedure calls script that uninstalls MS Office&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Version 0.1.1&#xD;&#xA;Get local path" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />

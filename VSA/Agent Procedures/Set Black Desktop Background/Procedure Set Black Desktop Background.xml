@@ -2,7 +2,7 @@
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Procedure name="Set Black Desktop Background" treePres="3" id="250386258" folderId="691945742625717">
     <Body description="The procedure calls PowerShell script that removes wallpaper and sets black desktop background for all users.&#xA;&#xA;Author: Proserv Team - VS">
-      <Statement description="The procedure calls PowerShell script that removes wallpaper and sets black desktop background for all users.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;################################&#xD;&#xA;Local working folder" name="GetVariable" continueOnFail="false">
+      <Statement description="The procedure calls PowerShell script that removes wallpaper and sets black desktop background for all users.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;################################&#xD;&#xA;Local working folder" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="WorkingDirectory" />

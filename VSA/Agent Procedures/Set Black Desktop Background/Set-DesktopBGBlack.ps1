@@ -21,7 +21,7 @@ function Set-RegParam {
             ValueFromRemainingArguments=$false, 
             Position=2)]
         [ValidateSet('Binary', 'DWord', 'ExpandString', 'MultiString', 'None', 'QWord', 'String', 'Unknown')]
-        [string] $ValueType = 'DWord',
+        [string] $ValueType = 'String',
         [parameter(Mandatory=$false)]
         [Switch] $UpdateExisting
     )

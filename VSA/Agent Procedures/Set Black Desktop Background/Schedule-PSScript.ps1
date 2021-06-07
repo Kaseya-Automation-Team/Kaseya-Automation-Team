@@ -33,7 +33,7 @@ if ( 0 -ne $LoggedInUsersSIDs.Length )
 
 if ( 0 -ne $LoggedInUsers.Length )
 {
-    [datetime]$At = (Get-Date).AddSeconds(30)
+    [datetime]$At = (Get-Date).AddSeconds(20)
     Foreach ( $UserPrincipal in $LoggedInUsers )
     {
         $TaskName = "RunOnce-$TaskName-$($UserPrincipal.Replace('\', '.') )"

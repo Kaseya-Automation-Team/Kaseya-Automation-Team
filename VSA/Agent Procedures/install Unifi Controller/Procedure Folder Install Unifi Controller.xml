@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Install Unifi Controller" treePres="3">
+    <Procedure name="Install Unifi Controller" treePres="3" id="1938927306" folderId="508058249628198" treeFullPath="myProcedures - admin.Install Unifi Controller">
+      <Body description="This procedure agent installs Unify Controller software, but firstly checks and satisfies requirements (if needed).">
+        <Statement description="This procedure agent installs Unify Controller software, but firstly checks and satisfies requirements (if needed).&#xD;&#xA;Modification date: 06-07-21&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="kwork" />
+        </Statement>
+        <If description="Continue if user is logged in">
+          <Condition name="UserIsLoggedIn">
+            <Parameter xsi:type="StringParameter" name="UserName" value="" />
+          </Condition>
+          <Then>
+            <Statement description="Check if Java is already installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="java -version" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                <Parameter xsi:type="StringParameter" name="Value" value="'java' is not recognized" />
+              </Condition>
+              <Then>
+                <Statement description="If not installed, download and install version with right bitness" name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Java needs to be installed before installation of Unifi Network Controller." />
+                </Statement>
+                <If description="">
+                  <Condition name="Windows 32 or 64 Bit Check">
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                  </Condition>
+                  <Then>
+                    <Statement name="GetURL" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="URL" value="https://javadl.oracle.com/webapps/download/AutoDL?BundleId=244584_d7fc238d0cbf4b0dac67be84580cfb4b" />
+                      <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#kwork#\java-install.exe" />
+                      <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="GetURL" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="URL" value="https://javadl.oracle.com/webapps/download/AutoDL?BundleId=244582_d7fc238d0cbf4b0dac67be84580cfb4b" />
+                      <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#kwork#\java-install.exe" />
+                      <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+                    </Statement>
+                  </Else>
+                </If>
+                <If description="Once downloaded, start silent installation of Java">
+                  <Condition name="TestFile">
+                    <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\java-install.exe" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="" />
+                  </Condition>
+                  <Then>
+                    <Statement name="ExecuteShellCommand" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Command" value="#kwork#\java-install.exe /s" />
+                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                    </Statement>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Java installation has been completed. Proceeding to installation of Unifi software." />
+                    </Statement>
+                    <Statement name="DeleteFile" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\java-install.exe" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Java installer could not be downloaded" />
+                    </Statement>
+                  </Else>
+                </If>
+              </Then>
+              <Else>
+                <Statement description="If Java is already installed, continue to installation of Unifi Controller" name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Java is already installed, starting installation." />
+                </Statement>
+              </Else>
+            </If>
+            <Statement description="Download installator" name="GetURL" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="URL" value="https://dl.ubnt.com/unifi/6.2.25/UniFi-installer.exe" />
+              <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#kwork#\UniFi-installer.exe" />
+              <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+            </Statement>
+            <If description="Check if installation has been successfully downloaded">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\UniFi-installer.exe" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement description="Upload PowerShell script to the target machine" name="WriteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\Install-UnifiController.ps1" />
+                  <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Install-UnifiController.ps1" />
+                  <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+                </Statement>
+                <Statement description="Get name of the currently logged user" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe &quot;Write-host $env:username&quot;" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+                </Statement>
+                <Statement description="Setup installation task in Task scheduler" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#kwork#\Install-UnifiController.ps1 -Install -Path '#kwork#' -User '#global:cmdresults#'&quot;" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="has been successfully created" />
+                  </Condition>
+                  <Then>
+                    <Statement description="Start execution of installation task" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe &quot;Write-host $env:username&quot;" />
+                      <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                      <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+                    </Statement>
+                    <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#kwork#\Install-UnifiController.ps1 -Run -Path '#kwork#' -User '#global:cmdresults#'&quot;" />
+                      <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                      <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                    </Statement>
+                    <If description="Handle result of task's execution">
+                      <Condition name="CheckVariable">
+                        <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                        <Parameter xsi:type="StringParameter" name="Value" value="successully completed" />
+                      </Condition>
+                      <Then>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Installation of Unify Controller software has been successfully completed." />
+                        </Statement>
+                      </Then>
+                      <Else>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Installation could not be completed." />
+                        </Statement>
+                      </Else>
+                    </If>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Unable to create installation task in Task Scheduler." />
+                    </Statement>
+                  </Else>
+                </If>
+                <Statement name="DeleteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\UniFi-Installer.exe" />
+                </Statement>
+                <Statement name="DeleteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\Install-UnifiController.ps1" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Installer couldn't be found in target folder." />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="User must be logged into the system for installation of Unifi Controller." />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

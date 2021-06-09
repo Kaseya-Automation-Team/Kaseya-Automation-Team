@@ -3,7 +3,7 @@
   <Folder name="Install &amp; Uninstall MS Office 2019" treePres="3">
     <Procedure name="Install MS Office 2019" treePres="3" id="582701520" folderId="154885566167014">
       <Body description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office 2016.&#xA;&#xA;Author: Proserv Team - VS">
-        <Statement description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office 2019.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Set path  for software distribution." name="GetVariable" continueOnFail="false">
+        <Statement description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office 2019.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;Set path  for software distribution." name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="C:\TEMP" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="DownloadTo" />
@@ -15,7 +15,7 @@
         </Statement>
         <Statement description="Set MS Office 2019 edition" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="ProPlus2019Retail" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Standard2019Volume" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="OfficeEdition" />
         </Statement>
         <Statement description="Set the activation key. KMS or MAK" name="GetVariable" continueOnFail="false">
@@ -173,7 +173,7 @@
                       <Parameter xsi:type="StringParameter" name="SourceContent" value="#global:ScriptParameters# -LogIt" />
                       <Parameter xsi:type="StringParameter" name="VariableName" value="global:ScriptParameters" />
                     </Statement>
-                    <Statement description="Generate install batch" name="ExecuteShellCommand" continueOnFail="false">
+                    <Statement description="Generate install config" name="ExecuteShellCommand" continueOnFail="false">
                       <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ScriptFullPath#  #global:ScriptParameters#" />
                       <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
                       <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
@@ -183,20 +183,34 @@
                     </Statement>
                     <If description="Install">
                       <Condition name="TestFile">
-                        <Parameter xsi:type="StringParameter" name="Path" value="#DownloadTo#\install.cmd" />
+                        <Parameter xsi:type="StringParameter" name="Path" value="#DownloadTo#\Configuration.xml" />
                         <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
                         <Parameter xsi:type="StringParameter" name="Value" value="" />
                       </Condition>
                       <Then>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Office download started. It may take a long time, please be patient" />
+                        </Statement>
                         <Statement name="ExecuteShellCommand" continueOnFail="false">
-                          <Parameter xsi:type="StringParameter" name="Command" value="#DownloadTo#\install.cmd" />
+                          <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#DownloadTo#&quot; &amp;&amp; setup.exe /download Configuration.xml" />
                           <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
                           <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                        </Statement>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Office installation started. The log files are in the system %TEMP% folder" />
+                        </Statement>
+                        <Statement name="ExecuteShellCommand" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#DownloadTo#&quot; &amp;&amp; setup.exe /configure Configuration.xml" />
+                          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                        </Statement>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Office installation completed. The log files are in the system %TEMP% folder" />
                         </Statement>
                       </Then>
                       <Else>
                         <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                          <Parameter xsi:type="StringParameter" name="Comment" value="The file #DownloadTo#\install.cmd was not generated" />
+                          <Parameter xsi:type="StringParameter" name="Comment" value="The file #DownloadTo#\Configuration.xml was not generated" />
                         </Statement>
                       </Else>
                     </If>
@@ -214,6 +228,22 @@
                 </Statement>
               </Else>
             </If>
+            <Statement description="Cleanup" name="ExecuteShellCommand" continueOnFail="true">
+              <Parameter xsi:type="StringParameter" name="Command" value="IF EXIST &quot;#DownloadTo#\Office\&quot; RMDIR /S /Q &quot;#DownloadTo#\Office&quot;" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <Statement name="ExecuteShellCommand" continueOnFail="true">
+              <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#DownloadTo#&quot; &amp;&amp; del Configuration*.xml /s /f /q" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <Statement name="DeleteFile" continueOnFail="true">
+              <Parameter xsi:type="StringParameter" name="Path" value="#DownloadTo#\setup.exe" />
+            </Statement>
+            <Statement name="DeleteFile" continueOnFail="true">
+              <Parameter xsi:type="StringParameter" name="Path" value="#DownloadTo#\ODT.exe" />
+            </Statement>
           </Then>
           <Else>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">

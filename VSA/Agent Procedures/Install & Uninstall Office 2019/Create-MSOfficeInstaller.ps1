@@ -18,7 +18,7 @@
     [switch] LogIt
         - Enables execution transcript	
 .EXAMPLE
-   .\Create-MSOfficeInstaller.ps1 -ODTPath C:\TEMP\ODT.exe -BitVersion 32 -OfficeEdition Standard2019Volume -ActivationKey '12345-12345-12345-12345-12345' -LogIt
+   .\Create-MSOfficeInstaller.ps1 -ODTPath C:\TEMP\setup.exe -BitVersion 32 -OfficeEdition Standard2019Volume -ActivationKey '12345-12345-12345-12345-12345' -LogIt
 #>
 
 param (
@@ -34,13 +34,10 @@ param (
     })]
     [string] $ODTPath,
     [parameter(Mandatory=$true)]
-    [ValidateSet("32","64")]
     [string]$BitVersion,
     [parameter(Mandatory=$true)]
-    [ValidateSet("AccessRetail", "Access2019Retail", "Access2019Volume", "ExcelRetail", "Excel2019Retail", "Excel2019Volume", "HomeBusinessRetail", "HomeBusiness2019Retail", "HomeStudentRetail", "HomeStudent2019Retail", "O365HomePremRetail", "OneNoteRetail", "OutlookRetail", "Outlook2019Retail", "Outlook2019Volume", "Personal2019Retail", "PowerPointRetail", "PowerPoint2019Retail", "PowerPoint2019Volume", "ProfessionalRetail", "Professional2019Retail", "ProfessionalPlusRetail", "ProPlus2019Retail", "ProjectProXVolume", "ProjectPro2019Retail", "ProjectPro2019Volume", "ProjectStdRetail", "ProjectStdXVolume", "ProjectStd2019Retail", "ProjectStd2019Volume", "ProPlus2019Volume", "ProPlus2019Retail", "PublisherRetail", "Publisher2019Retail", "Publisher2019Volume", "Standard2019Volume", "VisioProXVolume", "VisioPro2019Retail", "VisioPro2019Volume", "VisioStdRetail", "VisioStdXVolume", "VisioStd2019Retail", "VisioStd2019Volume", "WordRetail", "Word2019Retail", "Word2019Volume")]
     [string]$OfficeEdition,
     [parameter(Mandatory=$false)]
-    [ValidatePattern("^([A-Z0-9]{5}-){4}[A-Z0-9]{5}$")]
     [string]$ActivationKey,
     [parameter(Mandatory=$false)]
     [switch] $LogIt
@@ -75,12 +72,13 @@ if ( -not [string]::IsNullOrEmpty($ActivationKey) )
 {
 $ConfigContent = @"
 <Configuration>
-  <Add SourcePath="{0}" OfficeClientEdition="{1}" Channel="PerpetualVL2019">
+  <Add SourcePath="{0}" OfficeClientEdition="{1}">
     <Product ID="{2}" PIDKEY="{3}">
-      <Language ID="en-us" />
+      <Language ID="MatchOS" />
     </Product>
   </Add>
-  <Updates Enabled="TRUE" Branch="Current" />
+  <Property Name="FORCEAPPSHUTDOWN" Value="TRUE"/>
+  <!--  <Updates Enabled="TRUE" Branch="Current" /> -->
   <Display Level="None" AcceptEULA="TRUE" />
   <Property Name="AUTOACTIVATE" Value="1" />
 </Configuration>
@@ -92,36 +90,21 @@ $ConfigContent = @"
 <Configuration>
   <Add SourcePath="{0}" OfficeClientEdition="{1}">
     <Product ID="{2}">
-      <Language ID="en-us" />
+      <Language ID="MatchOS" />
     </Product>
   </Add>
   <!--  <Updates Enabled="FALSE" Branch="Current" /> -->
+  <Property Name="FORCEAPPSHUTDOWN" Value="TRUE"/>
   <Display Level="None" AcceptEULA="TRUE" />
   <Property Name="AUTOACTIVATE" Value="0" />
 </Configuration>
 "@ -f @($ODTLocationFolder, $BitVersion, $OfficeEdition)
 }
-#--------------------------------
-[string] $BatchContent = @"
-@echo off
-cd /D "%~dp0"
-
-set LOGFILE=$ScriptName.log
-call :LOG > %LOGFILE%
-exit /B
-
-:LOG
-$ODTPath /download Config.xml
-$ODTPath /configure Config.xml
-"@
 #endregion  set output files content
 
 
 #region creating the output files
-$OutputFilePath  = Join-Path -Path $ODTLocationFolder -ChildPath "install.cmd"
-$BatchContent | Out-File -FilePath $OutputFilePath -Force -Encoding utf8 -Verbose
-
-$OutputFilePath = Join-Path -Path $ODTLocationFolder -ChildPath "Config.xml"
+$OutputFilePath = Join-Path -Path $ODTLocationFolder -ChildPath "Configuration.xml"
 $ConfigContent | Out-File -FilePath $OutputFilePath -Force -Encoding utf8 -Verbose
 #endregion creating the output files
 

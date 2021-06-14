@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Disable Hardware Acceleration" treePres="3" id="670113019" folderId="688045358512571" treeFullPath="CT-NCAL-PACS.Domingo-Jordan Requests.Disable Hardware Acceleration for all users">
+    <Body description="">
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="workDir" />
+      </Statement>
+      <Statement name="WriteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="#workDir#\disable_hardware_acceleration.ps1" />
+        <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\disable_hardware_acceleration.ps1" />
+        <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+      </Statement>
+      <Statement name="Execute Powershell" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="#workDir#\disable_hardware_acceleration.ps1" />
+        <Parameter xsi:type="StringParameter" name="Parameter2" value="" />
+        <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+      </Statement>
+    </Body>
+  </Procedure>
+</ScriptExport>

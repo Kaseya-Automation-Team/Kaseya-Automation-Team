@@ -54,7 +54,7 @@ if ($Run) {
 
     Unregister-ScheduledTask -TaskName "InstallUnifiController" -Confirm:$false
 
-    $Status = (Get-Package * | Where-Object {$_.Name -eq "Ubiquiti UniFi (remove only)"} | Select-Object -Property Status).Status
+    $Status = (Get-Package | Where-Object {$_.Name -eq "Ubiquiti UniFi (remove only)"} | Select-Object -Property Status).Status
 
     if ($Status -eq "Installed") {
         Write-Host "Installation has been successully completed"

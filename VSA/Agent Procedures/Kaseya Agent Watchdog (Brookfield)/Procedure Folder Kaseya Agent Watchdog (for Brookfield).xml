@@ -2,7 +2,7 @@
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Kaseya Agent Watchdog (for Brookfield)" treePres="3">
     <Procedure name="Install Kaseya Agent Watchdog" treePres="3" id="1653049718" folderId="605576590171818" treeFullPath="myProcedures - admin.Kaseya Agent Watchdog (for Brookfield)">
-      <Body description="This procedures uploads PowerShell script and executes one of them to setup Watchdog scheduled task">
+      <Body description="This agent procedure uploads two Powershell script - installer and executable for Kaseya Agent Watchdog.">
         <Statement description="This agent procedure uploads two Powershell script - installer and executable for Kaseya Agent Watchdog.&#xD;&#xA;Installer creates new job in Task Scheduler,. Job itself executes Kaseya Agent Watchdog script in specified interval of time.&#xD;&#xA;Modification date: 06-15-21&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
@@ -42,7 +42,7 @@
       </Body>
     </Procedure>
     <Procedure name="Uninstall Kaseya Agent Watchdog" treePres="3" id="1414075616" folderId="605576590171818" treeFullPath="myProcedures - admin.Kaseya Agent Watchdog (for Brookfield)">
-      <Body description="This procedures uploads PowerShell script and executes one of them to setup Watchdog scheduled task">
+      <Body description="This procedures uploads PowerShell script and executes it.">
         <Statement description="This procedures uploads PowerShell script and executes it.&#xD;&#xA;Script it self deletes Kaseya Agent Watchdog job from the Task Scheduler.&#xD;&#xA;Modification date: 06-15-21&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />

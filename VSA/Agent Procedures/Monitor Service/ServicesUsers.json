@@ -1,0 +1,10 @@
+﻿[
+    {
+        "ServiceName":  "OcteumDataBrokerService",
+        "ServiceUsers":  ["OTSA-OLP-SafeTrust", "svc-1mw-safetrust", "OTSA-250ves-SafeTrust", "OTSA-424-SafeTrust", "otsa-5mw-safetrust", "OTSA-onyp-SafeTrust"]
+    },
+    {
+        "ServiceName":  "OcteumLnlConnectorCliWrapperService",
+        "ServiceUsers":  ["OTSA-200lib-SafeTrust", "OTSA-225lib-SafeTrust", "OTSA-250ves-SafeTrust", "OTSA-300ves-SafeTrust"]
+    }
+]

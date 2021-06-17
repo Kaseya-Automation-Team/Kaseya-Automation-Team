@@ -47,22 +47,23 @@ foreach ( $ServiceName in $($RefServiceParams.ServiceName | Select-Object -Uniqu
     $CurrentService = try { (Get-WmiObject -Query "SELECT Name, StartName FROM Win32_Service WHERE Name = '$ServiceName'" -ErrorAction Stop) } catch { $null }
     if ( $null -ne $CurrentService )
     {
-        $EligibleUsers = $RefServiceParams | Where-Object {$ServiceName -eq $_.ServiceName} | Select-Object -ExpandProperty ServiceUsers
+        [string[]] $EligibleUsers = $RefServiceParams | Where-Object {$ServiceName -eq $_.ServiceName} | Select-Object -ExpandProperty ServiceUsers
+        [string]$ServiceUser = $(($CurrentService.StartName -split '\\')[-1])
         "Eligible users: $($EligibleUsers -join ', ') " | Write-Debug
-        "Service runs as $($currentService.StartName)" | Write-Debug
+        "Service runs as: $ServiceUser" | Write-Debug
         #Check if the service runs from a correct account
-        if ( $EligibleUsers -inotcontains ($CurrentService.StartName -split '\\')[-1] )
+        if ( $EligibleUsers -inotcontains $ServiceUser )
         {
            #Collect if service account is wrong
-           $Deficiencies += "Service <$($CurrentService.Name)> Runs As: <$($CurrentService.StartName)> on <$env:COMPUTERNAME>. Agent <$AgentName>."
+           $Deficiencies += "Service $($CurrentService.Name) Runs under account: $($CurrentService.StartName) on $env:COMPUTERNAME. Agent $AgentName."
         }
     }
 }
 
 #Deficiencies to log
-if ( 0 -lt $outputArray.Count )
+if ( 0 -lt $Deficiencies.Count )
 {
-    $Deficiencies -join ' ; ' | Write-Output
+    $Deficiencies -join "`n" | Write-Output
 }
 else
 {

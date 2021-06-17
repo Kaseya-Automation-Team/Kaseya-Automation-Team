@@ -90,14 +90,18 @@ param (
 }
 
 #Clear users' cookies
-[string] $SIDPattern = 'S-1-5-21-\d+-\d+\-\d+\-\d+$'
+[string] $SIDPattern = 'S-1-5-21-(\d+-?){4}$'
 Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Select-Object LocalPath, SID | `
     ForEach-Object {
         
         [array] $ItemsToClear = @()
         $UserProfilePath = $_.LocalPath
 
-        reg load "HKU\$($_.SID)" "$UserProfilePath\ntuser.dat"
+        [bool] $IsProfileLoaded = Test-Path Registry::HKEY_USERS\$($_.SID)
+        If ( -Not $IsProfileLoaded )
+        {
+            reg load "HKU\$($_.SID)" "$UserProfilePath\ntuser.dat"
+        }
 
         [string] $AppDataPath = Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") -Name "Local AppData" | Select-Object -ExpandProperty "Local AppData"
         <#
@@ -147,7 +151,10 @@ Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Sel
         #endregion Cleanup
 
         [gc]::Collect()
-        reg unload "HKU\$($_.SID)"
+        If ( -Not $IsProfileLoaded )
+        {
+            reg unload "HKU\$($_.SID)"
+        }
     }
 
 #region check/stop transcript

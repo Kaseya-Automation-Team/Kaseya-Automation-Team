@@ -18,22 +18,20 @@ param (
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
                    Position=0)]
-    [ValidatePattern( '^\\\\[\w\-.]+\\[\w\-.\$]*$' )]
     [string] $UNCPath,
     [parameter(Mandatory=$true, 
     ValueFromPipeline=$true,
     ValueFromPipelineByPropertyName=$true, 
     ValueFromRemainingArguments=$false, 
     Position=1)]
-    [ValidatePattern( '[h-zH-Z]' )]
     [string] $DriveLetter,
     [parameter(Mandatory=$false)]
-    [int] $LogIt = 1
+    [switch] $LogIt
 )
 
 #region check/start transcript
 [string]$Pref = 'Continue'
-if ( 1 -eq $LogIt )
+if ( $LogIt )
 {
     $DebugPreference = $Pref
     $VerbosePreference = $Pref
@@ -46,7 +44,7 @@ if ( 1 -eq $LogIt )
 #endregion check/start transcript
 
 #region Change Users' Hives
-[string] $SIDPattern = 'S-1-5-21-\d+-\d+\-\d+\-\d+$'
+[string] $SIDPattern = 'S-1-5-21-(\d+-?){4}$'
 [string] $RegKeyUserProfiles = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\*'
 
 [array] $ProfileList = Get-ItemProperty -Path Registry::$RegKeyUserProfiles | `
@@ -55,25 +53,12 @@ if ( 1 -eq $LogIt )
                     @{name="UserName";expression={$_.ProfileImagePath -replace '^(.*[\\\/])', ''}} | `
                     Where-Object {$_.SID -match $SIDPattern}
 
-# Get all user SIDs found in HKEY_USERS (ntuder.dat files that are loaded)
-$LoadedHives = Get-ChildItem Registry::HKEY_USERS | `
-    Where-Object {$_.PSChildname -match $SIDPattern} | `
-    Select-Object @{name="SID";expression={$_.PSChildName}}
-
-[string[]] $HivesToLoad = $ProfileList.SID
-
-#Excluding SIDs of currently logged on users
-if ($null -ne $LoadedHives)
-{
-    # Get all users that are not currently logged
-    $HivesToLoad = Compare-Object -ReferenceObject $ProfileList.SID -DifferenceObject $LoadedHives.SID | `
-    Select-Object -ExpandProperty InputObject
-}
-
 # Loop through each profile on the machine
 Foreach ($Profile in $ProfileList) {
     # Load User ntuser.dat if it's not already loaded
-    if ( $Profile.SID -in $HivesToLoad )
+    [bool] $IsProfileLoaded = Test-Path Registry::HKEY_USERS\$($Profile.SID)
+
+    if ( -Not $IsProfileLoaded )
     {
         reg load "HKU\$($Profile.SID)" "$($Profile.UserHive)"
     }
@@ -106,7 +91,7 @@ Foreach ($Profile in $ProfileList) {
     #####################################################################
  
     # Unload ntuser.dat        
-    iF ($Profile.SID -in $HivesToLoad)
+    if ( -Not $IsProfileLoaded )
     {
         ### Garbage collection required before closing ntuser.dat ###
         [gc]::Collect()
@@ -116,7 +101,7 @@ Foreach ($Profile in $ProfileList) {
 #endregion Change Users' Hives
 
 #region check/stop transcript
-if ( 1 -eq $LogIt )
+if ( $LogIt )
 {
     $Pref = 'SilentlyContinue'
     $DebugPreference = $Pref

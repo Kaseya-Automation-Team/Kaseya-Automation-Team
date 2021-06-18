@@ -10,7 +10,7 @@
 .EXAMPLE
    .\Set-MappedDrive.ps1 -UNCPath '\\Server\Share' -DriveLetter 'X' -LogIt 0
 .NOTES
-   Version 0.1
+   Version 0.1.1
    Author: Proserv Team - VS
 #>
 param (
@@ -19,17 +19,15 @@ param (
                    ValueFromPipelineByPropertyName=$true, 
                    ValueFromRemainingArguments=$false, 
                    Position=0)]
-    [ValidatePattern( '^\\\\[\w\-.]+\\[\w\-.\$]*$' )]
     [string] $UNCPath,
     [parameter(Mandatory=$true, 
     ValueFromPipeline=$true,
     ValueFromPipelineByPropertyName=$true, 
     ValueFromRemainingArguments=$false, 
     Position=1)]
-    [ValidatePattern( '[h-zH-Z]' )]
     [string] $DriveLetter,
     [parameter(Mandatory=$false)]
-    [int] $LogIt = 1,
+    [switch] $LogIt,
     [parameter(Mandatory=$false)]
     [int] $UpdateMapping = 0
 )
@@ -58,12 +56,8 @@ function Set-RegParam {
             Position=2)]
         [ValidateSet('Binary', 'DWord', 'ExpandString', 'MultiString', 'None', 'QWord', 'String', 'Unknown')]
         [string] $ValueType = 'DWord',
-        [parameter(Mandatory=$false, 
-                ValueFromPipeline=$true,
-                ValueFromPipelineByPropertyName=$true, 
-                ValueFromRemainingArguments=$false, 
-                Position=3)]
-        [int] $UpdateExisting = 0
+        [parameter(Mandatory=$false)]
+        [Switch] $UpdateExisting
     )
     
     begin {
@@ -71,37 +65,42 @@ function Set-RegParam {
         [string] $RegProperty = Split-Path -Path Registry::$RegPath -Leaf
     }
     process {
-        if( -not (Test-Path -Path $RegPath) )
-        {
             #Create key
             if( -not (Test-Path -Path $RegKey) )
             {
                 try {
                     New-Item -Path $RegKey -Force -Verbose -ErrorAction Stop
-                } catch { Write-Error $_.Exception.Message}
-            }
-            #Create property
-            try {
-                New-ItemProperty -Path $RegKey -Name $RegProperty -PropertyType $ValueType -Value $RegValue -Force -Verbose -ErrorAction Stop
-            } catch { Write-Error $_.Exception.Message}
-        }
-        else
-        {
-            #Assign value to the property
-            if( 1 -eq $UpdateExisting)
-            {
+                } catch { "<$RegKey> Key not created" | Write-Error }
+                #Create property
                 try {
-                        Set-ItemProperty -Path $RegKey -Name $RegProperty -Value $RegValue -Force -Verbose -ErrorAction Stop
-                    } catch {Write-Error $_.Exception.Message}
+                    New-ItemProperty -Path $RegKey -Name $RegProperty -PropertyType $ValueType -Value $RegValue -Force -Verbose -ErrorAction Stop
+                } catch { "<$RegKey> property <$RegProperty>  not created" | Write-Error}
+            }            
+            else
+            {
+                $Poperty = try {Get-ItemProperty -Path Registry::$RegPath -ErrorAction Stop | Select-Object -ExpandProperty $Value -ErrorAction Stop} catch { $null}
+                if ($null -eq $Poperty )
+                {
+                     #Create property
+                    try {
+                        New-ItemProperty -Path $RegKey -Name $RegProperty -PropertyType $ValueType -Value $RegValue -Force -Verbose -ErrorAction Stop
+                    } catch { "<$RegKey> property <$RegProperty>  not created" | Write-Error }
+                }
+                #Assign value to the property
+                if( $UpdateExisting )
+                {
+                    try {
+                            Set-ItemProperty -Path $RegKey -Name $RegProperty -Value $RegValue -Force -Verbose -ErrorAction Stop
+                        } catch { "<$RegKey> property <$RegProperty> not set" | Write-Error }
+                }
             }
-        }
     }
 }
 #endregion function Set-RegParam
 
 #region check/start transcript
 [string]$Pref = 'Continue'
-if ( 1 -eq $LogIt )
+if ( $LogIt )
 {
     $DebugPreference = $Pref
     $VerbosePreference = $Pref
@@ -127,7 +126,7 @@ if ( 1 -eq $LogIt )
 #endregion define Registry Settings needed to map share $UNCPath to drive $DriveLetter
 
 #region Change Users' Hives
-[string] $SIDPattern = 'S-1-5-21-\d+-\d+\-\d+\-\d+$'
+[string] $SIDPattern = 'S-1-5-21-(\d+-?){4}$'
 [string] $RegKeyUserProfiles = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\*'
 
 [array] $ProfileList = Get-ItemProperty -Path Registry::$RegKeyUserProfiles | `
@@ -135,7 +134,7 @@ if ( 1 -eq $LogIt )
                     @{name="UserHive";expression={"$($_.ProfileImagePath)\ntuser.dat"}}, 
                     @{name="UserName";expression={$_.ProfileImagePath -replace '^(.*[\\\/])', ''}} | `
                     Where-Object {$_.SID -match $SIDPattern}
-
+<#
 # Get all user SIDs found in HKEY_USERS (ntuder.dat files that are loaded)
 $LoadedHives = Get-ChildItem Registry::HKEY_USERS | `
     Where-Object {$_.PSChildname -match $SIDPattern} | `
@@ -150,11 +149,14 @@ if ($null -ne $LoadedHives)
     $HivesToLoad = Compare-Object -ReferenceObject $ProfileList.SID -DifferenceObject $LoadedHives.SID | `
     Select-Object -ExpandProperty InputObject
 }
+#>
 
 # Loop through each profile on the machine
 Foreach ($Profile in $ProfileList) {
     # Load User ntuser.dat if it's not already loaded
-    if ( $Profile.SID -in $HivesToLoad )
+    [bool] $IsProfileLoaded = Test-Path Registry::HKEY_USERS\$($Profile.SID)
+
+    if ( -Not $IsProfileLoaded )
     {
         reg load "HKU\$($Profile.SID)" "$($Profile.UserHive)"
     }
@@ -171,7 +173,7 @@ Foreach ($Profile in $ProfileList) {
     #####################################################################
  
     # Unload ntuser.dat        
-    iF ($Profile.SID -in $HivesToLoad)
+    if ( -Not $IsProfileLoaded )
     {
         ### Garbage collection required before closing ntuser.dat ###
         [gc]::Collect()
@@ -181,7 +183,7 @@ Foreach ($Profile in $ProfileList) {
 #endregion Change Users' Hives
 
 #region check/stop transcript
-if ( 1 -eq $LogIt )
+if ( $LogIt )
 {
     $Pref = 'SilentlyContinue'
     $DebugPreference = $Pref

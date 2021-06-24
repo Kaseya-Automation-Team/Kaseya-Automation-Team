@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Get IP addresses" treePres="3">
+    <Procedure name="Get IP Addresses" treePres="3" id="238161907" folderId="395492935271697" treeFullPath="myProcedures - admin.Get IP addresses">
+      <Body description="This procedure allows fetch information about IP addresses on all connected network adapters and store in custom field">
+        <Statement description="This procedure allows fetch information about IP addresses on all connected network adapters and store in custom field&#xD;&#xA;Modification date: 06-24-21&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="kwork" />
+        </Statement>
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -command &quot;$Results = @(); Get-NetIPInterface -AddressFamily IPv4|Where-Object -Property ConnectionState -eq 'Connected'| foreach {$ifIndex = $_.ifIndex; $ipAddress = Get-NetIPAddress -AddressFamily IPv4 |Where-Object {($_.ifIndex -eq $ifIndex) -and ($_.ifIndex -ne 1) -and $_.IPAddress -ne '#vMachine.ipAddress#'}|Select-Object -ExpandProperty IPAddress; $Results += $ipAddress}; $Results -join ', '&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <Statement name="UpdateSystemInfo" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="ColumnName" value="IP addresses" />
+          <Parameter xsi:type="StringParameter" name="Value" value="#global:cmdresults#" />
+        </Statement>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

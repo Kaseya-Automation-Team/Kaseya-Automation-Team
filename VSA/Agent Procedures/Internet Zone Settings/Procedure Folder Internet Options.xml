@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Internet Options" treePres="3">
-    <Procedure name="Set Internet Zone Settings" treePres="3" id="1317255266" folderId="793079357684167">
+    <Procedure name="Set Internet Zone Settings" treePres="3" id="1317255266" folderId="793079357684167" treeFullPath="myProcedures - kadmin.Internet Options">
       <Body description="The procedure calls PowerShell script that sets Internet Browser Security Zone settings for all users that are not currently logged on.&#xA;&#xA;Author: Proserv Team - VS">
-        <Statement description="The procedure calls PowerShell script that sets Internet Browser Security Zone settings for all users.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;################################&#xD;&#xA;Local working folder" name="GetVariable" continueOnFail="false">
+        <Statement description="The procedure calls PowerShell script that sets Internet Browser Security Zone settings for all users.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;################################&#xD;&#xA;Local working folder" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="WorkingDirectory" />
@@ -49,7 +49,7 @@
               <Then>
                 <Statement description="Define the script's parameters &amp; execute the script" name="GetVariable" continueOnFail="false">
                   <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-                  <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;&amp; '#ScriptFullPath#' -JsonPath '#WorkingDirectory#\#JSONFile#' -LogIt" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;&amp; '#ScriptFullPath#' -JsonPath '#WorkingDirectory#\#JSONFile#' -LogIt&quot;" />
                   <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptCommandParameters" />
                 </Statement>
                 <Statement name="ExecuteShellCommand" continueOnFail="false">
@@ -57,8 +57,15 @@
                   <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
                   <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
                 </Statement>
-                <Statement name="DeleteFile" continueOnFail="true">
-                  <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\#JSONFile#" />
+                <Statement description="## Create startup task" name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="InetrnetZoneSettings" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="TaskName" />
+                </Statement>
+                <Statement name="ExecuteShellCommand" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -Command &quot;$WScriptShell = New-Object -ComObject WScript.Shell; $Shortcut = $WScriptShell.CreateShortcut(&quot;&quot;&quot;$($env:ProgramData)\Microsoft\Windows\Start Menu\Programs\Startup\InetrnetZoneSettings.lnk&quot;&quot;&quot;); $Shortcut.TargetPath = 'Powershell.exe'; $Shortcut.Arguments = '-WindowStyle Hidden -ExecutionPolicy Bypass -Command &amp; #ScriptFullPath# -JsonPath #WorkingDirectory#\#JSONFile#'; $Shortcut.Save()&quot;" />
+                  <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                  <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
                 </Statement>
               </Then>
               <Else>
@@ -67,9 +74,6 @@
                 </Statement>
               </Else>
             </If>
-            <Statement name="DeleteFile" continueOnFail="true">
-              <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
-            </Statement>
           </Then>
           <Else>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">

@@ -9,7 +9,7 @@
 .EXAMPLE
    .\Set-InternetZoneParams.ps1 -JsonPath 'InternetZoneSettings.json' -LogIt
 .NOTES
-   Version 0.2
+   Version 0.3
    Author: Proserv Team - VS
 #>
 param (
@@ -57,12 +57,12 @@ function Set-RegParam {
             if( -not (Test-Path -Path $RegKey) )
             {
                 try {
-                    New-Item -Path $RegKey -Force -Verbose -ErrorAction Stop
-                } catch { "<$RegKey> Key not created" | Write-Error }
+                    New-Item -Path $RegKey -Force -ErrorAction Stop
+                } catch { "<$RegKey> Key not created" }
                 #Create property
                 try {
-                    New-ItemProperty -Path $RegKey -Name $RegProperty -PropertyType $ValueType -Value $RegValue -Force -Verbose -ErrorAction Stop
-                } catch { "<$RegKey> property <$RegProperty>  not created" | Write-Error}
+                    New-ItemProperty -Path $RegKey -Name $RegProperty -PropertyType $ValueType -Value $RegValue -Force -ErrorAction Stop
+                } catch { "<$RegKey> property <$RegProperty>  not created"}
             }            
             else
             {
@@ -71,15 +71,15 @@ function Set-RegParam {
                 {
                      #Create property
                     try {
-                        New-ItemProperty -Path $RegKey -Name $RegProperty -PropertyType $ValueType -Value $RegValue -Force -Verbose -ErrorAction Stop
-                    } catch { "<$RegKey> property <$RegProperty>  not created" | Write-Error }
+                        New-ItemProperty -Path $RegKey -Name $RegProperty -PropertyType $ValueType -Value $RegValue -Force -ErrorAction Stop
+                    } catch { "<$RegKey> property <$RegProperty>  not created"}
                 }
                 #Assign value to the property
                 if( $UpdateExisting )
                 {
                     try {
-                            Set-ItemProperty -Path $RegKey -Name $RegProperty -Value $RegValue -Force -Verbose -ErrorAction Stop
-                        } catch { "<$RegKey> property <$RegProperty> not set" | Write-Error }
+                            Set-ItemProperty -Path $RegKey -Name $RegProperty -Value $RegValue -Force -ErrorAction Stop
+                        } catch { "<$RegKey> property <$RegProperty> not set" }
                 }
             }
     }
@@ -129,7 +129,20 @@ Foreach ($Profile in $ProfileList)
     "{0} {1}" -f "`tUser:", $($Profile.UserName) | Write-Verbose
     foreach($item in $RegistryParams)
     {
-        Set-RegParam -RegPath $(Join-Path -Path "HKEY_USERS\$($Profile.SID)" -ChildPath $($item.ChildPath)) -RegValue $($item.Value) -ValueType $($item.Type) -UpdateExisting
+        [string]$ChildPath = $item.ChildPath
+
+        #region Remove GPO Settings if they were set
+        $FirstKey = $ChildPath.IndexOf([IO.Path]::DirectorySeparatorChar)
+        $GPOPath = $ChildPath.Insert($FirstKey + 1, "Policies$([IO.Path]::DirectorySeparatorChar)") #Ñorresponding GPO settings are placed under "Policies" under the "SOFTWARE" Key
+
+        $GpoPopertyPath =  Join-Path -Path Registry::"HKEY_USERS\$($Profile.SID)" -ChildPath $GPOPath 
+        if (Test-Path -Path $($GpoPopertyPath | Split-Path -Parent) )
+        {
+            Remove-ItemProperty -Path $($GpoPopertyPath | Split-Path -Parent) -Name $($GpoPopertyPath | Split-Path -Leaf) -Force -Verbose
+        }
+        #endregion Remove GPO Settings if they were set
+
+        Set-RegParam -RegPath $(Join-Path -Path "HKEY_USERS\$($Profile.SID)" -ChildPath $ChildPath) -RegValue $($item.Value) -ValueType $($item.Type) -UpdateExisting
     }
     #####################################################################
  

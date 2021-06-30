@@ -27,34 +27,30 @@ param (
 .NOTES
     Version    : 0.1
     Based on   : Danyfirex & Dany3j
-  
-.EXAMPLE
-    Get-FTA
-    Show All Application Program Id
-
-.EXAMPLE
-    Get-FTA .pdf
-    Show Default Application Program Id for an Extension
-    
-.EXAMPLE
-    Set-FTA AcroExch.Document.DC .pdf
-    Set Acrobat Reader DC as Default .pdf reader
- 
-.EXAMPLE
-    Set-FTA Applications\SumatraPDF.exe .pdf
-    Set Sumatra PDF as Default .pdf reader
 
 .EXAMPLE
     Set-PTA ChromeHTML http
     Set Google Chrome as Default for http Protocol
 
 .EXAMPLE
+    Set-PTA MSEdgeHTM https
+    Set MS Edge as Default for https Protocol
+
+.EXAMPLE
+    Set-PTA IE.HTTP http
+    Set Internet Explorer as Default for http Protocol
+
+.EXAMPLE
+    Set-PTA FirefoxURL-308046B0AF4A39CB http
+    Set Mozilla Firefox as Default for http Protocol
+    
+.EXAMPLE
     Register-FTA "C:\SumatraPDF.exe" .pdf -Icon "shell32.dll,100"
     Register Application and Set as Default for .pdf reader
 
 .LINK
     https://github.com/DanysysTeam/PS-SFTA
-    
+
 #>
 
 function Set-FTA {
@@ -298,7 +294,6 @@ param (
     {
         Write-Verbose "Write Registry Extension: $Extension"
         $keyPath = "$RegKey\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
-
     }
     else
     {
@@ -378,8 +373,8 @@ Foreach ($Profile in $ProfileList)
     # Modifying a user`s hive of the registry
     "{0} {1}" -f "`tUser:", $($Profile.UserName) | Write-Verbose
 
-    Set-PTA -ProgId $ProgID -Protocol http
-    Set-PTA -ProgId $ProgID -Protocol https
+    Set-PTA -ProgId $ProgID -Protocol http -SID $($Profile.SID)
+    Set-PTA -ProgId $ProgID -Protocol https -SID $($Profile.SID)
     #####################################################################
  
     # Unload ntuser.dat        

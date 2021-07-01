@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
-  <Folder name="OneDrive Installer/Uninstaller" treePres="3">
-    <Procedure name="OneDrive Installer" treePres="3" id="1678209403" folderId="630621211012183" treeFullPath="myProcedures - admin.OneDrive Installer/Uninstaller">
-      <Body description="">
-        <Statement description="Agent procedure to download and install OneDrive if not already installed&#xD;&#xA;Modification date: 06-15-21&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
+  <Folder name="Install/Uninstall Microsoft OneDrive" treePres="3">
+    <Procedure name="OneDrive Installer" treePres="3" id="1678209403" folderId="630621211012183" treeFullPath="myProcedures - admin.Install/Uninstall Microsoft OneDrive">
+      <Body description="This agent procedure installs Microsoft OneDrive software. Before installation it checks if OneDrive is already installed and tries to uninstall it.">
+        <Statement description="This agent procedure installs Microsoft OneDrive software.&#xD;&#xA;Before installation it checks if OneDrive is already installed and tries to uninstall it.&#xD;&#xA;Modification date: 07-01-21&#xD;&#xA;Version 0.2" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="kwork" />
@@ -69,12 +69,25 @@
         </If>
       </Body>
     </Procedure>
-    <Procedure name="OneDrive Uninstaller" treePres="3" id="1302270897" folderId="630621211012183" treeFullPath="myProcedures - admin.OneDrive Installer/Uninstaller">
-      <Body description="This agent procedure terminates OneDrive process (if running) and triggers silent uninstall">
-        <Statement description="This agent procedure terminates OneDrive process (if running) and triggers silent uninstall&#xD;&#xA;Modification date: 06-15-21&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
+    <Procedure name="OneDrive Uninstaller" treePres="3" id="1302270897" folderId="630621211012183" treeFullPath="myProcedures - admin.Install/Uninstall Microsoft OneDrive">
+      <Body description="This agent procedure terminates OneDrive process (if running) and triggers silent uninstall with help of PowerShell script">
+        <Statement description="This agent procedure terminates OneDrive process (if running) and triggers silent uninstall with help of PowerShell script&#xD;&#xA;Modification date: 07-01-21&#xD;&#xA;Version 0.3" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;try {$UninstallPath = (Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall, HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq 'Microsoft OneDrive' } | Select-Object -ExpandProperty UninstallString -First 1); $UninstallPath = $UninstallPath -split '/'|Select-Object -First 1; $UninstallPath.Trim()} catch {Write-Host 'c:\notinstalled'}&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="%LocalAppData%\Microsoft\OneDrive\OneDrive.exe" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#global:cmdresults#" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="onedrive_path" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="kwork" />
+        </Statement>
+        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
         </Statement>
         <If description="">
           <Condition name="TestFile">
@@ -86,7 +99,7 @@
             <Statement name="WriteScriptLogEntry" continueOnFail="false">
               <Parameter xsi:type="StringParameter" name="Comment" value="Installed version of OneDrive has been detected - proceeding to uninstall." />
             </Statement>
-            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="true">
               <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;$IsRunning = Get-Process -Name 'OneDrive' -ErrorAction SilentlyContinue; if ($IsRunning) { try { taskkill /f /im OneDrive.exe; Write-Host 'OneDrive process has been terminated' } catch { Write-Host 'Unable to terminate OneDrive process'} }&quot;" />
               <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
               <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
@@ -94,39 +107,76 @@
             <Statement name="WriteScriptLogEntry" continueOnFail="false">
               <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
             </Statement>
-            <If description="">
-              <Condition name="Windows 32 or 64 Bit Check">
-                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
-              </Condition>
-              <Then>
-                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Parameter1" value="%SystemRoot%\SysWOW64\OneDriveSetup.exe /uninstall" />
-                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
-                  <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
-                </Statement>
-              </Then>
-              <Else>
-                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Parameter1" value="%SystemRoot%\System32\OneDriveSetup.exe /uninstall" />
-                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
-                  <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
-                </Statement>
-              </Else>
-            </If>
+            <Statement name="WriteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\Uninstall-OneDrive.ps1" />
+              <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Uninstall-OneDrive.ps1" />
+              <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+            </Statement>
             <If description="">
               <Condition name="TestFile">
-                <Parameter xsi:type="StringParameter" name="Path" value="#onedrive_path#" />
-                <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+                <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\Uninstall-OneDrive.ps1" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
                 <Parameter xsi:type="StringParameter" name="Value" value="" />
               </Condition>
               <Then>
-                <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Comment" value="Uninstallation has been completed." />
+                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe &quot;Write-host $env:username&quot;" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+                </Statement>
+                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#kwork#\Uninstall-OneDrive.ps1 -Install -Path '#onedrive_path#' -User '#global:cmdresults#'&quot;" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="has been successfully created" />
+                  </Condition>
+                  <Then>
+                    <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe &quot;Write-host $env:username&quot;" />
+                      <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                      <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+                    </Statement>
+                    <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#kwork#\Uninstall-OneDrive.ps1 -Run -Path '#onedrive_path#' -User '#global:cmdresults#'&quot;" />
+                      <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                      <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                    </Statement>
+                    <If description="">
+                      <Condition name="CheckVariable">
+                        <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                        <Parameter xsi:type="StringParameter" name="Value" value="successully completed" />
+                      </Condition>
+                      <Then>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="OneDrive  has been successfully uninstalled." />
+                        </Statement>
+                      </Then>
+                      <Else>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="OneDrive uninstall couldn't be completed" />
+                        </Statement>
+                      </Else>
+                    </If>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Unable to create uninstall task." />
+                    </Statement>
+                  </Else>
+                </If>
+                <Statement name="DeleteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#kwork#\Uninstall-OneDrive.ps1" />
                 </Statement>
               </Then>
               <Else>
                 <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Comment" value="Unable to uninstall OneDrive." />
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Unable to upload uninstall script" />
                 </Statement>
               </Else>
             </If>

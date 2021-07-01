@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Python-Uninstaller" treePres="3">
+    <Procedure name="Python-Uninstaller(Windows)" treePres="3" id="1259196604" folderId="218211338770674" treeFullPath="myProcedures - sarath.mopuri@kaseya.com.Python-Uninstaller">
+      <Body description="Agent procedure to Uninstall Python from the endpoints">
+        <Statement description="Agent procedure to Uninstall Python from the endpoints&#xD;&#xA;Author: Proserv Team - SM&#xD;&#xA;Version 1.0" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Uninstall-Python.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Uninstall-Python.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe &quot;#ktemp#\Uninstall-Python.ps1&quot;" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="User" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <Statement name="PauseScript" continueOnFail="false">
+          <Parameter xsi:type="IntegerParameter" name="Seconds" value="120" />
+        </Statement>
+        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="Python should now be uninstalled from the computer" />
+        </Statement>
+        <Statement name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\Uninstall-Python.ps1" />
+        </Statement>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

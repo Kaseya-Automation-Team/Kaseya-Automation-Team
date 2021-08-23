@@ -1,8 +1,10 @@
 ﻿<#
 POC
    Module VSA
-   Version 0.2
+   Version 0.2.1
    Author: Vladislav Semko
+   Modified: Aliaksandr Serzhankou
+   Modification date: 08-23-20
 #>
 
 
@@ -103,7 +105,8 @@ function Get-RequestData
         Method = $Method
         Headers = $authHeader
     }
- 
+    
+    Write-Host "Executing call $Method : $URI"
     $response = Invoke-RestMethod @requestParameters
     if (0 -eq $response.ResponseCode) {
         return $response.Result
@@ -122,7 +125,7 @@ function Get-VSAUsers
         [VSAConnection] $VSAConnection,
         [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
-        [string] $SystemUsersSuffix = 'api/v1.0/system/users',
+        [string] $SystemUsersSuffix = 'system/users',
         [parameter(Mandatory=$false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter
@@ -143,9 +146,9 @@ function Get-VSAUsers
 #============================================================================================
 
 #--------------------------------------------------------------------------------------------
-[string] $VSAEndpoint = 'https://YourVSAServer'
-[string] $Username = '****'
-[string] $Password = '****'
+[string] $VSAEndpoint = 'https://54.67.117.115/api/v1.0'
+[string] $Username = 'sasha'
+[string] $PAT = 'fe47717e-8965-4586-acd4-3eb0b37f290e'
 
 
 #region set to ignore self-signed SSL certificate
@@ -165,6 +168,7 @@ Add-Type @'
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 #endregion set to ignore self-signed SSL certificate
 
+<#
 #region function Get-StringHash 
 function Get-StringHash {
     [cmdletbinding()]
@@ -190,11 +194,11 @@ function Get-StringHash {
 #[string]$ReqId = [guid]::NewGuid().ToString()
 [string]$Random = (Get-Random).ToString()
 
-[string]$RawSHA256Hash = Get-StringHash $Password
-[string]$CoveredSHA256HashTemp = Get-StringHash ($Password+$Username)
+[string]$RawSHA256Hash = Get-StringHash $PAT
+[string]$CoveredSHA256HashTemp = Get-StringHash ($PAT+$Username)
 [string]$CoveredSHA256Hash = Get-StringHash ($CoveredSHA256HashTemp+$Random) 
-[string]$RawSHA1Hash = Get-StringHash $Password "SHA1"
-[string]$CoveredSHA1HashTemp = Get-StringHash ($Password+$Username) "SHA1"
+[string]$RawSHA1Hash = Get-StringHash $PAT "SHA1"
+[string]$CoveredSHA1HashTemp = Get-StringHash ($PAT+$Username) "SHA1"
 [string]$CoveredSHA1Hash = Get-StringHash ($CoveredSHA1HashTemp+$Random) "SHA1"
 
 [string[]]$Format = @(
@@ -208,12 +212,17 @@ function Get-StringHash {
 
 $Encoded = [Convert]::ToBase64String( [Text.Encoding]::UTF8.GetBytes( $("user={0},pass2={1},pass1={2},rpass2={3},rpass1={4},rand2={5}" -f $Format) ) )
 
-[string] $AuthSuffix = 'API/v1.0/Auth'
+#>
+
+$Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$Username`:$PAT"))
+
+[string] $AuthSuffix = 'Auth'
 $URI = "$VSAEndpoint/$AuthSuffix"
 $AuthString  = "Basic $Encoded"
 #endregion authentication stuff
 #--------------------------------------------------------------------------------------------
 
+Write-Host "Attempting to authenticate"
 $result = Get-RequestData -URI $URI -authString $AuthString
 
 if ($result)
@@ -222,10 +231,11 @@ if ($result)
     [VSAConnection]$conn = [VSAConnection]::new( $result.Token, $result.UserName )
 
     [datetime]$ExpiresAsUTC = $result.SessionExpiration -replace "T"," "
-    Write-host $ExpiresAsUTC 
+    Write-Host "Successfully authenticated"
+    Write-host "Token expiration date: $ExpiresAsUTC (UTC)"
     $conn.URI = $VSAEndpoint
     $conn.ExpiresUTC = $ExpiresAsUTC
 
     
-    Get-VSAUsers -VSAConnection $conn
+    #Get-VSAUsers -VSAConnection $conn
 }

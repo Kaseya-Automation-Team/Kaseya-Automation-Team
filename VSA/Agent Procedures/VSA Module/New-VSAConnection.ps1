@@ -4,7 +4,7 @@ POC
    Version 0.2.1
    Author: Vladislav Semko
    Modified: Aliaksandr Serzhankou
-   Modification date: 08-23-20
+   Modification date: 08-24-21
 #>
 
 
@@ -80,6 +80,26 @@ Class VSAConnection
 }
 #endregion connection object
 
+#Check if log source alread exists
+$SourceExists = [System.Diagnostics.EventLog]::SourceExists("VSA API Module")
+
+#If not, create a new one
+if ($SourceExists -eq $false) {
+    New-EventLog –LogName Application –Source “VSA API Module”
+}
+
+#Log entries to Application log
+function Log-Event {
+    param(        
+        [Parameter(Mandatory=$true)][String]$Msg,
+        [Parameter(Mandatory=$true)][Int]$Id,
+        [Parameter(Mandatory=$true)][String]$Type
+    )
+    Write-EventLog –LogName Application –Source “VSA API Module” –EntryType $Type –EventID $Id  –Message $Msg -Category 0
+    $CurrentTime = Get-Date
+    Write-Host "$CurrentTime`: $Type`: $Msg"
+}
+
 #region function Get-RequestData
 function Get-RequestData
 {
@@ -106,7 +126,7 @@ function Get-RequestData
         Headers = $authHeader
     }
     
-    Write-Host "Executing call $Method : $URI"
+    Log-Event -Msg "Executing call $Method : $URI" -Id 0010 -Type "Information"
     $response = Invoke-RestMethod @requestParameters
     if (0 -eq $response.ResponseCode) {
         return $response.Result
@@ -222,7 +242,7 @@ $AuthString  = "Basic $Encoded"
 #endregion authentication stuff
 #--------------------------------------------------------------------------------------------
 
-Write-Host "Attempting to authenticate"
+Log-Event -Msg "Attempting to authenticate" -Id 0001 -Type "Information"
 $result = Get-RequestData -URI $URI -authString $AuthString
 
 if ($result)
@@ -231,8 +251,7 @@ if ($result)
     [VSAConnection]$conn = [VSAConnection]::new( $result.Token, $result.UserName )
 
     [datetime]$ExpiresAsUTC = $result.SessionExpiration -replace "T"," "
-    Write-Host "Successfully authenticated"
-    Write-host "Token expiration date: $ExpiresAsUTC (UTC)"
+    Log-Event -Msg "Successfully authenticated. Token expiration date: $ExpiresAsUTC (UTC)." -Id 0002 -Type "Information"
     $conn.URI = $VSAEndpoint
     $conn.ExpiresUTC = $ExpiresAsUTC
 

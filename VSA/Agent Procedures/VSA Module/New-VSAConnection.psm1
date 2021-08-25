@@ -224,6 +224,14 @@ function Get-VSAUsers
             $CombinedURL = -join ($CombinedURL, "`?`$filter=$Filter")
         }
 
+        if ($Sort) {
+            if ($Filter) {
+                $CombinedURL = -join ($CombinedURL, "`&`$orderby=$Sort")
+             } else {
+                $CombinedURL = -join ($CombinedURL, "`?`$orderby=$Sort")
+            }
+        }
+
         if ($Paging) {
             if ($Filter -or $Sort) {
                 $CombinedURL = -join ($CombinedURL, "`&`$$Paging")

@@ -207,12 +207,32 @@ function Get-VSAUsers
         [string] $SystemUsersSuffix = 'system/users',
         [parameter(Mandatory=$false)]
         [ValidateNotNullOrEmpty()] 
-        [string] $Filter
+        [string] $Filter,
+        [parameter(Mandatory=$false)]
+        [ValidateNotNullOrEmpty()] 
+        [string] $Paging,
+        [parameter(Mandatory=$false)]
+        [ValidateNotNullOrEmpty()] 
+        [string] $Sort
     )
 
     if ( $($VSAConnection.GetStatus()) -eq "Open") #if token is valid
     {
-        $result = Get-RequestData -URI "$($VSAConnection.URI)/$SystemUsersSuffix" -AuthString "Bearer $($VSAConnection.GetToken())"
+        $CombinedURL = "$($VSAConnection.URI)/$SystemUsersSuffix"
+        
+        if ($Filter) {
+            $CombinedURL = -join ($CombinedURL, "`?`$filter=$Filter")
+        }
+
+        if ($Paging) {
+            if ($Filter -or $Sort) {
+                $CombinedURL = -join ($CombinedURL, "`&`$$Paging")
+            } else {
+                $CombinedURL = -join ($CombinedURL, "`?`$$Paging")
+            }
+        }
+
+        $result = Get-RequestData -URI "$CombinedURL" -AuthString "Bearer $($VSAConnection.GetToken())"
 
         return $result
     }

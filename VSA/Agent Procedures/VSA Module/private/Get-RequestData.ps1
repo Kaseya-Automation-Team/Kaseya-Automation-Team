@@ -29,6 +29,7 @@ function Get-RequestData
     if (0 -eq $response.ResponseCode) {
         return $response.Result
     } else {
+        Log-Event -Msg "$response.Error" -Id 0000 -Type "Error"
         throw $response.Error
     }
 }

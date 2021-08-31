@@ -6,13 +6,22 @@ POC
    Modified: Aliaksandr Serzhankou
    Modification date: 08-27-21
 #>
+#Replace with
 
-. .\public\Get-VSAUsers.ps1
-. .\public\Get-VSARoles.ps1
-. .\public\Get-VSAScopes.ps1
-. .\private\Log-Event.ps1
-. .\private\Get-RequestData.ps1
+$Public  = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction SilentlyContinue )
+$Private = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue )
 
+Foreach($import in @($Public + $Private))
+    {
+        Try
+        {
+            . $import.fullname
+        }
+        Catch
+        {
+            Write-Error -Msg "Failed to import function $($import.fullname): $_"
+        }
+    }
 
 Enum ConnectionState
 {

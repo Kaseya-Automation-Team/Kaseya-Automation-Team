@@ -99,9 +99,9 @@ function Get-VSAConnection {
 #endregion connection object
 
 #--------------------------------------------------------------------------------------------
-[string] $VSAEndpoint = 'https://54.67.117.115/api/v1.0'
-[string] $Username = 'sasha'
-[string] $PAT = 'fe47717e-8965-4586-acd4-3eb0b37f290e'
+[string] $VSAEndpoint = ''
+[string] $Username = ''
+[string] $PAT = ''
 
 
 #region set to ignore self-signed SSL certificate

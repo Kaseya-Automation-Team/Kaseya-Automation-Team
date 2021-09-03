@@ -29,7 +29,7 @@ Enum ConnectionState
     Open = 1
     Expired = 2
 }
-
+#region Class VSAConnection
 Class VSAConnection
 {
     [string] $URI
@@ -176,30 +176,14 @@ Class VSAConnection
         return $TheURI
     }
 }
-
-#region function Get-StringHash
-function Get-StringHash {
-    [cmdletbinding()]
-    [OutputType([String])]
-    param(
-        [parameter(ValueFromPipeline, Mandatory = $true, Position = 0)]
-        [ValidateNotNullOrEmpty()]
-        [String]$InputString,
-        [parameter(ValueFromPipelineByPropertyName, Mandatory = $false, Position = 1)]
-        [ValidateSet("MD5", "RIPEMD160", "SHA1", "SHA256", "SHA384", "SHA512")]
-        [String]$HashName = "SHA256"
-    )
-    $HashStringBuilder = New-Object System.Text.StringBuilder
-    [System.Security.Cryptography.HashAlgorithm]::Create($HashName).ComputeHash([System.Text.Encoding]::UTF8.GetBytes($InputString)) | `
-        Foreach-Object  {
-            [Void]$HashStringBuilder.Append($_.ToString("x2"))
-        }
-    $HashStringBuilder.ToString()
-}
-#endregion function Get-StringHash
+#endregion Class VSAConnection
 
 #region function New-VSAConnection
 function New-VSAConnection {
+<#
+.PARAMETER VSAEndpointAddress
+    Address of the VSA Server to connect
+#>
     [cmdletbinding()]
     [OutputType([VSAConnection])]
     param(
@@ -207,7 +191,7 @@ function New-VSAConnection {
             Mandatory = $true,
             Position = 0)]
         [ValidateNotNullOrEmpty()]
-        [String] $VSAEndpoint,
+        [String] $VSAEndpointAddress,
         [parameter(ValueFromPipeline,
             Mandatory = $true,
             Position = 1)]
@@ -217,7 +201,7 @@ function New-VSAConnection {
             Mandatory = $true,
             Position = 2)]
         [ValidateNotNullOrEmpty()]
-        [String] $Password,
+        [String] $PAT,
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
@@ -225,6 +209,62 @@ function New-VSAConnection {
         [parameter(Mandatory=$false)]
         [switch] $MakePersistent
     )
+
+    #region set to ignore self-signed SSL certificate
+Add-Type @'
+    using System.Net;
+    using System.Security.Cryptography.X509Certificates;
+    public class TrustAllCertsPolicy : ICertificatePolicy
+    {
+        public bool CheckValidationResult(
+            ServicePoint srvPoint, X509Certificate certificate,
+            WebRequest request, int certificateProblem)
+        {
+            return true;
+        }
+    }
+'@
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+    #endregion set to ignore self-signed SSL certificate
+    $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$Username`:$PAT"))
+
+    [string] $AuthSuffix = 'Auth'
+    $URI = "$VSAEndpoint/$AuthSuffix"
+    $AuthString  = "Basic $Encoded"
+
+    Log-Event -Msg "Attempting to authenticate" -Id 0001 -Type "Information"
+    $result = Get-RequestData -URI $URI -authString $AuthString
+    
+    if ($result)
+    {
+        [VSAConnection]$conn = [VSAConnection]::new( $result, $VSAEndpoint )
+
+        [datetime]$ExpiresAsUTC = $result.SessionExpiration -replace "T"," "
+        Log-Event -Msg "Successfully authenticated. Token expiration date: $ExpiresAsUTC (UTC)." -Id 0002 -Type "Information"
+
+        if ($MakePersistent) { $conn.SetPersistent( $true ) }
+    }
+    else
+    {
+        throw "Could not get authentication response"
+    }
+
+    return $conn    
+}
+#endregion function New-VSAConnection
+
+Export-ModuleMember -Function New-VSAConnection
+
+function Get-VSAConnection {
+#region connection object
+
+#endregion connection object
+
+#--------------------------------------------------------------------------------------------
+[string] $VSAEndpoint = ''
+[string] $Username = ''
+[string] $PAT = ''
+
 
 #region set to ignore self-signed SSL certificate
 Add-Type @'
@@ -243,57 +283,32 @@ Add-Type @'
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 #endregion set to ignore self-signed SSL certificate
 
-    $URI = "$VSAEndpoint/$AuthSuffix"
-    [string]$Random = (Get-Random).ToString()
+$Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$Username`:$PAT"))
 
-    [string]$RawSHA256Hash = Get-StringHash $Password
-    [string]$CoveredSHA256HashTemp = Get-StringHash ($Password+$Username)
-    [string]$CoveredSHA256Hash = Get-StringHash ($CoveredSHA256HashTemp+$Random) 
-    [string]$RawSHA1Hash = Get-StringHash $Password "SHA1"
-    [string]$CoveredSHA1HashTemp = Get-StringHash ($Password+$Username) "SHA1"
-    [string]$CoveredSHA1Hash = Get-StringHash ($CoveredSHA1HashTemp+$Random) "SHA1"
+[string] $AuthSuffix = 'Auth'
+$URI = "$VSAEndpoint/$AuthSuffix"
+$AuthString  = "Basic $Encoded"
+#endregion authentication stuff
+#--------------------------------------------------------------------------------------------
 
-    [string[]]$Format = @(
-        $Username
-        $CoveredSHA256Hash
-        $CoveredSHA1Hash
-        $RawSHA256Hash
-        $RawSHA1Hash
-        $Random
-        )
+Log-Event -Msg "Attempting to authenticate" -Id 0001 -Type "Information"
+$result = Get-RequestData -URI $URI -authString $AuthString
 
-    $Encoded = [Convert]::ToBase64String( [Text.Encoding]::UTF8.GetBytes( $("user={0},pass2={1},pass1={2},rpass2={3},rpass1={4},rand2={5}" -f $Format) ) )
+if ($result)
+{
+    #If authentication attempt seems to be OK, create VSAConnection object
+    [VSAConnection]$conn = [VSAConnection]::new( $result.Token, $result.UserName )
 
-    $URI = "$VSAEndpoint/$AuthSuffix"
-    $AuthString  = "Basic $Encoded"
+    [datetime]$ExpiresAsUTC = $result.SessionExpiration -replace "T"," "
+    Log-Event -Msg "Successfully authenticated. Token expiration date: $ExpiresAsUTC (UTC)." -Id 0002 -Type "Information"
+    $conn.URI = $VSAEndpoint
+    $conn.ExpiresUTC = $ExpiresAsUTC
+    $conn.Status = [ConnectionState]::Open
 
-    $result = Get-RequestData -URI $URI -authString $AuthString
-    
-    if ($result)
-    {
-        [VSAConnection]$conn = [VSAConnection]::new( $result, $VSAEndpoint )
-        if ($MakePersistent) { $conn.SetPersistent( $true ) }
-    }
-    else { throw "Could not get authentication response"}
-
-    return $conn    
+        
+    #Get-VSAUsers -VSAConnection $conn
 }
-#endregion function New-VSAConnection
-
-Export-ModuleMember -Function New-VSAConnection
-
-function Get-VSAConnection {
-    [cmdletbinding()]
-    [OutputType([VSAConnection])]
-    param(
-        [parameter(ValueFromPipeline, Mandatory = $true, Position = 0)]
-        [ValidateNotNullOrEmpty()]
-        [String]$InputString,
-        [parameter(ValueFromPipelineByPropertyName, Mandatory = $false, Position = 1)]
-        [ValidateSet("MD5", "RIPEMD160", "SHA1", "SHA256", "SHA384", "SHA512")]
-        [String]$HashName = "SHA256"
-    )
-
+return $conn
 }
 
 Export-ModuleMember -Function Get-VSAConnection

@@ -1,14 +1,4 @@
-﻿<#
-POC
-   Module VSA
-   Version 0.2.1
-   Author: Vladislav Semko
-   Modified: Aliaksandr Serzhankou
-   Modification date: 08-24-21
-#>
-
-
-#region connection object
+﻿#region connection object
 Enum ConnectionState
 {
     Closed = 0
@@ -19,28 +9,65 @@ Enum ConnectionState
 Class VSAConnection
 {
     [string] $URI
-    [datetime] $ExpiresUTC
+    [datetime] $SessionExpiration
     hidden [ConnectionState] $Status
     hidden [string] $Token
     hidden [string] $UserName
+    static hidden [bool] $IsPersistent #all instances of VSAConnection class use the same environment variable to store connection information
+
+    hidden [void] CopyObject( $InputObject )
+    {
+        if( $($InputObject.URI) )
+        {
+            $this.URI = $InputObject.URI
+            $this.Token = $InputObject.Token
+            $this.UserName = $InputObject.UserName
+            $this.UserName = $InputObject.UserName
+            $this.SessionExpiration = $( $InputObject.SessionExpiration -replace "T"," " )
+        }
+        else
+        {
+            throw "The Input Obect Does Not Contain URI"
+        }
+        if ( $($InputObject.Status) ) {
+            $this.Status = $InputObject.Status
+        } else {
+            $this.Status = [ConnectionState]::Open
+        }
+    }
 
 #region constructors
-    VSAConnection([string] $UserName)
+
+    VSAConnection( 
+        [PSObject] $InputObject
+    )
     {
-        $this.UserName = $UserName
-        $this.Status = [ConnectionState]::Closed
+        $this.CopyObject( $InputObject )        
     }
 
     VSAConnection( 
-        [string] $ExistingToken,
-        [string] $UserName
+        [PSCustomObject] $InputObject,
+        [string] $URI
     )
     {
-        $this.Token = $ExistingToken
-        $this.UserName = $UserName
         $this.Status = [ConnectionState]::Open
+        if( -not $($InputObject.URI) )
+        {
+            $InputObject | Add-Member -NotePropertyName 'URI' -NotePropertyValue $URI
+        }
+        $this.CopyObject( $InputObject )
     }
-#endregion constructors
+
+#endregion constructors    
+
+    hidden [void] RestorePersistent ( )
+    {
+        if ( [VSAConnection]::IsPersistent -and -not( [string]::IsNullOrEmpty( $env:VSACOnnection) ) )
+        {
+            $InputObject = [Management.Automation.PSSerializer]::Deserialize([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:VSACOnnection)))
+            $this.CopyObject( $InputObject )
+        }
+    }
 
     [string] GetStatus()
     {
@@ -49,7 +76,7 @@ Class VSAConnection
             Open
             {
                 Write-Host
-                if ( $((Get-Date).ToUniversalTime()) -gt $this.ExpiresUTC )
+                if ( $((Get-Date).ToUniversalTime()) -gt $this.SessionExpiration )
                 {
                     $this.Status = [ConnectionState]::Expired
                 }
@@ -60,6 +87,9 @@ Class VSAConnection
                 {
                     $this.Status = [ConnectionState]::Closed
                 }
+                # If connection is not Open The $env:VSACOnnection should not store the object
+                $env:VSACOnnection = $null
+                [VSAConnection]::IsPersistent = $false
             }
         }
         return $this.Status 
@@ -69,36 +99,60 @@ Class VSAConnection
     {
         return $this.UserName
     }
+
     [string] GetToken()
     {
+        if( [VSAConnection]::IsPersistent )
+        {
+            $this.RestorePersistent()
+        }
         return $this.Token
     }
 
-    [void] RefreshToken()
+    [void] SetPersistent( [bool] $IsPersistent )
     {
+        [VSAConnection]::IsPersistent = $IsPersistent
+
+        if( [VSAConnection]::IsPersistent ) {
+            $env:VSACOnnection = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes([Management.Automation.PSSerializer]::Serialize($this)))
+        } else {
+            $env:VSACOnnection = $null
+        }
+    }
+
+    [void] SetPersistent()
+    {
+        $this.SetPersistent( $true )
+    }
+
+    [bool] GetPersistent()
+    {
+        return [VSAConnection]::IsPersistent
+    }
+
+    static [string] GetPersistentToken()
+    {
+        [string]$TheToken = $null
+        if([VSAConnection]::IsPersistent)
+        {
+            $InputObject = [Management.Automation.PSSerializer]::Deserialize([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:VSACOnnection)))    
+            $TheToken = $InputObject.Token     
+        }
+        return $TheToken
+    }
+
+    static [string] GetPersistentURI()
+    {
+        [string]$TheURI = $null
+        if([VSAConnection]::IsPersistent)
+        {
+            $InputObject = [Management.Automation.PSSerializer]::Deserialize([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:VSACOnnection)))    
+            $TheURI = $InputObject.URI    
+        }
+        return $TheURI
     }
 }
 #endregion connection object
-
-#Check if log source alread exists
-$SourceExists = [System.Diagnostics.EventLog]::SourceExists("VSA API Module")
-
-#If not, create a new one
-if ($SourceExists -eq $false) {
-    New-EventLog –LogName Application –Source “VSA API Module”
-}
-
-#Log entries to Application log
-function Log-Event {
-    param(        
-        [Parameter(Mandatory=$true)][String]$Msg,
-        [Parameter(Mandatory=$true)][Int]$Id,
-        [Parameter(Mandatory=$true)][String]$Type
-    )
-    Write-EventLog –LogName Application –Source “VSA API Module” –EntryType $Type –EventID $Id  –Message $Msg -Category 0
-    $CurrentTime = Get-Date
-    Write-Host "$CurrentTime`: $Type`: $Msg"
-}
 
 #region function Get-RequestData
 function Get-RequestData
@@ -125,8 +179,7 @@ function Get-RequestData
         Method = $Method
         Headers = $authHeader
     }
-    
-    Log-Event -Msg "Executing call $Method : $URI" -Id 0010 -Type "Information"
+ 
     $response = Invoke-RestMethod @requestParameters
     if (0 -eq $response.ResponseCode) {
         return $response.Result
@@ -141,35 +194,57 @@ function Get-VSAUsers
 {
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [parameter(Mandatory = $true, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'NonPersistent')]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
+
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
-        [string] $SystemUsersSuffix = 'system/users',
-        [parameter(Mandatory=$false)]
+        [string] $SystemUsersSuffix = 'api/v1.0/system/users',
+
+        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
+        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter
     )
 
-    $ConnectionStatus = $VSAConnection.GetStatus()
-
-    if ( $ConnectionStatus -eq [ConnectionState]::Open) #if token is valid
+    if ([VSAConnection]::IsPersistent)
     {
-        $result = Get-RequestData -URI "$($VSAConnection.URI)/$SystemUsersSuffix" -authString "Bearer $($VSAConnection.GetToken())"
-        return $result
+        Write-Output "Persistent"
+        $UsersURI = "$([VSAConnection]::GetPersistentURI())/$SystemUsersSuffix"
+        $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
     }
     else
-    { throw "Connection status: $ConnectionStatus" }
+    {
+        $ConnectionStatus = $VSAConnection.GetStatus()
+
+        if ( $ConnectionStatus -eq [ConnectionState]::Open)
+        {
+            $UsersURI = "$($VSAConnection.URI)/$SystemUsersSuffix"
+            $UsersToken = "Bearer $($VSAConnection.GetToken())"
+        }
+        else
+        {
+            throw "Connection status: $ConnectionStatus"
+        }
+    }
+
+    $result = Get-RequestData -URI $UsersURI -authString $UsersToken
+
+    return $result
+    
 }
 #endregion function Get-VSAUsers
 
 #============================================================================================
-
+#region authentication stuff
 #--------------------------------------------------------------------------------------------
-[string] $VSAEndpoint = 'https://54.67.117.115/api/v1.0'
-[string] $Username = 'sasha'
-[string] $PAT = 'fe47717e-8965-4586-acd4-3eb0b37f290e'
-
 
 #region set to ignore self-signed SSL certificate
 Add-Type @'
@@ -188,7 +263,6 @@ Add-Type @'
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 #endregion set to ignore self-signed SSL certificate
 
-<#
 #region function Get-StringHash 
 function Get-StringHash {
     [cmdletbinding()]
@@ -208,53 +282,73 @@ function Get-StringHash {
         }
     $HashStringBuilder.ToString()
 }
-#endregion function Get-StringHash 
 
-#region authentication stuff
-#[string]$ReqId = [guid]::NewGuid().ToString()
-[string]$Random = (Get-Random).ToString()
-
-[string]$RawSHA256Hash = Get-StringHash $PAT
-[string]$CoveredSHA256HashTemp = Get-StringHash ($PAT+$Username)
-[string]$CoveredSHA256Hash = Get-StringHash ($CoveredSHA256HashTemp+$Random) 
-[string]$RawSHA1Hash = Get-StringHash $PAT "SHA1"
-[string]$CoveredSHA1HashTemp = Get-StringHash ($PAT+$Username) "SHA1"
-[string]$CoveredSHA1Hash = Get-StringHash ($CoveredSHA1HashTemp+$Random) "SHA1"
-
-[string[]]$Format = @(
-    $Username
-    $CoveredSHA256Hash
-    $CoveredSHA1Hash
-    $RawSHA256Hash
-    $RawSHA1Hash
-    $Random
-    )
-
-$Encoded = [Convert]::ToBase64String( [Text.Encoding]::UTF8.GetBytes( $("user={0},pass2={1},pass1={2},rpass2={3},rpass1={4},rand2={5}" -f $Format) ) )
-
-#>
-
-$Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$Username`:$PAT"))
-
-[string] $AuthSuffix = 'Auth'
-$URI = "$VSAEndpoint/$AuthSuffix"
-$AuthString  = "Basic $Encoded"
-#endregion authentication stuff
 #--------------------------------------------------------------------------------------------
-
-Log-Event -Msg "Attempting to authenticate" -Id 0001 -Type "Information"
-$result = Get-RequestData -URI $URI -authString $AuthString
-
-if ($result)
-{
-    #If authentication attempt seems to be OK, create VSAConnection object
-    [VSAConnection]$conn = [VSAConnection]::new( $result.Token, $result.UserName )
-
-    [datetime]$ExpiresAsUTC = $result.SessionExpiration -replace "T"," "
-    Log-Event -Msg "Successfully authenticated. Token expiration date: $ExpiresAsUTC (UTC)." -Id 0002 -Type "Information"
-    $conn.URI = $VSAEndpoint
-    $conn.ExpiresUTC = $ExpiresAsUTC
-
+function New-VSAConnection {
+    [cmdletbinding()]
+    [OutputType([VSAConnection])]
+    param(
+        [parameter(ValueFromPipeline,
+            Mandatory = $true,
+            Position = 0)]
+        [ValidateNotNullOrEmpty()]
+        [String] $VSAEndpoint,
+        [parameter(ValueFromPipeline,
+            Mandatory = $true,
+            Position = 1)]
+        [ValidateNotNullOrEmpty()]
+        [String] $UserName,
+        [parameter(ValueFromPipeline,
+            Mandatory = $true,
+            Position = 2)]
+        [ValidateNotNullOrEmpty()]
+        [String] $Password,
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $AuthSuffix = 'API/v1.0/Auth',
+        [parameter(Mandatory=$false)]
+        [switch] $MakePersistent
+    )
     
-    #Get-VSAUsers -VSAConnection $conn
+    $URI = "$VSAEndpoint/$AuthSuffix"
+    [string]$Random = (Get-Random).ToString()
+
+    [string]$RawSHA256Hash = Get-StringHash $Password
+    [string]$CoveredSHA256HashTemp = Get-StringHash ($Password+$Username)
+    [string]$CoveredSHA256Hash = Get-StringHash ($CoveredSHA256HashTemp+$Random) 
+    [string]$RawSHA1Hash = Get-StringHash $Password "SHA1"
+    [string]$CoveredSHA1HashTemp = Get-StringHash ($Password+$Username) "SHA1"
+    [string]$CoveredSHA1Hash = Get-StringHash ($CoveredSHA1HashTemp+$Random) "SHA1"
+
+    [string[]]$Format = @(
+        $Username
+        $CoveredSHA256Hash
+        $CoveredSHA1Hash
+        $RawSHA256Hash
+        $RawSHA1Hash
+        $Random
+        )
+
+    $Encoded = [Convert]::ToBase64String( [Text.Encoding]::UTF8.GetBytes( $("user={0},pass2={1},pass1={2},rpass2={3},rpass1={4},rand2={5}" -f $Format) ) )
+
+    $URI = "$VSAEndpoint/$AuthSuffix"
+    $AuthString  = "Basic $Encoded"
+
+    $result = Get-RequestData -URI $URI -authString $AuthString
+    
+    if ($result)
+    {
+        [VSAConnection]$conn = [VSAConnection]::new( $result, $VSAEndpoint )
+        if ($MakePersistent) { $conn.SetPersistent( $true ) }
+    }
+    else { throw "Could not get authentication response"}
+
+    return $conn    
 }
+
+[string] $VSAEndpoint = 'https://54.67.117.115'
+[string] $Username = ''
+[string] $Password = ''
+
+New-VSAConnection -VSAEndpoint $VSAEndpoint -UserName $Username -Password $Password -MakePersistent

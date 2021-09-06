@@ -7,7 +7,7 @@ function Get-VSAUsers
         [VSAConnection] $VSAConnection,
         [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
-        [string] $SystemUsersSuffix = 'system/users',
+        [string] $SystemUsersSuffix = 'api/v1.0/system/users',
         [parameter(Mandatory=$false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
@@ -19,35 +19,49 @@ function Get-VSAUsers
         [string] $Sort
     )
 
-    if ( $($VSAConnection.GetStatus()) -eq "Open") #if token is valid
+    if ([VSAConnection]::IsPersistent)
     {
-        $CombinedURL = "$($VSAConnection.URI)/$SystemUsersSuffix"
-        
-        if ($Filter) {
-            $CombinedURL = -join ($CombinedURL, "`?`$filter=$Filter")
-        }
-
-        if ($Sort) {
-            if ($Filter) {
-                $CombinedURL = -join ($CombinedURL, "`&`$orderby=$Sort")
-             } else {
-                $CombinedURL = -join ($CombinedURL, "`?`$orderby=$Sort")
-            }
-        }
-
-        if ($Paging) {
-            if ($Filter -or $Sort) {
-                $CombinedURL = -join ($CombinedURL, "`&`$$Paging")
-            } else {
-                $CombinedURL = -join ($CombinedURL, "`?`$$Paging")
-            }
-        }
-
-        $result = Get-RequestData -URI "$CombinedURL" -AuthString "Bearer $($VSAConnection.GetToken())"
-
-        return $result
+        $UsersURI = "$([VSAConnection]::GetPersistentURI())/$SystemUsersSuffix"
+        $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
     }
     else
-    { throw "Connection status: $ConnectionStatus" }
+    {
+        $ConnectionStatus = $VSAConnection.GetStatus()
+
+        if ( 'Open' -eq $ConnectionStatus )
+        {
+            $CombinedURL = "$($VSAConnection.URI)/$SystemUsersSuffix"
+        }
+        else
+        {
+            throw "Connection status: $ConnectionStatus"
+        }
+    }
+
+    #region Filterin, Sorting, Paging
+    if ($Filter) {
+        $CombinedURL = -join ($CombinedURL, "`?`$filter=$Filter")
+    }
+
+    if ($Sort) {
+        if ($Filter) {
+            $CombinedURL = -join ($CombinedURL, "`&`$orderby=$Sort")
+            } else {
+            $CombinedURL = -join ($CombinedURL, "`?`$orderby=$Sort")
+        }
+    }
+
+    if ($Paging) {
+        if ($Filter -or $Sort) {
+            $CombinedURL = -join ($CombinedURL, "`&`$$Paging")
+        } else {
+            $CombinedURL = -join ($CombinedURL, "`?`$$Paging")
+        }
+    }
+    #endregion Filterin, Sorting, Paging
+
+    $result = Get-RequestData -URI "$CombinedURL" -AuthString "Bearer $($VSAConnection.GetToken())"
+
+    return $result
 }
 Export-ModuleMember -Function Get-VSAUsers

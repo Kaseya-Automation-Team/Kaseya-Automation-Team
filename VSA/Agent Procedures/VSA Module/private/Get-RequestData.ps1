@@ -11,7 +11,10 @@ function Get-RequestData
         [string] $AuthString,
         [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)] 
         [ValidateSet("GET", "POST", "PUT", "DELETE", "PATCH")]
-        [string] $Method = "GET"
+        [string] $Method = "GET",
+        [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)] 
+        [ValidateNotNullOrEmpty()]
+		[string] $Body
     )
 
     $authHeader = @{
@@ -25,9 +28,15 @@ function Get-RequestData
     }
     
     Log-Event -Msg "Executing call $Method : $URI" -Id 0010 -Type "Information"
-    
+
+   
     try {
-            $response = Invoke-RestMethod @requestParameters -ErrorAction Stop
+            if ($Body) {
+	            $response = Invoke-RestMethod @requestParameters -Body $Body -ErrorAction Stop
+	        } else {
+                $response = Invoke-RestMethod @requestParameters -ErrorAction Stop
+            }
+            
             if (0 -eq $response.ResponseCode) {
                 return $response.Result
             } else {

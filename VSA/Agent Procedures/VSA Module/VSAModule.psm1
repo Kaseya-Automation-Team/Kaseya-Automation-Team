@@ -193,21 +193,23 @@ function New-VSAConnection {
         [ValidateNotNullOrEmpty()]
         [String]$VSAServer,
         [parameter(ValueFromPipeline,
-            Mandatory = $true,
+            Mandatory = $false,
             Position = 1)]
         [ValidateNotNullOrEmpty()]
         [String] $UserName,
-        [parameter(ValueFromPipeline,
-            Mandatory = $true,
-            Position = 2)]
-        [ValidateNotNullOrEmpty()]
-        [String] $PAT,
+        #[parameter(ValueFromPipeline,
+        #    Mandatory = $true,
+        #    Position = 2)]
+        #[ValidateNotNullOrEmpty()]
+        #[String] $PAT,
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [string] $AuthSuffix = 'API/v1.0/Auth',
         [parameter(Mandatory=$false)]
-        [switch] $MakePersistent
+        [switch] $MakePersistent,
+        [parameter(Mandatory=$false)] 
+        [switch]$NonInteractive
     )
 
     #region set to ignore self-signed SSL certificate
@@ -225,8 +227,29 @@ Add-Type @'
     }
 '@
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
+    if ($NonInteractive) {
+        Write-Host "Running in non-interactive mode"
+
+    if (!$Username) {
+        Write-Error "Username is required parameter in non-interactive mode" -ErrorAction Stop
+    }
+
+        $password = Get-Content "C:\work\vsa\VSA Module\pat.txt" |  ConvertTo-SecureString
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
+
+    } else {
+
+        $creds = Get-Credential -Message "Please provide username and Personal Authentication Token"
+        $username = $creds.username
+
+      $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($creds.password)
+    }
+
     #endregion set to ignore self-signed SSL certificate
-    $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$Username`:$PAT"))
+    #$Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$Username`:$PAT"))
+
+    $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$username`:$([System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR))"))
 
     $URI = "$VSAServer/$AuthSuffix"
     $AuthString  = "Basic $Encoded"
@@ -260,10 +283,6 @@ function Get-VSAConnection {
 #endregion connection object
 
 #--------------------------------------------------------------------------------------------
-[string] $VSAEndpoint = ''
-[string] $Username = ''
-[string] $PAT = ''
-
 
 #region set to ignore self-signed SSL certificate
 Add-Type @'

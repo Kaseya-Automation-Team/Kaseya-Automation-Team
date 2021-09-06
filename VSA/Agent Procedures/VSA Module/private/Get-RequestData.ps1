@@ -1,6 +1,28 @@
 #region function Get-RequestData
 function Get-RequestData
 {
+    <#
+    .Synopsis
+       Returns web request's response
+    .DESCRIPTION
+       Returns response fo formed web request.
+    .PARAMETER URI
+        Specifies URI for the web request.
+    .PARAMETER AuthString
+        Specifies authentication string.
+    .PARAMETER Method
+        Specifies REST API method.
+    .PARAMETER Body
+        Specifies the request's Body.
+    .EXAMPLE
+       Get-RequestData -URI $URI -AuthString $AuthString
+    .EXAMPLE
+       Get-RequestData -URI $URI -AuthString $AuthString
+    .INPUTS
+       None. You cannot pipe objects to Get-RequestData. 
+    .OUTPUTS
+       Array of custom objects returned by the remote server.
+    #>
     [CmdletBinding()]
     param ( 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)] 
@@ -28,7 +50,6 @@ function Get-RequestData
     }
     
     Log-Event -Msg "Executing call $Method : $URI" -Id 0010 -Type "Information"
-
    
     try {
             if ($Body) {

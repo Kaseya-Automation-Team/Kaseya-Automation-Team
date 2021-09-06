@@ -45,7 +45,7 @@ Class VSAConnection
     hidden [ConnectionState] $Status
     hidden [string] $Token
     hidden [string] $UserName
-    static hidden [bool] $IsPersistent #all instances of VSAConnection class use the same environment variable to store connection information
+    static hidden [bool] $IsPersistent #if true: all instances of VSAConnection class share the same environment variable to store the connection information.
 
     hidden [void] CopyObject( $InputObject )
     {

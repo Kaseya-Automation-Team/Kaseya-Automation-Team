@@ -1,3 +1,5 @@
+function Get-VSAUsers
+{
 <#
 .Synopsis
    Returns VSA users
@@ -17,9 +19,6 @@
 .OUTPUTS
    Array of custom objects that represent existing VSA users
 #>
-function Get-VSAUsers
-{
-
     [CmdletBinding()]
     param ( 
         [parameter(Mandatory = $true, 

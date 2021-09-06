@@ -7,6 +7,7 @@
 .PARAMETER Name
     Specifies existing non-persistent VSAConnection.
 .PARAMETER SystemUsersSuffix
+    Specifies URI suffix if it differs from the default
 .EXAMPLE
    Get-VSAUsers
 .EXAMPLE

@@ -31,7 +31,7 @@ function Get-VSAUsers
 
     if ([VSAConnection]::IsPersistent)
     {
-        $UsersURI = "$([VSAConnection]::GetPersistentURI())/$SystemUsersSuffix"
+        $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$SystemUsersSuffix"
         $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
     }
     else
@@ -41,6 +41,7 @@ function Get-VSAUsers
         if ( 'Open' -eq $ConnectionStatus )
         {
             $CombinedURL = "$($VSAConnection.URI)/$SystemUsersSuffix"
+            $UsersToken = "Bearer $($VSAConnection.GetToken())"
         }
         else
         {
@@ -70,7 +71,7 @@ function Get-VSAUsers
     }
     #endregion Filterin, Sorting, Paging
 
-    $result = Get-RequestData -URI "$CombinedURL" -AuthString "Bearer $($VSAConnection.GetToken())"
+    $result = Get-RequestData -URI $CombinedURL -AuthString $UsersToken
 
     return $result
 }

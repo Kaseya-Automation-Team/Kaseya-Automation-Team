@@ -32,6 +32,14 @@ Enum ConnectionState
 #region Class VSAConnection
 Class VSAConnection
 {
+    <#
+        Encapsulates connection information such as:
+        VSA Server address
+        user's name
+        user's token
+        connection status
+        if the connection is persistent ( i.e. stored in the session's environment variable)
+    #>
     [string] $URI
     [datetime] $SessionExpiration
     hidden [ConnectionState] $Status
@@ -86,9 +94,9 @@ Class VSAConnection
 
     hidden [void] RestorePersistent ( )
     {
-        if ( [VSAConnection]::IsPersistent -and -not( [string]::IsNullOrEmpty( $env:VSACOnnection) ) )
+        if ( [VSAConnection]::IsPersistent -and -not( [string]::IsNullOrEmpty( $env:VSAConnection) ) )
         {
-            $InputObject = [Management.Automation.PSSerializer]::Deserialize([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:VSACOnnection)))
+            $InputObject = [Management.Automation.PSSerializer]::Deserialize([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:VSAConnection)))
             $this.CopyObject( $InputObject )
         }
     }
@@ -111,8 +119,8 @@ Class VSAConnection
                 {
                     $this.Status = [ConnectionState]::Closed
                 }
-                # If connection is not Open The $env:VSACOnnection should not store the object
-                $env:VSACOnnection = $null
+                # If connection is not Open The $env:VSAConnection should not store the object
+                $env:VSAConnection = $null
                 [VSAConnection]::IsPersistent = $false
             }
         }
@@ -121,6 +129,9 @@ Class VSAConnection
 
     [string] GetUserName()
     {
+        <#
+            returns the user's name
+        #>
         return $this.UserName
     }
 
@@ -138,9 +149,9 @@ Class VSAConnection
         [VSAConnection]::IsPersistent = $IsPersistent
 
         if( [VSAConnection]::IsPersistent ) {
-            $env:VSACOnnection = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes([Management.Automation.PSSerializer]::Serialize($this)))
+            $env:VSAConnection = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes([Management.Automation.PSSerializer]::Serialize($this)))
         } else {
-            $env:VSACOnnection = $null
+            $env:VSAConnection = $null
         }
     }
 
@@ -159,7 +170,7 @@ Class VSAConnection
         [string]$TheToken = $null
         if([VSAConnection]::IsPersistent)
         {
-            $InputObject = [Management.Automation.PSSerializer]::Deserialize([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:VSACOnnection)))    
+            $InputObject = [Management.Automation.PSSerializer]::Deserialize([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:VSAConnection)))    
             $TheToken = $InputObject.Token     
         }
         return $TheToken
@@ -170,13 +181,15 @@ Class VSAConnection
         [string]$TheURI = $null
         if([VSAConnection]::IsPersistent)
         {
-            $InputObject = [Management.Automation.PSSerializer]::Deserialize([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:VSACOnnection)))    
+            $InputObject = [Management.Automation.PSSerializer]::Deserialize([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:VSAConnection)))    
             $TheURI = $InputObject.URI    
         }
         return $TheURI
     }
 }
 #endregion Class VSAConnection
+
+#============================================================================================
 
 #region function New-VSAConnection
 function New-VSAConnection {
@@ -297,13 +310,8 @@ Add-Type @'
 
 Export-ModuleMember -Function New-VSAConnection
 
+#region function Get-VSAUsers
 function Get-VSAConnection {
-#region connection object
-
-#endregion connection object
-
-#--------------------------------------------------------------------------------------------
-
 #region set to ignore self-signed SSL certificate
 Add-Type @'
     using System.Net;
@@ -326,8 +334,6 @@ $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$Username`:
 [string] $AuthSuffix = 'Auth'
 $URI = "$VSAEndpoint/$AuthSuffix"
 $AuthString  = "Basic $Encoded"
-#endregion authentication stuff
-#--------------------------------------------------------------------------------------------
 
 Log-Event -Msg "Attempting to authenticate" -Id 0001 -Type "Information"
 $result = Get-RequestData -URI $URI -authString $AuthString
@@ -350,9 +356,5 @@ return $conn
 }
 
 Export-ModuleMember -Function Get-VSAConnection
-
-#region function Get-VSAUsers
-
 #endregion function Get-VSAUsers
 
-#============================================================================================

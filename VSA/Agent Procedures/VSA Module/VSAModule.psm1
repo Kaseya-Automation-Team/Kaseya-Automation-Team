@@ -34,11 +34,11 @@ Class VSAConnection
 {
     <#
         Encapsulates connection information such as:
-        VSA Server address
-        user's name
-        user's token
-        connection status
-        if the connection is persistent ( i.e. stored in the session's environment variable)
+        - VSA Server address
+        - user's name
+        - user's token
+        - connection status
+        - if the connection is persistent ( i.e. stored in the session's environment variable)
     #>
     [string] $URI
     [datetime] $SessionExpiration
@@ -71,15 +71,15 @@ Class VSAConnection
 #region constructors
 
     VSAConnection( 
-        [PSObject] $InputObject
+        [PSObject] $InputObject # Existing connection object.
     )
     {
         $this.CopyObject( $InputObject )        
     }
 
     VSAConnection( 
-        [PSCustomObject] $InputObject,
-        [string] $URI
+        [PSCustomObject] $InputObject, # Response from the authorization interface doen't contain the VSA server address
+        [string] $URI                  # the VSA server address 
     )
     {
         $this.Status = [ConnectionState]::Open
@@ -129,9 +129,6 @@ Class VSAConnection
 
     [string] GetUserName()
     {
-        <#
-            returns the user's name
-        #>
         return $this.UserName
     }
 

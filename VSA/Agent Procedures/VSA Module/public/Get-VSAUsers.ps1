@@ -3,18 +3,28 @@ function Get-VSAUsers
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [parameter(Mandatory = $true, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'NonPersistent')]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
         [string] $SystemUsersSuffix = 'api/v1.0/system/users',
-        [parameter(Mandatory=$false)]
+        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
+        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
-        [parameter(Mandatory=$false)]
+        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
+        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
-        [parameter(Mandatory=$false)]
+        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
+        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )

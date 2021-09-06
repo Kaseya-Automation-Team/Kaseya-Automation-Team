@@ -181,9 +181,29 @@ Class VSAConnection
 #region function New-VSAConnection
 function New-VSAConnection {
 <#
+.Synopsis
+   Creates VSAConnection object.
+.DESCRIPTION
+   Creates VSAConnection object that incapsulates access token as well as additional connection information.
+   Optionally makes the connection object persistent.
 .PARAMETER VSAServer
-    Address of the VSA Server to connect
+    Address of the VSA Server to connect.
+.PARAMETER UserName
+    Specifies existing VSA user thet allowed to connect VSA through REST API.
+.PARAMETER AuthSuffix
+    Specifies authorization URI suffix if it differs from the default.
+.PARAMETER MakePersistent
+    Specifies whether make the VSAConnection object persistent during the session so that module commandlets will use implicitly.
+.PARAMETER NonInteractive
+    Specifies whether to use stored credentials.
+.EXAMPLE
+   New-VSAConnection -VSAServer https://localhost -NonInteractive -MakePersistent
+.INPUTS
+   Accepts response object from the authorization API.
+.OUTPUTS
+   VSAConnection. New-VSAConnection returns object of VSAConnection type that incapsulates access token as well as additional connection information.
 #>
+
     [cmdletbinding()]
     [OutputType([VSAConnection])]
     param(
@@ -209,7 +229,7 @@ function New-VSAConnection {
         [parameter(Mandatory=$false)]
         [switch] $MakePersistent,
         [parameter(Mandatory=$false)] 
-        [switch]$NonInteractive
+        [switch] $NonInteractive
     )
 
     #region set to ignore self-signed SSL certificate

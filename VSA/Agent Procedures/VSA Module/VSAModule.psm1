@@ -228,7 +228,6 @@ Add-Type @'
     #endregion set to ignore self-signed SSL certificate
     $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$Username`:$PAT"))
 
-    [string] $AuthSuffix = 'Auth'
     $URI = "$VSAServer/$AuthSuffix"
     $AuthString  = "Basic $Encoded"
 

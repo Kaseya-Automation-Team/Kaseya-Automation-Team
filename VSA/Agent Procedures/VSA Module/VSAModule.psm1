@@ -220,7 +220,10 @@ function New-VSAConnection {
         [parameter(ValueFromPipeline,
             Mandatory = $true,
             Position = 0)]
-        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {if ($_ -match '^http(s)?:\/\/([\w.-]+(?:\.[\w\.-]+)+|localhost)$') {$true}
+            else {Throw "$_ is an invalid. Enter a valid address that begins with https://"}}
+            )]
         [String]$VSAServer,
         [parameter(ValueFromPipeline,
             Mandatory = $false,
@@ -241,7 +244,7 @@ function New-VSAConnection {
         [parameter(Mandatory=$false)] 
         [switch] $NonInteractive
     )
-
+    
     #region set to ignore self-signed SSL certificate
 Add-Type @'
     using System.Net;

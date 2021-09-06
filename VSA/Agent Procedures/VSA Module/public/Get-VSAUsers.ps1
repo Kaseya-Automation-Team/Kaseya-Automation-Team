@@ -1,3 +1,21 @@
+<#
+.Synopsis
+   Returns VSA users
+.DESCRIPTION
+   Returns existing VSA users.
+   Takes either persistent or non-persistent connection information
+.PARAMETER Name
+    Specifies existing non-persistent VSAConnection.
+.PARAMETER SystemUsersSuffix
+.EXAMPLE
+   Get-VSAUsers
+.EXAMPLE
+   Get-VSAUsers -VSAConnection $connection
+.INPUTS
+   Accepts piped non-persistent VSAConnection 
+.OUTPUTS
+   Array of custom objects that represent existing VSA users
+#>
 function Get-VSAUsers
 {
 

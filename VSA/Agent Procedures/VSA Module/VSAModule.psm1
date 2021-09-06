@@ -207,7 +207,7 @@ function New-VSAConnection {
 .PARAMETER NonInteractive
     Specifies whether to use stored credentials.
 .EXAMPLE
-   New-VSAConnection -VSAServer https://localhost -NonInteractive -MakePersistent
+   New-VSAConnection -VSAServer https://theserver.address.example -NonInteractive -MakePersistent
 .INPUTS
    Accepts response object from the authorization API.
 .OUTPUTS

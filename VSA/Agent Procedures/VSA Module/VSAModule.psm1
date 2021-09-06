@@ -181,7 +181,7 @@ Class VSAConnection
 #region function New-VSAConnection
 function New-VSAConnection {
 <#
-.PARAMETER VSAEndpointAddress
+.PARAMETER VSAServer
     Address of the VSA Server to connect
 #>
     [cmdletbinding()]
@@ -191,7 +191,7 @@ function New-VSAConnection {
             Mandatory = $true,
             Position = 0)]
         [ValidateNotNullOrEmpty()]
-        [String] $VSAEndpointAddress,
+        [String]$VSAServer,
         [parameter(ValueFromPipeline,
             Mandatory = $true,
             Position = 1)]
@@ -229,7 +229,7 @@ Add-Type @'
     $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$Username`:$PAT"))
 
     [string] $AuthSuffix = 'Auth'
-    $URI = "$VSAEndpoint/$AuthSuffix"
+    $URI = "$VSAServer/$AuthSuffix"
     $AuthString  = "Basic $Encoded"
 
     Log-Event -Msg "Attempting to authenticate" -Id 0001 -Type "Information"
@@ -237,7 +237,7 @@ Add-Type @'
     
     if ($result)
     {
-        [VSAConnection]$conn = [VSAConnection]::new( $result, $VSAEndpoint )
+        [VSAConnection]$conn = [VSAConnection]::new( $result, $VSAServer )
 
         [datetime]$ExpiresAsUTC = $result.SessionExpiration -replace "T"," "
         Log-Event -Msg "Successfully authenticated. Token expiration date: $ExpiresAsUTC (UTC)." -Id 0002 -Type "Information"

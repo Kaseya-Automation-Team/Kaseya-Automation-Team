@@ -247,7 +247,7 @@ Add-Type @'
     }
 '@
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
+    #endregion set to ignore self-signed SSL certificate
     if ($NonInteractive) {
         Write-Host "Running in non-interactive mode"
 
@@ -266,7 +266,7 @@ Add-Type @'
       $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($creds.password)
     }
 
-    #endregion set to ignore self-signed SSL certificate
+    
     #$Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$Username`:$PAT"))
 
     $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$username`:$([System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR))"))

@@ -52,13 +52,15 @@ function Get-VSAUsers
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
+
     [hashtable]$Params =@{
         URISuffix = $URISuffix
     }
 
-    if($Filter) {$Params.Add('Filter', $Filter)}
-    if($Paging) {$Params.Add('Paging', $Paging)}
-    if($Sort) {$Params.Add('Sort', $Sort)}
+    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+    if($Filter)        {$Params.Add('Filter', $Filter)}
+    if($Paging)        {$Params.Add('Paging', $Paging)}
+    if($Sort)          {$Params.Add('Sort', $Sort)}
 
     return Get-VSAItems @Params
 }

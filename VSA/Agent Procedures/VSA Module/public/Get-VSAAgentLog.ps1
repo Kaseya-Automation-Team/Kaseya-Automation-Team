@@ -4,7 +4,7 @@ function Get-VSAAgentLog
     .Synopsis
        Returns VSA agent's logs
     .DESCRIPTION
-       Returns VSA agents log for given Agent Id.
+       Returns the VSA agent's log for given Agent Id.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.

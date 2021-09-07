@@ -76,7 +76,7 @@
     [string]$JoinWith = '?'
 
     if ( $Filter ) {
-        $CombinedURL += "`?`$filter=$Filter"
+        $CombinedURL += "$JoinWith`$filter=$Filter"
         $JoinWith = '&'
     }
     if ( $Sort ) {

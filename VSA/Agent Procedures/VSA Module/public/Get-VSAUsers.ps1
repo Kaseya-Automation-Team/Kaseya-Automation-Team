@@ -38,7 +38,7 @@ function Get-VSAUsers
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
-        [string] $SystemUsersSuffix = 'api/v1.0/system/users',
+        [string] $URISuffix = 'api/v1.0/system/users',
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
@@ -55,7 +55,7 @@ function Get-VSAUsers
 
     if ([VSAConnection]::IsPersistent)
     {
-        $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$SystemUsersSuffix"
+        $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$URISuffix"
         $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
     }
     else
@@ -64,7 +64,7 @@ function Get-VSAUsers
 
         if ( 'Open' -eq $ConnectionStatus )
         {
-            $CombinedURL = "$($VSAConnection.URI)/$SystemUsersSuffix"
+            $CombinedURL = "$($VSAConnection.URI)/$URISuffix"
             $UsersToken = "Bearer $($VSAConnection.GetToken())"
         }
         else

@@ -1,4 +1,9 @@
 function Log-Event {
+    <#
+    .Synopsis
+       Logs the module's commandlets information.
+    .DESCRIPTION
+    #>
     param(        
         [Parameter(Mandatory=$true)][String]$Msg,
         [Parameter(Mandatory=$true)][Int]$Id,

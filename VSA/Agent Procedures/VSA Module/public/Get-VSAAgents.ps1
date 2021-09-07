@@ -54,50 +54,17 @@ function Get-VSAAgents
         [string] $Sort
     )
 
-    if ([VSAConnection]::IsPersistent)
-    {
-        $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$URISuffix"
-        $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
-    }
-    else
-    {
-        $ConnectionStatus = $VSAConnection.GetStatus()
 
-        if ( 'Open' -eq $ConnectionStatus )
-        {
-            $CombinedURL = "$($VSAConnection.URI)/$URISuffix"
-            $UsersToken = "Bearer $($VSAConnection.GetToken())"
-        }
-        else
-        {
-            throw "Connection status: $ConnectionStatus"
-        }
+    [hashtable]$Params =@{
+        URISuffix = $URISuffix
     }
 
-    #region Filterin, Sorting, Paging
-    if ($Filter) {
-        $CombinedURL = -join ($CombinedURL, "`?`$filter=$Filter")
-    }
+    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+    if($Filter)        {$Params.Add('Filter', $Filter)}
+    if($Paging)        {$Params.Add('Paging', $Paging)}
+    if($Sort)          {$Params.Add('Sort', $Sort)}
 
-    if ($Sort) {
-        if ($Filter) {
-            $CombinedURL = -join ($CombinedURL, "`&`$orderby=$Sort")
-            } else {
-            $CombinedURL = -join ($CombinedURL, "`?`$orderby=$Sort")
-        }
-    }
-
-    if ($Paging) {
-        if ($Filter -or $Sort) {
-            $CombinedURL = -join ($CombinedURL, "`&`$$Paging")
-        } else {
-            $CombinedURL = -join ($CombinedURL, "`?`$$Paging")
-        }
-    }
-    #endregion Filterin, Sorting, Paging
-
-    $result = Get-RequestData -URI $CombinedURL -AuthString $UsersToken
-
-    return $result
+    return Get-VSAItems @Params
 }
+
 Export-ModuleMember -Function Get-VSAAgents

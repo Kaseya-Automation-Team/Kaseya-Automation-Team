@@ -268,7 +268,7 @@ Add-Type @'
         Write-Error "Username is required parameter in non-interactive mode" -ErrorAction Stop
     }
 
-        $password = Get-Content "C:\work\vsa\VSA Module\pat.txt" |  ConvertTo-SecureString
+        $password = Get-Content "C:\work\vsa\VSA Module\pat.txt" |  ConvertTo-SecureString -AsPlainText -Force
         $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
 
     } else {

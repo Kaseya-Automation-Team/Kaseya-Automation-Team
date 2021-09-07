@@ -93,4 +93,4 @@
 
     return $result
 }
-Export-ModuleMember -Function Get-VSAUsers
+Export-ModuleMember -Function Get-VSAItems

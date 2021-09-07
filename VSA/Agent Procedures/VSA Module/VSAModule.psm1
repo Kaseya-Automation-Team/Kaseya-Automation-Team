@@ -268,7 +268,7 @@ Add-Type @'
         Write-Error "Username is required parameter in non-interactive mode" -ErrorAction Stop
     }
 
-        $password = Get-Content "C:\work\vsa\VSA Module\pat.txt" |  ConvertTo-SecureString -AsPlainText -Force
+        $password = Get-Content "$PSScriptRoot\private\pat.txt" |  ConvertTo-SecureString
         $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
 
     } else {

@@ -6,9 +6,9 @@ function Get-VSAUsers
 .DESCRIPTION
    Returns existing VSA users.
    Takes either persistent or non-persistent connection information.
-.PARAMETER Name
+.PARAMETER VSAConnection
     Specifies existing non-persistent VSAConnection.
-.PARAMETER SystemUsersSuffix
+.PARAMETER URISuffix
     Specifies URI suffix if it differs from the default.
 .PARAMETER Filter
     Specifies REST API Filter.

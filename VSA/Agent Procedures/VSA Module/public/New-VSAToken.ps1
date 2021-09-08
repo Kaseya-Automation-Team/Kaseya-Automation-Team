@@ -1,5 +1,8 @@
 ﻿function New-VSAToken
 {
-$SecurePassword = Read-Host -AsSecureString  "Enter Personal Authentication Token" | convertfrom-securestring | out-file $PSScriptRoot\..\private\pat.txt
+    $creds = Get-Credential -Message "Enter your API username and Personal Authentication Token"
+    
+    [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$($creds.UserName):$($creds.Password | Convertfrom-SecureString)")) | Out-File "$PSScriptRoot\..\private\pat.txt"
 }
+
 Export-ModuleMember -Function New-VSAToken

@@ -23,7 +23,7 @@ function Get-VSAUsers
 .INPUTS
    Accepts piped non-persistent VSAConnection 
 .OUTPUTS
-   Array of custom objects that represent existing VSA users
+   Array of objects that represent existing VSA users
 #>
     [CmdletBinding()]
     param ( 

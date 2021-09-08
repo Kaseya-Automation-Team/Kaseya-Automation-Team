@@ -25,7 +25,7 @@ function Get-VSAAPLog
     .INPUTS
        Accepts piped non-persistent VSAConnection
     .OUTPUTS
-       Array of objects that represent the VSA VSA agent procedures' log
+       Array of objects that represent the VSA agent procedures' log
     #>
     [CmdletBinding()]
     param ( 

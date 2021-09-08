@@ -264,12 +264,15 @@ Add-Type @'
     if ($NonInteractive) {
         Write-Host "Running in non-interactive mode"
 
-    if (!$Username) {
-        Write-Error "Username is required parameter in non-interactive mode" -ErrorAction Stop
+    if ($Username) {
+        Write-Host "Username is NOT required parameter in non-interactive mode and will be ignored" -ErrorAction Continue
     }
+        $file = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($(Get-Content -Path "$PSScriptRoot\private\pat.txt")))
+        $creds = $file -split ":"
 
-        $password = Get-Content "$PSScriptRoot\private\pat.txt" |  ConvertTo-SecureString
-        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
+        $username = $creds[0]
+
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($($creds[1] | ConvertTo-SecureString))
 
     } else {
 
@@ -280,8 +283,6 @@ Add-Type @'
     }
 
     
-    #$Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$Username`:$PAT"))
-
     $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$username`:$([System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR))"))
 
     $URI = "$VSAServer/$AuthSuffix"

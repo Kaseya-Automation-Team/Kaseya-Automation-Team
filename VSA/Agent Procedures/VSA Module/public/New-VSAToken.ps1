@@ -17,7 +17,8 @@
         Log-Event -Msg "New authentication pair have been generated and saved in $PSScriptRoot\..\private\pat.txt" -Id 9999 -Type "Information"
     }
     catch {
-        
+        Write-Warning "Unable to generate authentication file"
+        Write-Warning $Error[0] -ErrorAction Stop
     }
 }
 

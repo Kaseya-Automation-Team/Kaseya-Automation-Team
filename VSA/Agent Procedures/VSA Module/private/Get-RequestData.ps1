@@ -48,15 +48,16 @@ function Get-RequestData
         Method = $Method
         Headers = $authHeader
     }
+
+    if( $Body ) {
+        $requestParameters.Add('Body', $Body)
+        $requestParameters.Add('ContentType', "application/json")
+    }
     
     Log-Event -Msg "Executing call $Method : $URI" -Id 0010 -Type "Information"
    
     try {
-            if ($Body) {
-	            $response = Invoke-RestMethod @requestParameters -Body $Body -ErrorAction Stop
-	        } else {
-                $response = Invoke-RestMethod @requestParameters -ErrorAction Stop
-            }
+            $response = Invoke-RestMethod @requestParameters -ErrorAction Stop
             
             if (0 -eq $response.ResponseCode) {
                 return $response.Result

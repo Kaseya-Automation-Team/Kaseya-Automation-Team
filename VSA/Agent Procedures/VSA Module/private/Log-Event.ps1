@@ -30,6 +30,6 @@ function Log-Event {
     }
 
     Write-EventLog -LogName Application -Source "VSA API Module" -EntryType $Type -EventID $Id -Message $Msg -Category 0
-    #$CurrentTime = Get-Date
-    #Write-Host "$CurrentTime`: $Type`: $Msg"
+    $CurrentTime = Get-Date
+    Write-Host "$CurrentTime`: $Type`: $Msg"
 }

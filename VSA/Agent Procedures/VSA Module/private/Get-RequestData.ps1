@@ -71,7 +71,7 @@ function Get-RequestData
         $requestParameters.Add('ContentType', "application/json")
     }
     
-    Log-Event -Msg "Executing call $Method : $URI" -Id 0010 -Type "Information"
+    Log-Event -Msg "Executing call $Method : $URI" -Id 1000 -Type "Information"
    
     try {
             $response = Invoke-RestMethod @requestParameters -ErrorAction Stop
@@ -79,10 +79,9 @@ function Get-RequestData
             if (0 -eq $response.ResponseCode) {
                 return $response.Result
             } else {
-                Log-Event -Msg "$response.Error" -Id 0000 -Type "Error"
+                Log-Event -Msg "$response.Error" -Id 4000 -Type "Error"
                 throw $response.Error
             }
     } catch { throw $($_.Exception.Message) }
 }
-Export-ModuleMember -Function Get-RequestData
 #endregion function Get-RequestData

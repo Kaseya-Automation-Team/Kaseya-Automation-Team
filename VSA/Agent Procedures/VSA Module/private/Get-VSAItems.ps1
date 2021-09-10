@@ -93,4 +93,3 @@
 
     return Get-RequestData -URI $CombinedURL -AuthString $UsersToken
 }
-Export-ModuleMember -Function Get-VSAItems

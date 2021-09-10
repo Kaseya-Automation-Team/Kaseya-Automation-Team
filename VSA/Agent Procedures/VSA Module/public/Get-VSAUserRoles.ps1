@@ -84,7 +84,7 @@ function Get-VSAUserRoles
         }
 
         $result = $result | Select-Object -Property *, `
-            @{Name = 'AdminRoles'; Expression = { $RoleTypesDictionary[$_.RoleTypeIds] }}
+            @{Name = 'RoleTypes'; Expression = { $RoleTypesDictionary[$_.RoleTypeIds] }}
     }
     return $result
 }

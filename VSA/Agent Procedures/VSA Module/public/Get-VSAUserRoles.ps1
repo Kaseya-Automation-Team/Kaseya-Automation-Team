@@ -25,7 +25,7 @@ function Get-VSAUserRoles
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       Array of objects that represent existing VSA users
+       Array of objects that represent existing VSA user roles
     #>
     [CmdletBinding()]
     param ( 
@@ -68,6 +68,24 @@ function Get-VSAUserRoles
     if($Paging)        {$Params.Add('Paging', $Paging)}
     if($Sort)          {$Params.Add('Sort', $Sort)}
 
-    return Get-VSAItems @Params
+    $result = Get-VSAItems @Params
+
+    if ($ResolveIDs)
+    {
+        [hashtable]$ResolveParams =@{}
+        if($VSAConnection) {$ResolveParams.Add('VSAConnection', $VSAConnection)}
+
+        [hashtable]$RoleTypesDictionary = @{}
+
+        Foreach( $RoleType in $(Get-VSAUserRoleTypes @ResolveParams) )
+        {
+            if ( -Not $RoleTypesDictionary[$RoleType.RoleTypeId]){}
+            $RoleTypesDictionary.Add($RoleType.RoleTypeId, $($RoleType | Select-Object * -ExcludeProperty RoleTypeId))
+        }
+
+        $result = $result | Select-Object -Property *, `
+            @{Name = 'AdminRoles'; Expression = { $RoleTypesDictionary[$_.RoleTypeIds] }}
+    }
+    return $result
 }
 Export-ModuleMember -Function Get-VSAUserRoles

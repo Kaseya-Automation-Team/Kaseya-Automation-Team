@@ -59,7 +59,7 @@
 
     $requestParameters = @{
         Uri = $CombinedURL
-        Method = 'Post'
+        Method = 'POST'
         Headers = $authHeader
         Body = $Body
     }

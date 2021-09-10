@@ -77,7 +77,7 @@ function Get-VSAUsers
         [hashtable]$RolesDictionary = @{}
         [hashtable]$ScopesDictionary = @{}
 
-        Foreach( $Role in $(Get-VSAUserRoles @ResolveParams) )
+        Foreach( $Role in $(Get-VSAUserRoles @ResolveParams -ResolveIDs) )
         {
             if ( -Not $RolesDictionary[$Role.RoleId]){}
             $RolesDictionary.Add($Role.RoleId, $($Role | Select-Object * -ExcludeProperty RoleId))

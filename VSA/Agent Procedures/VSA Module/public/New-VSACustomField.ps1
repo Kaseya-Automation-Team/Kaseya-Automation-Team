@@ -1,7 +1,35 @@
 ﻿function New-VSACustomField {
-    $URISuffix = 'api/v1.0/assetmgmt/assets/customfields'
-    [string]$FieldName = "TestField"
-    [string]$FieldType = "string"
+    [CmdletBinding()]
+    param (
+        [parameter(Mandatory = $true, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'NonPersistent')]
+        [VSAConnection] $VSAConnection,
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'Persistent')]
+        [ValidateNotNullOrEmpty()]
+        [string] $URISuffix = 'api/v1.0/assetmgmt/assets/customfields',
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'Persistent')]
+        [ValidateNotNullOrEmpty()] 
+        [string] $FieldName,
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'Persistent')]
+        [ValidateNotNullOrEmpty()]
+        [string]$FieldType = 'string'
+        )
 
     if ([VSAConnection]::IsPersistent)
     {
@@ -22,6 +50,7 @@
             throw "Connection status: $ConnectionStatus"
         }
     }
+
     $Body = @(@{"key"="FieldName";"value"=$FieldName },@{ "key"="FieldType";"value"=$FieldType }) | ConvertTo-Json
 
     $authHeader = @{
@@ -33,11 +62,9 @@
         Method = 'Post'
         Headers = $authHeader
         Body = $Body
-        ContentType = "application/json"
-        Verbose = $true
     }
     $requestParameters
 
-    Invoke-WebRequest @requestParameters
+    Get-RequestData @requestParameters
 }
 Export-ModuleMember -Function New-VSACustomField

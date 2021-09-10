@@ -25,16 +25,33 @@ function Get-RequestData
     #>
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)] 
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'PutPostPatch')]
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'GetDelete')] 
         [ValidateNotNullOrEmpty()] 
         [string] $URI,
-        [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)] 
-        [ValidateNotNullOrEmpty()] 
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'PutPostPatch')]
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'GetDelete')]
+        [ValidateNotNullOrEmpty()]
         [string] $AuthString,
-        [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)] 
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'PutPostPatch')]
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'GetDelete')]
         [ValidateSet("GET", "POST", "PUT", "DELETE", "PATCH")]
         [string] $Method = "GET",
-        [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)] 
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'PutPostPatch')]
         [ValidateNotNullOrEmpty()]
 		[string] $Body
     )

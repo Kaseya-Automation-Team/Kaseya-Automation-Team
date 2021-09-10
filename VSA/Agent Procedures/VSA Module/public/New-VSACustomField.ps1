@@ -1,5 +1,7 @@
 ﻿function New-VSACustomField {
     $URISuffix = 'api/v1.0/assetmgmt/assets/customfields'
+    [string]$FieldName = "TestField"
+    [string]$FieldType = "string"
 
     if ([VSAConnection]::IsPersistent)
     {
@@ -20,7 +22,7 @@
             throw "Connection status: $ConnectionStatus"
         }
     }
-    $Body = @(@{"key"="FieldName";"value"="TestField"},@{ "key"="FieldType";"value"="string" }) | ConvertTo-Json
+    $Body = @(@{"key"="FieldName";"value"=$FieldName },@{ "key"="FieldType";"value"=$FieldType }) | ConvertTo-Json
 
     $authHeader = @{
         Authorization = $UsersToken

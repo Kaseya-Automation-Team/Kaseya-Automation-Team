@@ -1,13 +1,13 @@
 ﻿<#
 POC
    Module VSA
-   Version 0.4.2
+   Version 0.5
    Author: Vladislav Semko
    Modified: Aliaksandr Serzhankou
-   Modification date: 09-03-21
+   Modification date: 09-10-21
 #>
-#Replace with
 
+#Import additional functions from Private and Public folders
 $Public  = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction SilentlyContinue )
 $Private = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue )
 
@@ -19,7 +19,8 @@ Foreach($import in @($Public + $Private))
         }
         Catch
         {
-            Write-Error -Msg "Failed to import function $($import.fullname): $_"
+            Write-Warning -Msg "Failed to import function $($import.fullname): $_"
+			Continue
         }
     }
 
@@ -262,10 +263,10 @@ Add-Type @'
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
     #endregion set to ignore self-signed SSL certificate
     if ($NonInteractive) {
-        Write-Host "Running in non-interactive mode"
+        Log-Event -Msg "Running in non-interactive mode" -Id 0000 -Type "Information"
 
     if ($Username) {
-        Write-Host "Username is NOT required parameter in non-interactive mode and will be ignored" -ErrorAction Continue
+        Write-Host "Username is NOT required parameter in non-interactive mode and will be ignored"
     }
         $file = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($(Get-Content -Path "$PSScriptRoot\private\pat.txt")))
         $creds = $file -split ":"
@@ -288,7 +289,7 @@ Add-Type @'
     $URI = "$VSAServer/$AuthSuffix"
     $AuthString  = "Basic $Encoded"
 
-    Log-Event -Msg "Attempting to authenticate" -Id 0001 -Type "Information"
+    Log-Event -Msg "Attempting to authenticate" -Id 0000 -Type "Information"
     $result = Get-RequestData -URI $URI -authString $AuthString
     
     if ($result)
@@ -296,13 +297,15 @@ Add-Type @'
         [VSAConnection]$conn = [VSAConnection]::new( $result, $VSAServer )
 
         [datetime]$ExpiresAsUTC = $result.SessionExpiration -replace "T"," "
-        Log-Event -Msg "Successfully authenticated. Token expiration date: $ExpiresAsUTC (UTC)." -Id 0002 -Type "Information"
+        Log-Event -Msg "Successfully authenticated. Token expiration date: $ExpiresAsUTC (UTC)." -Id 2000 -Type "Information"
 
         if ($MakePersistent) { $conn.SetPersistent( $true ) }
     }
     else
     {
-        throw "Could not get authentication response"
+        Log-Event -Msg "Could not get authentication response" -Id 4001 -Type "Error"
+		throw "Could not get authentication response"
+		
     }
 
     return $conn    

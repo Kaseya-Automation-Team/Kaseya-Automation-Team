@@ -31,6 +31,8 @@
         [string]$FieldType = 'string'
         )
 
+    [bool]$result = $false
+
     $Body = @(@{"key"="FieldName";"value"=$FieldName },@{ "key"="FieldType";"value"=$FieldType }) | ConvertTo-Json
 
     [hashtable]$Params =@{
@@ -41,7 +43,14 @@
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+    #[string[]]$ExistingFields = Get-VSACustomFields -Filter "FieldName eq `'$FieldName`'"
+    [string[]]$ExistingFields = Get-VSACustomFields | Select-Object -ExpandProperty FieldName 
+
+    If ($FieldName -notin $ExistingFields)
+    {
+        $result = Update-VSAItems @Params
+    }
+    return $result
 
     #Get-RequestData @requestParameters
 }

@@ -23,12 +23,20 @@
         [string] $FieldName
         )
 
-    $URISuffix = $URISuffix -f $FieldName
+    [bool]$result = $false
 
-    [hashtable]$Params =@{
-        URISuffix = $URISuffix
-        Method = 'DELETE'
+    [string[]]$ExistingFields = Get-VSACustomFields | Select-Object -ExpandProperty FieldName
+
+    If ($FieldName -in $ExistingFields)
+    {
+        $URISuffix = $URISuffix -f $FieldName
+
+        [hashtable]$Params =@{
+            URISuffix = $URISuffix
+            Method = 'DELETE'
+        }
+        $result = Update-VSAItems @Params
     }
-    return Update-VSAItems @Params
+    return $result
 }
 Export-ModuleMember -Function Remove-VSACustomField

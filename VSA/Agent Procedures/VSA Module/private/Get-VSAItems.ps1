@@ -103,22 +103,26 @@
     }
 
     $response = Get-RequestData @requestParameters
+    Write-Verbose $response
     $result = $response | Select-Object -ExpandProperty Result
-    [int]$TotalRecords = $response | Select-Object -ExpandProperty TotalRecords
-    
-    $Pages = [int][Math]::Ceiling($TotalRecords / $RecordsPerPage)
-
-    if ( $Pages -gt 1 )
+    if( $response.TotalRecords ) #if request returns field TotalRecords
     {
-        [int]$PageProcessed = 1
-        while ($PageProcessed -lt $Pages)
+        [int]$TotalRecords = $response | Select-Object -ExpandProperty TotalRecords
+    
+        $Pages = [int][Math]::Ceiling($TotalRecords / $RecordsPerPage)
+
+        if ( $Pages -gt 1 )
         {
-            $Paging = "skip=$($RecordsPerPage * $PageProcessed)"
+            [int]$PageProcessed = 1
+            while ($PageProcessed -lt $Pages)
+            {
+                $Paging = "skip=$($RecordsPerPage * $PageProcessed)"
         
-            $URI = "$CombinedURL$JoinWith`$$Paging"
-            $requestParameters.Uri = $URI
-            $result += Get-RequestData @requestParameters | Select-Object -ExpandProperty Result
-            $PageProcessed++
+                $URI = "$CombinedURL$JoinWith`$$Paging"
+                $requestParameters.Uri = $URI
+                $result += Get-RequestData @requestParameters | Select-Object -ExpandProperty Result
+                $PageProcessed++
+            }
         }
     }
     return $result

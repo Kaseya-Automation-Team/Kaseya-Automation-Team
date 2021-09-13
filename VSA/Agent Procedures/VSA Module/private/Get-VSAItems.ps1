@@ -10,6 +10,8 @@
     Specifies existing non-persistent VSAConnection.
 .PARAMETER URISuffix
     Specifies URI suffix if it differs from the default.
+.PARAMETER RecordsPerPage
+    Specifies number of objects returned by reques. 100 by default.
 .PARAMETER Filter
     Specifies REST API Filter.
 .PARAMETER Paging
@@ -37,12 +39,16 @@
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'Persistent')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix,
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
+        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
+        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+        [ValidateRange(1,1000)]
+        [int]$RecordsPerPage = 100,
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
@@ -87,15 +93,33 @@
         $CombinedURL += "$JoinWith`$$Paging"
     }
     
+    $URI = $CombinedURL
+
     #endregion Filterin, Sorting, Paging
     $requestParameters = @{
-        Uri = $CombinedURL
+        Uri = $URI
         Method = 'GET'
         AuthString = $UsersToken
     }
 
-    #$result = Get-RequestData -URI $CombinedURL -AuthString $UsersToken
-    $result = Get-RequestData @requestParameters | Select-Object -ExpandProperty Result
+    $response = Get-RequestData @requestParameters
+    $result = $response | Select-Object -ExpandProperty Result
+    [int]$TotalRecords = $response | Select-Object -ExpandProperty TotalRecords
+    
+    $Pages = [int][Math]::Ceiling($TotalRecords / $RecordsPerPage)
 
+    if ( $Pages -gt 1 )
+    {
+        [int]$PageProcessed = 1
+        while ($PageProcessed -lt $Pages)
+        {
+            $Paging = "skip=$($RecordsPerPage * $PageProcessed)"
+        
+            $URI = "$CombinedURL$JoinWith`$$Paging"
+            $requestParameters.Uri = $URI
+            $result += Get-RequestData @requestParameters | Select-Object -ExpandProperty Result
+            $PageProcessed++
+        }
+    }
     return $result
 }

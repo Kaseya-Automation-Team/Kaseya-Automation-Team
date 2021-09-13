@@ -12,7 +12,7 @@
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()]
-        [string] $URISuffix = 'api/v1.0//assetmgmt/assets/customfields/{0}',
+        [string] $URISuffix = "api/v1.0/assetmgmt/assets/customfields/{0}",
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'NonPersistent')]
@@ -22,6 +22,8 @@
         [ValidateNotNullOrEmpty()] 
         [string] $FieldName
         )
+
+    $URISuffix = $URISuffix -f $FieldName
 
     if ([VSAConnection]::IsPersistent)
     {
@@ -43,7 +45,7 @@
         }
     }
 
-    $URISuffix = $URISuffix -f $FieldName
+    
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix
@@ -61,6 +63,6 @@
         Headers = $authHeader
     }
 
-    Get-RequestData @requestParameters
+    Invoke-RestMethod @requestParameters
 }
 Export-ModuleMember -Function Remove-VSACustomField

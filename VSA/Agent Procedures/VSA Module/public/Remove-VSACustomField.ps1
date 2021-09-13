@@ -25,17 +25,21 @@
 
     [bool]$result = $false
 
+    
+    $URISuffix = $URISuffix -f $FieldName
+
+    [hashtable]$Params =@{
+            URISuffix = $URISuffix
+            Method = 'DELETE'
+        }
+
+    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+
     #[string[]]$ExistingFields = Get-VSACustomFields -Filter "FieldName eq `'$FieldName`'"
     [string[]]$ExistingFields = Get-VSACustomFields | Select-Object -ExpandProperty FieldName 
 
     If ($FieldName -in $ExistingFields)
     {
-        $URISuffix = $URISuffix -f $FieldName
-
-        [hashtable]$Params =@{
-            URISuffix = $URISuffix
-            Method = 'DELETE'
-        }
         $result = Update-VSAItems @Params
     }
     return $result

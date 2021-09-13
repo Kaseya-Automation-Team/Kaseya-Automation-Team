@@ -25,32 +25,10 @@
 
     $URISuffix = $URISuffix -f $FieldName
 
-    if ([VSAConnection]::IsPersistent)
-    {
-        $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$URISuffix"
-        $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
-    }
-    else
-    {
-        $ConnectionStatus = $VSAConnection.GetStatus()
-
-        if ( 'Open' -eq $ConnectionStatus )
-        {
-            $CombinedURL = "$($VSAConnection.URI)/$URISuffix"
-            $UsersToken = "Bearer $($VSAConnection.GetToken())"
-        }
-        else
-        {
-            throw "Connection status: $ConnectionStatus"
-        }
-    }
-
-    $requestParameters = @{
-        Uri = $CombinedURL
+    [hashtable]$Params =@{
+        URISuffix = $URISuffix
         Method = 'DELETE'
-        AuthString = $UsersToken
     }
-
-    Get-RequestData @requestParameters
+    return Update-VSAItems @Params
 }
 Export-ModuleMember -Function Remove-VSACustomField

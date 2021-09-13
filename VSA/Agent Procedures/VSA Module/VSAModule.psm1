@@ -290,7 +290,7 @@ Add-Type @'
     $AuthString  = "Basic $Encoded"
 
     Log-Event -Msg "Attempting to authenticate" -Id 0000 -Type "Information"
-    $result = Get-RequestData -URI $URI -authString $AuthString
+    $result = Get-RequestData -URI $URI -authString $AuthString  | Select-Object -ExpandProperty Result
     
     if ($result)
     {

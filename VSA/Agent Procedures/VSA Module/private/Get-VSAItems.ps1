@@ -90,6 +90,7 @@
     #endregion Filterin, Sorting, Paging
 
     #$result = Get-RequestData -URI $CombinedURL -AuthString $UsersToken
+    $result = Get-RequestData -URI $CombinedURL -AuthString $UsersToken | Select-Object -ExpandProperty Result
 
-    return Get-RequestData -URI $CombinedURL -AuthString $UsersToken
+    return $result
 }

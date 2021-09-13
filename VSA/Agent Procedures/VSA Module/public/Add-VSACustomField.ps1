@@ -31,34 +31,18 @@
         [string]$FieldType = 'string'
         )
 
-    if ([VSAConnection]::IsPersistent)
-    {
-        $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$URISuffix"
-        $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
-    }
-    else
-    {
-        $ConnectionStatus = $VSAConnection.GetStatus()
-
-        if ( 'Open' -eq $ConnectionStatus )
-        {
-            $CombinedURL = "$($VSAConnection.URI)/$URISuffix"
-            $UsersToken = "Bearer $($VSAConnection.GetToken())"
-        }
-        else
-        {
-            throw "Connection status: $ConnectionStatus"
-        }
-    }
     $Body = @(@{"key"="FieldName";"value"=$FieldName },@{ "key"="FieldType";"value"=$FieldType }) | ConvertTo-Json
 
-    $requestParameters = @{
-        Uri = $CombinedURL
+    [hashtable]$Params =@{
+        URISuffix = $URISuffix
         Method = 'POST'
         Body = $Body
-        AuthString = $UsersToken
     }
 
-    Get-RequestData @requestParameters
+    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+
+    return Update-VSAItems @Params
+
+    #Get-RequestData @requestParameters
 }
 Export-ModuleMember -Function Add-VSACustomField

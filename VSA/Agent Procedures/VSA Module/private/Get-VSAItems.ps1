@@ -88,9 +88,14 @@
     }
     
     #endregion Filterin, Sorting, Paging
+    $requestParameters = @{
+        Uri = $CombinedURL
+        Method = 'GET'
+        AuthString = $UsersToken
+    }
 
     #$result = Get-RequestData -URI $CombinedURL -AuthString $UsersToken
-    $result = Get-RequestData -URI $CombinedURL -AuthString $UsersToken | Select-Object -ExpandProperty Result
+    $result = Get-RequestData @requestParameters | Select-Object -ExpandProperty Result
 
     return $result
 }

@@ -27,7 +27,7 @@
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'Persistent')]
-        [ValidateNotNullOrEmpty()]
+        [ValidateSet("string", "number", "datetime", "date", "time")]
         [string]$FieldType = 'string'
         )
 

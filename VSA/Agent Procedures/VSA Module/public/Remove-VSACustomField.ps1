@@ -45,24 +45,12 @@
         }
     }
 
-    
-
-    [hashtable]$Params =@{
-        URISuffix = $URISuffix
-    }
-
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-    
-    $authHeader = @{
-        Authorization = $UsersToken
-    }
-
     $requestParameters = @{
         Uri = $CombinedURL
         Method = 'DELETE'
-        Headers = $authHeader
+        AuthString = $UsersToken
     }
 
-    Invoke-RestMethod @requestParameters
+    Get-RequestData @requestParameters
 }
 Export-ModuleMember -Function Remove-VSACustomField

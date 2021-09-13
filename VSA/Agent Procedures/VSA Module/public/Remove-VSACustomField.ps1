@@ -25,7 +25,8 @@
 
     [bool]$result = $false
 
-    [string[]]$ExistingFields = Get-VSACustomFields | Select-Object -ExpandProperty FieldName
+    #[string[]]$ExistingFields = Get-VSACustomFields -Filter "FieldName eq `'$FieldName`'"
+    [string[]]$ExistingFields = Get-VSACustomFields | Select-Object -ExpandProperty FieldName 
 
     If ($FieldName -in $ExistingFields)
     {

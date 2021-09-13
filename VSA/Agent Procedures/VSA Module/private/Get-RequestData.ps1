@@ -77,7 +77,7 @@ function Get-RequestData
             $response = Invoke-RestMethod @requestParameters -ErrorAction Stop
             
             if (0 -eq $response.ResponseCode) {
-                return $response.Result
+                return $response
             } else {
                 Log-Event -Msg "$response.Error" -Id 4000 -Type "Error"
                 throw $response.Error

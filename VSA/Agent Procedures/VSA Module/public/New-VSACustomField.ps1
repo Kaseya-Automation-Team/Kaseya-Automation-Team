@@ -50,20 +50,14 @@
             throw "Connection status: $ConnectionStatus"
         }
     }
-
     $Body = @(@{"key"="FieldName";"value"=$FieldName },@{ "key"="FieldType";"value"=$FieldType }) | ConvertTo-Json
-
-    $authHeader = @{
-        Authorization = $UsersToken
-    }
 
     $requestParameters = @{
         Uri = $CombinedURL
         Method = 'POST'
-        Headers = $authHeader
         Body = $Body
+        AuthString = $UsersToken
     }
-    $requestParameters
 
     Get-RequestData @requestParameters
 }

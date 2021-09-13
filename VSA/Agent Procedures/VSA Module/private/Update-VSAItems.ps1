@@ -84,7 +84,9 @@
         $requestParameters.Add('Body', $Body)
     }
     #$result = Get-RequestData -URI $CombinedURL -AuthString $UsersToken
-    $result = Get-RequestData @requestParameters | Select-Object -ExpandProperty Result
+    $response = Get-RequestData @requestParameters
+    Write-Verbose $response
+    $result = $response  | Select-Object -ExpandProperty Result
 
     return $result
 }

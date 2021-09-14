@@ -1,4 +1,27 @@
 ﻿function Add-VSACustomField {
+    <#
+    .Synopsis
+       Creates a custom field.
+    .DESCRIPTION
+       Creates a custom field of given type.
+       Takes either persistent or non-persistent connection information.
+    .PARAMETER VSAConnection
+        Specifies existing non-persistent VSAConnection.
+    .PARAMETER URISuffix
+        Specifies URI suffix if it differs from the default.
+    .PARAMETER FieldName
+        Custom field's name.
+    .PARAMETER FieldType
+        New Field Type: "string", "number", "datetime", "date", "time".
+    .EXAMPLE
+       Add-VSACustomField -FieldName 'MyField'
+    .EXAMPLE
+       Add-VSACustomField -FieldName 'MyField' -FieldType datetime
+    .INPUTS
+       Accepts piped non-persistent VSAConnection 
+    .OUTPUTS
+       True if creation was successful
+    #>
     [CmdletBinding()]
     param (
         [parameter(Mandatory = $true, 

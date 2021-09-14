@@ -83,6 +83,9 @@
     if( $Body ) {
         $requestParameters.Add('Body', $Body)
     }
+
+    $requestParameters | Out-String | Write-Verbose 
+
     #$result = Get-RequestData -URI $CombinedURL -AuthString $UsersToken
     $response = Get-RequestData @requestParameters
     Write-Verbose $response

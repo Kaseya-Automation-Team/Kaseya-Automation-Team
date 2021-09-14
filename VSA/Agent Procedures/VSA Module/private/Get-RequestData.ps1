@@ -71,6 +71,8 @@ function Get-RequestData
         $requestParameters.Add('ContentType', "application/json")
     }
     
+    $requestParameters | Out-String | Write-Verbose
+
     Log-Event -Msg "Executing call $Method : $URI" -Id 1000 -Type "Information"
    
     try {

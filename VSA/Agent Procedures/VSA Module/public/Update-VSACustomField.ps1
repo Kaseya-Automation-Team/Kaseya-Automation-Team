@@ -97,8 +97,7 @@
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    [string[]]$ExistingFields = Get-VSACustomFields | Select-Object -ExpandProperty FieldName 
-
+    [string[]]$ExistingFields = Get-VSACustomFields | Select-Object -ExpandProperty FieldName
 
     If ($FieldName -notin $ExistingFields) {
         throw "The custom field $FieldName does not exist"

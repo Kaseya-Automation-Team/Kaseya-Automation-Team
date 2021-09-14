@@ -2,7 +2,7 @@ function Get-VSARoles
 {
     <#
     .Synopsis
-        Returns VSA roles.
+       Returns VSA roles.
     .DESCRIPTION
        Returns existing VSA roles.
        Takes either persistent or non-persistent connection information.
@@ -16,14 +16,16 @@ function Get-VSARoles
         Specifies REST API Paging.
     .PARAMETER Sort
         Specifies REST API Sorting.
+    .PARAMETER ResolveIDs
+        Return Role Types as well as their IDs.
     .EXAMPLE
-       Get-VSARoles
+       Get-VSARoleTypes
     .EXAMPLE
-       Get-VSARoles -VSAConnection $connection
+       Get-VSARoleTypes -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       Array of objects that represent existing VSA roles.
+       Array of objects that represent existing VSA user roles
     #>
     [CmdletBinding()]
     param ( 
@@ -50,7 +52,11 @@ function Get-VSARoles
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
-        [string] $Sort
+        [string] $Sort,
+        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
+        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+        [switch] $ResolveIDs
+
     )
 
     [hashtable]$Params =@{
@@ -62,6 +68,24 @@ function Get-VSARoles
     if($Paging)        {$Params.Add('Paging', $Paging)}
     if($Sort)          {$Params.Add('Sort', $Sort)}
 
-    return Get-VSAItems @Params
+    $result = Get-VSAItems @Params
+
+    if ($ResolveIDs)
+    {
+        [hashtable]$ResolveParams =@{}
+        if($VSAConnection) {$ResolveParams.Add('VSAConnection', $VSAConnection)}
+
+        [hashtable]$RoleTypesDictionary = @{}
+
+        Foreach( $RoleType in $(Get-VSARoleTypes @ResolveParams) )
+        {
+            if ( -Not $RoleTypesDictionary[$RoleType.RoleTypeId]){}
+            $RoleTypesDictionary.Add($RoleType.RoleTypeId, $($RoleType | Select-Object * -ExcludeProperty RoleTypeId))
+        }
+
+        $result = $result | Select-Object -Property *, `
+            @{Name = 'RoleTypes'; Expression = { $RoleTypesDictionary[$_.RoleTypeIds] }}
+    }
+    return $result
 }
 Export-ModuleMember -Function Get-VSARoles

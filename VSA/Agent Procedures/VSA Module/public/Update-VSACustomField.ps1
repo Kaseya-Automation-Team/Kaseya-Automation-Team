@@ -85,7 +85,7 @@
         $Body = ConvertTo-Json @(@{"key"="NewFieldName";"value"=$NewFieldName})
 
     } else {                                  # Field value updating
-        
+        $Values += '$AgentID'
         $Body = ConvertTo-Json @(@{"key"="FieldValue";"value"=$FieldValue })
     }
     

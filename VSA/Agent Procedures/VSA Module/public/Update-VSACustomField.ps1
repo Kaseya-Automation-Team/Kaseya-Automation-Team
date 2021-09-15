@@ -49,9 +49,10 @@
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'RenameField')]
         [ValidateScript(
-            {if ( -not [string]::IsNullOrEmpty($_) -and ($FieldName -ne $_) ) {$true}
-            else {Throw "Cannot rename the field <$FieldName> to <$_>"}}
-            )]
+            {
+                if ( -not [string]::IsNullOrEmpty($_) -and ($FieldName -ne $_) ) {$true}
+                else {$Message = "Cannot rename the field `'$FieldName`' to `'$_`'"; Log-Event -Msg $Message -Id 4000 -Type "Error"; throw $Message}
+            })]
         [string] $NewFieldName,
 
         [parameter(Mandatory=$true,
@@ -105,11 +106,15 @@
     [string[]]$ExistingFields = Get-VSACustomFields | Select-Object -ExpandProperty FieldName
 
     If ( $FieldName -notin $ExistingFields ) {
-        throw "The custom field <$FieldName> does not exist"
+        $Message = "The custom field `'$FieldName`' does not exist"
+        Log-Event -Msg $Message -Id 4000 -Type "Error"
+        throw $Message
     }
 
     if ( $NewFieldName -in $ExistingFields ) {
-        throw "Cannot rename <$FieldName> to <$NewFieldName>. The custom field name <$NewFieldName> already exists"
+        $Message = "Cannot rename `'$FieldName`' to `'$NewFieldName`'. The custom field name `'$NewFieldName`' already exists"
+        Log-Event -Msg $Message -Id 4000 -Type "Error"
+        throw $Message
     }
 
     return Update-VSAItems @Params

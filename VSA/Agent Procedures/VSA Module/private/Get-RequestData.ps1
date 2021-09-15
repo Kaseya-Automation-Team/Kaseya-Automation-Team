@@ -81,8 +81,10 @@ function Get-RequestData
             if (0 -eq $response.ResponseCode) {
                 return $response
             } else {
-                Log-Event -Msg "$response.Error" -Id 4000 -Type "Error"
-                throw $response.Error
+                if('OK' -ne $response.Status) {
+                    Log-Event -Msg "$response.Error" -Id 4000 -Type "Error"
+                    throw $response.Error
+                }
             }
     } catch { throw $($_.Exception.Message) }
 }

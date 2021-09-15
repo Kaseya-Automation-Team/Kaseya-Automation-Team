@@ -79,8 +79,9 @@ function Get-VSARoles
 
         Foreach( $RoleType in $(Get-VSARoleTypes @ResolveParams) )
         {
-            if ( -Not $RoleTypesDictionary[$RoleType.RoleTypeId]){}
-            $RoleTypesDictionary.Add($RoleType.RoleTypeId, $($RoleType | Select-Object * -ExcludeProperty RoleTypeId))
+            if ( -Not $RoleTypesDictionary[$RoleType.RoleTypeId]) {
+                $RoleTypesDictionary.Add($RoleType.RoleTypeId, $($RoleType | Select-Object * -ExcludeProperty RoleTypeId))
+            }
         }
 
         $result = $result | Select-Object -Property *, `

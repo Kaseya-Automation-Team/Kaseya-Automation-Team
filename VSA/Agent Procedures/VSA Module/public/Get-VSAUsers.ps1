@@ -79,14 +79,16 @@ function Get-VSAUsers
 
         Foreach( $Role in $(Get-VSARoles @ResolveParams -ResolveIDs) )
         {
-            if ( -Not $RolesDictionary[$Role.RoleId]){}
-            $RolesDictionary.Add($Role.RoleId, $($Role | Select-Object * -ExcludeProperty RoleId))
+            if ( -Not $RolesDictionary[$Role.RoleId]){
+                $RolesDictionary.Add($Role.RoleId, $($Role | Select-Object * -ExcludeProperty RoleId))
+            }
         }
 
         Foreach( $Scope in $(Get-VSAScopes @ResolveParams) )
         {
-            if ( -Not $ScopesDictionary[$Scope.ScopeId]){}
-            $ScopesDictionary.Add($Scope.ScopeId, $Scope.ScopeName)
+            if ( -Not $ScopesDictionary[$Scope.ScopeId]){
+                $ScopesDictionary.Add($Scope.ScopeId, $Scope.ScopeName)
+            }
         }
         $result = $result | Select-Object -Property *, `
             @{Name = 'AdminRoles'; Expression = { $RolesDictionary[$_.AdminRoleIds] }},

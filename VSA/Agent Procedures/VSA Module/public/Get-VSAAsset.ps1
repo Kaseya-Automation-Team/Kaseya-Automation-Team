@@ -18,10 +18,12 @@ function Get-VSAAsset
         Specifies REST API Paging.
     .PARAMETER Sort
         Specifies REST API Sorting.
+    .PARAMETER ResolveIDs
+        Return asset types as well as their respective IDs.
     .EXAMPLE
        Get-VSAAsset
     .EXAMPLE
-       Get-VSAAsset -VSAConnection $connection
+       Get-VSAAsset -AssetId '10001'
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -52,7 +54,10 @@ function Get-VSAAsset
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
-        [string] $Sort
+        [string] $Sort, 
+        
+        [Parameter(Mandatory = $false)]
+        [switch] $ResolveIDs
     )
 
     if( -not [string]::IsNullOrWhiteSpace( $AssetId) ) {
@@ -68,6 +73,35 @@ function Get-VSAAsset
     if($Sort)          {$Params.Add('Sort', $Sort)}
 
     $result = Get-VSAItems @Params
+
+    if ($ResolveIDs)
+    {
+        [hashtable]$ResolveParams =@{}
+        if($VSAConnection) {$ResolveParams.Add('VSAConnection', $VSAConnection)}
+
+        "Call Get-VSAAssetTypes to resolve AssetTypes" | Write-Verbose
+        $AssetTypes = Get-VSAAssetTypes @ResolveParams
+        [hashtable]$AssetTypeDictionary = @{}
+
+        Foreach( $AssetType in $($AssetTypes | Where-Object {0 -eq $_.ParentAssetTypeId} ) ) { # Resolve Parent AssetTypes
+            if ( -Not $AssetTypeDictionary[$AssetType.AssetTypeId]) {
+                $AssetTypeDictionary.Add($AssetType.AssetTypeId, $AssetType.AssetTypeName)
+            }
+        }
+
+        Foreach( $AssetType in $($AssetTypes | Where-Object {0 -lt $_.ParentAssetTypeId} ) ) { # Resolve AssetTypes
+            $ParentAssetTypeName = $AssetTypeDictionary[$AssetType.ParentAssetTypeId]
+            if ( -Not $AssetTypeDictionary[$AssetType.AssetTypeId]) {
+                $AssetTypeName = "$ParentAssetTypeName.$($AssetType.AssetTypeName)"
+                $AssetTypeDictionary.Add($AssetType.AssetTypeId, $AssetTypeName)
+            }
+        }
+
+        $result = $result | Select-Object -Property *, `
+            @{Name = 'AssetType'; Expression = { $AssetTypeDictionary[$_.AssetTypeId] }}
+    }
+
+    
 
     return $result
 }

@@ -14,7 +14,7 @@
     .EXAMPLE
         Remove-VSACustomField -FieldName 'FieldToDelete'
     .EXAMPLE
-        Update-VSACustomField -VSAConnection connection -FieldName 'FieldToDelete'
+        Remove-VSACustomField -VSAConnection connection -FieldName 'FieldToDelete'
     .INPUTS
         Accepts piped non-persistent VSAConnection 
     .OUTPUTS

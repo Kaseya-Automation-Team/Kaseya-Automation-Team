@@ -77,11 +77,11 @@
         )
 
     [string]  $Body
-    [string[]]$Values = @($FieldName)
+    [string[]]$Values = @($FieldName) # Array of values to actualize URI suffix.  The first element of array is the field name. 
 
     if ( [string]::IsNullOrEmpty($AgentID) ) { # AgentID is not set. Field renaming
         
-        $Values += ''
+        $Values += '' # The second element of array to actualize URI suffix is an empty string, if agent ID is not provided
         $Body = ConvertTo-Json @(@{"key"="NewFieldName";"value"=$NewFieldName})
 
     } else {                                  # Field value updating

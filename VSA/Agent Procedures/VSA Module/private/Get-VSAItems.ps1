@@ -103,7 +103,7 @@
     }
 
     $response = Get-RequestData @requestParameters
-    Write-Verbose $response
+    $response | Out-String | Write-Verbose 
     $result = $response | Select-Object -ExpandProperty Result
     if( $response.TotalRecords ) #if request returns field TotalRecords
     {

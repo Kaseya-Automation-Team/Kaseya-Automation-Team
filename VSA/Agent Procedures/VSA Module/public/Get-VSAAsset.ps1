@@ -69,30 +69,6 @@ function Get-VSAAsset
 
     $result = Get-VSAItems @Params
 
-    if ($ResolveIDs)
-    {
-        [hashtable]$ResolveParams =@{}
-        if($VSAConnection) {$ResolveParams.Add('VSAConnection', $VSAConnection)}
-
-        [hashtable]$RolesDictionary = @{}
-        [hashtable]$ScopesDictionary = @{}
-
-        Foreach( $Role in $(Get-VSARoles @ResolveParams -ResolveIDs) )
-        {
-            if ( -Not $RolesDictionary[$Role.RoleId]){}
-            $RolesDictionary.Add($Role.RoleId, $($Role | Select-Object * -ExcludeProperty RoleId))
-        }
-
-        Foreach( $Scope in $(Get-VSAScopes @ResolveParams) )
-        {
-            if ( -Not $ScopesDictionary[$Scope.ScopeId]){}
-            $ScopesDictionary.Add($Scope.ScopeId, $Scope.ScopeName)
-        }
-        $result = $result | Select-Object -Property *, `
-            @{Name = 'AdminRoles'; Expression = { $RolesDictionary[$_.AdminRoleIds] }},
-            @{Name = 'AdminScopes'; Expression = { $ScopesDictionary[$_.AdminScopeIds] }}
-    }
-
     return $result
 }
 Export-ModuleMember -Function Get-VSAAsset

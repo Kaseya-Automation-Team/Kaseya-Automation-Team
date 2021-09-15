@@ -104,11 +104,11 @@
 
     [string[]]$ExistingFields = Get-VSACustomFields | Select-Object -ExpandProperty FieldName
 
-    If ($FieldName -notin $ExistingFields) {
+    If ( $FieldName -notin $ExistingFields ) {
         throw "The custom field <$FieldName> does not exist"
     }
 
-    if ( -not [string]::IsNullOrEmpty($NewFieldName) -and ($NewFieldName -in $ExistingFields) ) {
+    if ( $NewFieldName -in $ExistingFields ) {
         throw "Cannot rename <$FieldName> to <$NewFieldName>. The custom field name <$NewFieldName> already exists"
     }
 

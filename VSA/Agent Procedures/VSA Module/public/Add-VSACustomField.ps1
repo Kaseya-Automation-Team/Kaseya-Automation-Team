@@ -69,9 +69,12 @@
     #[string[]]$ExistingFields = Get-VSACustomFields -Filter "FieldName eq `'$FieldName`'"
     [string[]]$ExistingFields = Get-VSACustomFields | Select-Object -ExpandProperty FieldName 
 
-    If ($FieldName -notin $ExistingFields)
-    {
+    If ($FieldName -notin $ExistingFields) {
         $result = Update-VSAItems @Params
+    } else {
+        $Message = "The custom field `'$FieldName`' already exists"
+        Log-Event -Msg $Message -Id 4000 -Type "Error"
+        throw $Message
     }
     return $result
 

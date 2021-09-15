@@ -48,6 +48,10 @@
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'RenameField')]
+        [ValidateScript(
+            {if ( -not [string]::IsNullOrEmpty($_) -and ($FieldName -ne $_) ) {$true}
+            else {Throw "Cannot rename the field <$FieldName> to <$_>"}}
+            )]
         [string] $NewFieldName,
 
         [parameter(Mandatory=$true,
@@ -75,19 +79,20 @@
     [string]  $Body
     [string[]]$Values = @($FieldName)
 
-    if ( $FieldValue ) {
-        #update fiel value
-        $Values += $AgentID
-        $Body = ConvertTo-Json @(@{"key"="FieldValue";"value"=$FieldValue })
-    } else {
-        #rename field
-        $TheField = $OldFieldName
+    if ( [string]::IsNullOrEmpty($AgentID) ) { # AgentID is not set. Field renaming
+        
         $Values += ''
         $Body = ConvertTo-Json @(@{"key"="NewFieldName";"value"=$NewFieldName})
-    }
-    $Body | Write-Verbose
 
-    $URISuffix = $("api/v1.0/assetmgmt/assets/{1}/customfields/{0}" -f $Values) -replace '//', '/'
+    } else {                                  # Field value updating
+        
+        $Body = ConvertTo-Json @(@{"key"="FieldValue";"value"=$FieldValue })
+    }
+    
+    $Body | Write-Verbose
+    
+    $URISuffix = $("api/v1.0/assetmgmt/assets/{1}/customfields/{0}" -f $Values) -replace '//', '/' #update URI suffix accordingly
+    $URISuffix | Write-Verbose
 
     [hashtable]$Params =@{
     URISuffix = $URISuffix
@@ -100,14 +105,11 @@
     [string[]]$ExistingFields = Get-VSACustomFields | Select-Object -ExpandProperty FieldName
 
     If ($FieldName -notin $ExistingFields) {
-        throw "The custom field $FieldName does not exist"
+        throw "The custom field <$FieldName> does not exist"
     }
 
     if ( -not [string]::IsNullOrEmpty($NewFieldName) -and ($NewFieldName -in $ExistingFields) ) {
-        throw "Cannot rename $FieldName to $NewFieldName. The custom field name $NewFieldName does not exist"
-    }
-    if ($FieldName -eq $NewFieldName) {
-        throw "Cannot rename $FieldName to $NewFieldName"
+        throw "Cannot rename <$FieldName> to <$NewFieldName>. The custom field name <$NewFieldName> already exists"
     }
 
     return Update-VSAItems @Params

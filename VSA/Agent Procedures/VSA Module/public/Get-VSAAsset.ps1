@@ -99,9 +99,7 @@ function Get-VSAAsset
 
         $result = $result | Select-Object -Property *, `
             @{Name = 'AssetType'; Expression = { $AssetTypeDictionary[$_.AssetTypeId] }}
-    }
-
-    
+    }    
 
     return $result
 }

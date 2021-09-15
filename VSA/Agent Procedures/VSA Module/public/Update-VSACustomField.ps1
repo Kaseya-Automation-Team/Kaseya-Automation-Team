@@ -81,17 +81,17 @@
 
     if ( [string]::IsNullOrEmpty($AgentID) ) { # AgentID is not set. Field renaming
         
-        $Values += '' # The second element of array to actualize URI suffix is an empty string, if agent ID is not provided
+        $Values += '' # The second element of array to actualize URI suffix is an empty string if agent ID is not provided.
         $Body = ConvertTo-Json @(@{"key"="NewFieldName";"value"=$NewFieldName})
 
     } else {                                  # Field value updating
         $Values += '$AgentID'
         $Body = ConvertTo-Json @(@{"key"="FieldValue";"value"=$FieldValue })
     }
-    
+    $Values | Out-String | Write-Verbose
     $Body | Write-Verbose
     
-    $URISuffix = $("api/v1.0/assetmgmt/assets/{1}/customfields/{0}" -f $Values) -replace '//', '/' #update URI suffix accordingly
+    $URISuffix = $($URISuffix -f $Values) -replace '//', '/' # URI suffix actualization
     $URISuffix | Write-Verbose
 
     [hashtable]$Params =@{

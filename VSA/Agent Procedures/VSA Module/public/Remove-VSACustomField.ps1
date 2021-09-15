@@ -42,6 +42,12 @@
     {
         $result = Update-VSAItems @Params
     }
+    else
+    {
+        $Message = "The custom field `'$FieldName`' does not exist"
+        Log-Event -Msg $Message -Id 4000 -Type "Error"
+        throw $Message
+    }
     return $result
 }
 Export-ModuleMember -Function Remove-VSACustomField

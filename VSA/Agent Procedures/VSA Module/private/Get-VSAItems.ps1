@@ -101,13 +101,17 @@
         Method = 'GET'
         AuthString = $UsersToken
     }
-
+    "Request"  | Write-Debug 
+    $requestParameters  | Out-String | Write-Debug  
     $response = Get-RequestData @requestParameters
-    $response | Out-String | Write-Verbose 
+    "Response"  | Write-Debug 
+    $response | Out-String | Write-Debug 
     $result = $response | Select-Object -ExpandProperty Result
     if( $response.TotalRecords ) #if request returns field TotalRecords
     {
         [int]$TotalRecords = $response | Select-Object -ExpandProperty TotalRecords
+        "Records: $TotalRecords" | Write-Verbose
+        "Records: $TotalRecords" | Write-Debug
     
         $Pages = [int][Math]::Ceiling($TotalRecords / $RecordsPerPage)
 
@@ -125,5 +129,7 @@
             }
         }
     }
+    "Result"  | Write-Debug 
+    $result | Out-String | Write-Debug 
     return $result
 }

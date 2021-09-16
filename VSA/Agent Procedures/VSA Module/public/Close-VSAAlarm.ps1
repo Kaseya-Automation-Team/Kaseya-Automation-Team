@@ -9,17 +9,13 @@ function Close-VSAAlarm
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
-        Specifies URI suffix if it differs from the default.
-    .PARAMETER Filter
-        Specifies REST API Filter.
-    .PARAMETER Paging
-        Specifies REST API Paging.
-    .PARAMETER Sort
-        Specifies REST API Sorting.
+        Specifies URI suffix if it differs from the default.\
+    .PARAMETER AlarmId
+        Specifies id of alarm
     .PARAMETER Reason
         Optional parameter which specifies reason why alarm has been closed
     .EXAMPLE
-       Close-VSAAlarm
+       Close-VSAAlarm -AlarmId 5 -Reason "Planned restart"
     .EXAMPLE
        Close-VSAAlarm -VSAConnection $connection
     .INPUTS

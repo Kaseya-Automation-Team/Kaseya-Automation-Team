@@ -101,10 +101,12 @@
         Method = 'GET'
         AuthString = $UsersToken
     }
-    "Request"  | Write-Debug 
-    $requestParameters  | Out-String | Write-Debug  
+    "Request" | Write-Debug 
+    $requestParameters  | Out-String | Write-Debug
+    "Calling Get-RequestData" | Write-Verbose
+    "Calling Get-RequestData" | Write-Debug
     $response = Get-RequestData @requestParameters
-    "Response"  | Write-Debug 
+    "Response" | Write-Debug 
     $response | Out-String | Write-Debug 
     $result = $response | Select-Object -ExpandProperty Result
     if( $response.TotalRecords ) #if request returns field TotalRecords

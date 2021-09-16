@@ -67,9 +67,6 @@ function Close-VSAAlarm
     }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-    if($Filter)        {$Params.Add('Filter', $Filter)}
-    if($Paging)        {$Params.Add('Paging', $Paging)}
-    if($Sort)          {$Params.Add('Sort', $Sort)}
 
     return Update-VSAItems @Params
 }

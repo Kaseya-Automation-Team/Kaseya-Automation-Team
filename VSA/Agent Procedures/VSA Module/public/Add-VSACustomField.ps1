@@ -58,18 +58,18 @@
 
     $Body = @(@{"key"="FieldName";"value"=$FieldName },@{ "key"="FieldType";"value"=$FieldType }) | ConvertTo-Json
 
-    [hashtable]$Params =@{
-        URISuffix = $URISuffix
-        Method = 'POST'
-        Body = $Body
-    }
-
+    [hashtable]$Params = @{}
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
     #[string[]]$ExistingFields = Get-VSACustomFields -Filter "FieldName eq `'$FieldName`'"
-    [string[]]$ExistingFields = Get-VSACustomFields | Select-Object -ExpandProperty FieldName 
+    [string[]]$ExistingFields = Get-VSACustomFields @Params | Select-Object -ExpandProperty FieldName 
 
     If ($FieldName -notin $ExistingFields) {
+        
+        $Params.Add('URISuffix', $URISuffix)
+        $Params.Add('Method', 'POST')
+        $Params.Add('Body', $Body)
+        
         $result = Update-VSAItems @Params
     } else {
         $Message = "The custom field `'$FieldName`' already exists"

@@ -46,18 +46,19 @@
         )
 
     [bool]$result = $false
+
     [hashtable]$BodyHT=@{}
     $BodyHT.Add($NoteId, $Note)
 
-    [hashtable]$Params =@{
-        URISuffix = $URISuffix
-        Method = 'PUT'
-        Body = $(ConvertTo-Json $BodyHT)
-    }
+    [hashtable]$Params = @{}
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    If ( $NoteId -in $(Get-VSAAgentNote | Select-Object -ExpandProperty ID) ) {
+    If ( $NoteId -in $(Get-VSAAgentNote @Params | Select-Object -ExpandProperty ID) ) {
+        $Params.Add('URISuffix', $URISuffix)
+        $Params.Add('Method', 'PUT')
+        $Params.Add('Body', $(ConvertTo-Json $BodyHT))
+
         $result = Update-VSAItems @Params
     } else {
         $Message = "The agent note with ID `'$NoteId`' does not exist"

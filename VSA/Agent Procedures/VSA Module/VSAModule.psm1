@@ -108,7 +108,6 @@ Class VSAConnection
         {
             Open
             {
-                Write-Host
                 if ( $((Get-Date).ToUniversalTime()) -gt $this.SessionExpiration )
                 {
                     $this.Status = [ConnectionState]::Expired

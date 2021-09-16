@@ -49,15 +49,15 @@
 
     $URISuffix = $URISuffix -f $AgentId
 
-    [hashtable]$Params =@{
-        URISuffix = $URISuffix
-        Method = 'POST'
-        Body = "`"$Note`""
-    }
-
+    [hashtable]$Params = @{}
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    If ( $AgentId -in $(Get-VSAAgents | Select-Object -ExpandProperty AgentID) ) {
+    If ( $AgentId -in $(Get-VSAAgents @Params | Select-Object -ExpandProperty AgentID) ) {
+
+        $Params.Add('URISuffix', $URISuffix)
+        $Params.Add('Method', 'POST')
+        $Params.Add('Body', "`"$Note`"")
+
         $result = Update-VSAItems @Params
     } else {
         $Message = "The asset with Agent ID `'$AgentId`' does not exist"

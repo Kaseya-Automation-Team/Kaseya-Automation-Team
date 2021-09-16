@@ -54,6 +54,7 @@
         [string] $Body
     )
 
+    [bool]$result = $false
     if ([VSAConnection]::IsPersistent)
     {
         $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$URISuffix"
@@ -84,12 +85,15 @@
         $requestParameters.Add('Body', $Body)
     }
 
-    $requestParameters | Out-String | Write-Verbose 
+    $requestParameters | Out-String | Write-Debug
 
     #$result = Get-RequestData -URI $CombinedURL -AuthString $UsersToken
+    "Calling Get-RequestData" | Write-Verbose
+    "Calling Get-RequestData" | Write-Debug
     $response = Get-RequestData @requestParameters
-    $response | Out-String | Write-Verbose 
-    $result = $response  | Select-Object -ExpandProperty Result
-
+    if ( (0 -eq $response.ResponseCode) -or ('OK' -eq $response.Status) )
+    {
+        $result = $true
+    }
     return $result
 }

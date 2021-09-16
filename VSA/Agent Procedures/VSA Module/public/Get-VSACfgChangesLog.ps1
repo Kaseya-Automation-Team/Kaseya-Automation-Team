@@ -1,4 +1,4 @@
-function Get-VSAConfigChangesLog {
+function Get-VSACfgChangesLog {
     <#
     .Synopsis
        Returns VSA configuration changes log.
@@ -18,9 +18,9 @@ function Get-VSAConfigChangesLog {
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSAConfigChangesLog -AgentId '00001'
+       Get-VSACfgChangesLog -AgentId '00001'
     .EXAMPLE
-       Get-VSAConfigChangesLog -VSAConnection $connection -AgentId '00001'
+       Get-VSACfgChangesLog -VSAConnection $connection -AgentId '00001'
     .INPUTS
        Accepts piped non-persistent VSAConnection
     .OUTPUTS
@@ -71,4 +71,4 @@ function Get-VSAConfigChangesLog {
 
     return Get-VSAItems @Params
 }
-Export-ModuleMember -Function Get-VSAConfigChangesLog
+Export-ModuleMember -Function Get-VSACfgChangesLog

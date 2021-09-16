@@ -38,17 +38,17 @@
         )
 
     $URISuffix = $URISuffix -f $NoteId
+
     [bool]$result = $false
 
-
-    [hashtable]$Params =@{
-        URISuffix = $URISuffix
-        Method = 'DELETE'
-    }
-
+    [hashtable]$Params = @{}
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    If ( $NoteId -in $(Get-VSAAgentNote | Select-Object -ExpandProperty ID) ) {
+    If ( $NoteId -in $(Get-VSAAgentNote @Params | Select-Object -ExpandProperty ID) ) {
+
+        $Params.Add('URISuffix', $URISuffix)
+        $Params.Add('Method', 'DELETE')
+
         $result = Update-VSAItems @Params
     } else {
         $Message = "The agent note with ID `'$NoteId`' does not exist"

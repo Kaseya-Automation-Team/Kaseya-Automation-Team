@@ -72,20 +72,20 @@ function Get-RequestData
     }
     
     $requestParameters | Out-String | Write-Verbose
+    $requestParameters | Out-String | Write-Debug
 
     Log-Event -Msg "Executing call $Method : $URI" -Id 1000 -Type "Information"
    
     try {
             $response = Invoke-RestMethod @requestParameters -ErrorAction Stop
-            
-            if (0 -eq $response.ResponseCode) {
+            $response | Out-String | Write-Debug
+            if ( (0 -eq $response.ResponseCode) -or ('OK' -eq $response.Status) ) {
                 return $response
             } else {
-                if('OK' -ne $response.Status) {
-                    Log-Event -Msg "$response.Error" -Id 4000 -Type "Error"
-                    throw $response.Error
-                }
+                Log-Event -Msg "$response.Error" -Id 4000 -Type "Error"
+                throw $response.Error
             }
+            
     } catch { throw $($_.Exception.Message) }
 }
 #endregion function Get-RequestData

@@ -37,10 +37,6 @@ function Get-VSAAgentNote
         [string] $URISuffix = 'api/v1.0/assetmgmt/agent/notes',
 
         [Parameter(Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
-        [string] $AssetId,
-
-        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
 
@@ -53,9 +49,6 @@ function Get-VSAAgentNote
         [string] $Sort
     )
 
-    if( -not [string]::IsNullOrWhiteSpace( $AssetId) ) {
-        $URISuffix += "/$AssetId"
-    }
     [hashtable]$Params =@{
         URISuffix = $URISuffix
     }

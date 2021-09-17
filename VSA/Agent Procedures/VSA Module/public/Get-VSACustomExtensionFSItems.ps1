@@ -17,12 +17,11 @@ function Get-VSACustomExtensionFSItems
         [string] $URISuffix = 'api/v1.0/assetmgmt/customextensions/{0}/folder/{1}',
 
         [Parameter(Mandatory = $true)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string] $AgentId,
 
-        [Parameter(Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+        [Parameter(Mandatory = $false,
+        HelpMessage = "Please enter relative path to the custom extensions' folder using '/' as delimiter")]
         [ValidateNotNullOrEmpty()]
         [string] $Path = '/',
 
@@ -38,6 +37,10 @@ function Get-VSACustomExtensionFSItems
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
+
+    $Path = $Path -replace '\\', '/'
+    if ($Path -notmatch '^\/') { $Path = "/$Path"}
+    if ($Path -notmatch '\/$') { $Path = "$Path/"}
 
     $URISuffix = $URISuffix -f $AgentId, $Path
 
@@ -55,6 +58,7 @@ function Get-VSACustomExtensionFSItems
         $Params | Out-String | Write-Debug
 
         $result = Get-VSAItems @Params
+        # regex (\.99){4}
 
     } else {
         $Message = "The asset with Agent ID `'$AgentId`' does not exist"

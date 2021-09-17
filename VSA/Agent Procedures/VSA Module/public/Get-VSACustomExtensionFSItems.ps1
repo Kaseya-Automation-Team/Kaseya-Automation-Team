@@ -89,7 +89,7 @@
         throw $Message
     }
 
-    #Rest API erroneously adds the '.99.99.99.99' string to the Name field
+    #Rest API erroneously adds the '.99.99.99.99' string to the file base name in the Name field
     $result = $result | Select-Object -Property *, `
                 @{Name = 'FSObjectName'; Expression = { $_.Name -replace "(\.99){4}", "" }}
 

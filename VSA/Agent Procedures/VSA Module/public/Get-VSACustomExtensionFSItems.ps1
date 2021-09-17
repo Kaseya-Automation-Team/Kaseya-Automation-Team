@@ -91,7 +91,7 @@
 
     #Rest API erroneously adds the '.99.99.99.99' string to the Name field
     $result = $result | Select-Object -Property *, `
-            @{Name = 'FSObjectName'; Expression = { $_.Name  -replace "(\.99){4}", ""  }}
+                @{Name = 'FSObjectName'; Expression = { $_.Name -replace "(\.99){4}", "" }}
 
     return $result
 }

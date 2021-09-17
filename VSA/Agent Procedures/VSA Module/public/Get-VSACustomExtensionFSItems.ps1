@@ -1,9 +1,33 @@
-﻿
-function Get-VSACustomExtensionFSItems
+﻿function Get-VSACustomExtensionFSItems
 {
     <#
     .Synopsis
-
+       Returns Custom Extension Folders and Files.
+    .DESCRIPTION
+       Returns Custom Extension Folders and Files.
+       Takes either persistent or non-persistent connection information.
+    .PARAMETER VSAConnection
+        Specifies existing non-persistent VSAConnection.
+    .PARAMETER URISuffix
+        Specifies URI suffix if it differs from the default.
+    .PARAMETER Path
+        Specifies RElative agent's pat. By default it is equal '/' to show the files and folders starting with the top level.
+    .PARAMETER Filter
+        Specifies REST API Filter.
+    .PARAMETER Paging
+        Specifies REST API Paging.
+    .PARAMETER Sort
+        Specifies REST API Sorting.
+    .EXAMPLE
+       Get-VSACustomExtensionFSItems
+    .EXAMPLE
+       Get-VSACustomExtensionFSItems -Path '/NestedFolderLevel1/NestedFolderLevel2/'
+    .EXAMPLE
+       Get-VSACustomExtensionFSItems -VSAConnection $connection
+    .INPUTS
+       Accepts piped non-persistent VSAConnection 
+    .OUTPUTS
+       Array of objects that represent Custom Extension Folders and Files.
     #>
     [CmdletBinding()]
     param ( 
@@ -58,7 +82,6 @@ function Get-VSACustomExtensionFSItems
         $Params | Out-String | Write-Debug
 
         $result = Get-VSAItems @Params
-        # regex (\.99){4}
 
     } else {
         $Message = "The asset with Agent ID `'$AgentId`' does not exist"
@@ -66,5 +89,10 @@ function Get-VSACustomExtensionFSItems
         throw $Message
     }
 
+    #Rest API erroneously adds the '.99.99.99.99' string to the Name field
+    $result = $result | Select-Object -Property *, `
+            @{Name = 'FSObjectName'; Expression = { $_.Name  -replace "(\.99){4}", ""  }}
+
+    return $result
 }
 Export-ModuleMember -Function Get-VSACustomExtensionFSItems

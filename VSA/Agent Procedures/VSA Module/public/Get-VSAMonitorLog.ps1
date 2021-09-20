@@ -24,7 +24,7 @@ function Get-VSAMonitorLog {
     .INPUTS
        Accepts piped non-persistent VSAConnection
     .OUTPUTS
-       Array of objects that represent the VSA alarm log
+       Array of objects that represent the VSA monitor action log
     #>
     [CmdletBinding()]
     param ( 

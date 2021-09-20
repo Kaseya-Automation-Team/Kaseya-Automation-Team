@@ -1,9 +1,9 @@
-function Get-VSACfgChangesLog {
+function Get-VSAAppEventLog {
     <#
     .Synopsis
-       Returns VSA configuration changes log.
+       Returns VSA application event log.
     .DESCRIPTION
-       Returns the VSA configuration changes for given Agent Id.
+       Returns the VSA application event log records for given Agent Id.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
@@ -18,13 +18,13 @@ function Get-VSACfgChangesLog {
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSACfgChangesLog -AgentId '00001'
+       Get-VSAAppEventLog -AgentId '00001'
     .EXAMPLE
-       Get-VSACfgChangesLog -VSAConnection $connection -AgentId '00001'
+       Get-VSAAppEventLog -VSAConnection $connection -AgentId '00001'
     .INPUTS
        Accepts piped non-persistent VSAConnection
     .OUTPUTS
-       Array of objects that represent the VSA configuration changes log
+       Array of objects that represent the VSA application event
     #>
     [CmdletBinding()]
     param ( 
@@ -39,7 +39,7 @@ function Get-VSACfgChangesLog {
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = "api/v1.0/assetmgmt/logs/{0}/configurationchanges",
+        [string] $URISuffix = "api/v1.0/assetmgmt/logs/{0}/eventlog/application",
         [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
@@ -71,4 +71,4 @@ function Get-VSACfgChangesLog {
 
     return Get-VSAItems @Params
 }
-Export-ModuleMember -Function Get-VSACfgChangesLog
+Export-ModuleMember -Function Get-VSAAppEventLog

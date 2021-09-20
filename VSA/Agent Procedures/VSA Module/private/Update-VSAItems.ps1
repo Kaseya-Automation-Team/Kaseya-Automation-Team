@@ -66,7 +66,8 @@
         [string] $ContentType
     )
 
-    [bool]$result = $false
+    [bool]$result = $false #by default
+
     if ([VSAConnection]::IsPersistent)
     {
         $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$URISuffix"
@@ -112,9 +113,15 @@
     "Calling Get-RequestData" | Write-Verbose
     "Calling Get-RequestData" | Write-Debug
     $response = Get-RequestData @requestParameters
-    if ( ($response.ResponseCode -in @(0, 200, 201, 202)) -or ('OK' -eq $response.Status) )
-    {
+    if ($response) {
+        if ( ($response.ResponseCode -in @(0, 200, 201, 202)) -or ('OK' -eq $response.Status) )
+        {
+            $result = $true
+        }
+    } else {
         $result = $true
+        "No response returned" | Write-Debug
+        "No response returned" | Write-Verbose
     }
     return $result
 }

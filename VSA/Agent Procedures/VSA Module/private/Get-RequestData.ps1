@@ -26,32 +26,25 @@ function Get-RequestData
     [CmdletBinding()]
     param ( 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'PutPostPatch')]
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'GetDelete')] 
+            ValueFromPipelineByPropertyName=$true
+            )] 
         [ValidateNotNullOrEmpty()] 
         [string] $URI,
+
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'PutPostPatch')]
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'GetDelete')]
-        [ValidateNotNullOrEmpty()]
+            ValueFromPipelineByPropertyName=$true
+            )]
         [string] $AuthString,
+
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'PutPostPatch')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'GetDelete')]
+            ValueFromPipelineByPropertyName=$true
+            )]
         [ValidateSet("GET", "POST", "PUT", "DELETE", "PATCH")]
         [string] $Method = "GET",
+
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'PutPostPatch')]
+            ValueFromPipelineByPropertyName=$true
+            )]
         [ValidateNotNullOrEmpty()]
 		[string] $Body
     )
@@ -78,12 +71,17 @@ function Get-RequestData
    
     try {
             $response = Invoke-RestMethod @requestParameters -ErrorAction Stop
-            $response | Out-String | Write-Debug
-            if ( (0 -eq $response.ResponseCode) -or ('OK' -eq $response.Status) ) {
-                return $response
+            if ($response) {
+                $response | Out-String | Write-Debug
+                if ( ($response.ResponseCode -in @(0, 200, 201, 202)) -or ('OK' -eq $response.Status) ) {
+                    return $response
+                } else {
+                    Write-Host "$response.Error"
+                    throw $response.Error
+                }
             } else {
-                Log-Event -Msg "$response.Error" -Id 4000 -Type "Error"
-                throw $response.Error
+                "No response" | Write-Debug
+                "No response" | Write-Verbose
             }
             
     } catch { throw $($_.Exception.Message) }

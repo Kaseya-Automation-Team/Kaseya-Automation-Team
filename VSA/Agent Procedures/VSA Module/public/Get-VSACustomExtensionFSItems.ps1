@@ -11,7 +11,7 @@
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .PARAMETER Path
-        Specifies RElative agent's pat. By default it is equal '/' to show the files and folders starting with the top level.
+        Specifies Relative agent's path. By default it is equal '/' to show the files and folders starting with the top level.
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging

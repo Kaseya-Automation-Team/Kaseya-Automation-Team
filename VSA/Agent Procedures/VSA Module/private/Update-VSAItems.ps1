@@ -28,6 +28,7 @@
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'NonPersistent')]
         [VSAConnection] $VSAConnection,
+
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'NonPersistent')]
@@ -36,6 +37,7 @@
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix,
+
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'NonPersistent')]
@@ -44,6 +46,7 @@
             ParameterSetName = 'Persistent')]
         [ValidateSet("POST", "PUT", "DELETE", "PATCH")]
         [string] $Method,
+
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'NonPersistent')]
@@ -51,7 +54,16 @@
             ValueFromPipelineByPropertyName=$false,
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()]
-        [string] $Body
+        [string] $Body,
+
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$false,
+            ParameterSetName = 'Persistent')]
+        [ValidateNotNullOrEmpty()]
+        [string] $ContentType
     )
 
     [bool]$result = $false
@@ -85,13 +97,22 @@
         $requestParameters.Add('Body', $Body)
     }
 
+    if( $ContentType ) {
+
+        [string[]]$AllowedContentTypes = @("application/json", "multipart/form-data")
+
+        if ( ( $AllowedContentTypes | Foreach-object {$ContentType -match $_}) -contains $true ) {
+            $requestParameters.Add('ContentType', $ContentType)
+        }
+    }
+
     $requestParameters | Out-String | Write-Debug
 
     #$result = Get-RequestData -URI $CombinedURL -AuthString $UsersToken
     "Calling Get-RequestData" | Write-Verbose
     "Calling Get-RequestData" | Write-Debug
     $response = Get-RequestData @requestParameters
-    if ( (0 -eq $response.ResponseCode) -or ('OK' -eq $response.Status) )
+    if ( ($response.ResponseCode -in @(0, 200, 201, 202)) -or ('OK' -eq $response.Status) )
     {
         $result = $true
     }

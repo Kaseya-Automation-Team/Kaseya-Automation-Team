@@ -26,27 +26,50 @@ function Get-RequestData
     [CmdletBinding()]
     param ( 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'WithOutBody'
+            )]
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'WithBody'
             )] 
         [ValidateNotNullOrEmpty()] 
         [string] $URI,
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'WithOutBody'
+            )]
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'WithBody'
             )]
         [string] $AuthString,
 
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'WithOutBody'
+            )]
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'WithBody'
             )]
         [ValidateSet("GET", "POST", "PUT", "DELETE", "PATCH")]
         [string] $Method = "GET",
 
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'WithBody'
             )]
         [ValidateNotNullOrEmpty()]
-		[string] $Body
+		[string] $Body,
+
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'WithBody'
+            )]
+        [ValidateNotNullOrEmpty()]
+		[string] $ContentType = "application/json"
     )
 
     $authHeader = @{
@@ -61,7 +84,7 @@ function Get-RequestData
 
     if( $Body ) {
         $requestParameters.Add('Body', $Body)
-        $requestParameters.Add('ContentType', "application/json")
+        $requestParameters.Add('ContentType', $ContentType)
     }
     
     $requestParameters | Out-String | Write-Verbose
@@ -84,6 +107,10 @@ function Get-RequestData
                 "No response" | Write-Verbose
             }
             
-    } catch { throw $($_.Exception.Message) }
+    }
+    catch [System.Net.WebException] {
+        Write-Error( "Executing call $Method failed for $URI.`nMessage : $($_.Exception.Message)" )
+        throw $_
+    }
 }
 #endregion function Get-RequestData

@@ -103,8 +103,8 @@ function Get-RequestData
                     throw $response.Error
                 }
             } else {
-                "No response" | Write-Debug
-                "No response" | Write-Verbose
+                "No response returned" | Write-Debug
+                "No response returned" | Write-Verbose
             }
             
     }

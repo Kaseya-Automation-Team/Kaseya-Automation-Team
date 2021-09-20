@@ -49,7 +49,7 @@ function Get-RequestData
             ParameterSetName = 'GetDelete')]
         [ValidateSet("GET", "POST", "PUT", "DELETE", "PATCH")]
         [string] $Method = "GET",
-        [parameter(Mandatory=$true,
+        [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'PutPostPatch')]
         [ValidateNotNullOrEmpty()]

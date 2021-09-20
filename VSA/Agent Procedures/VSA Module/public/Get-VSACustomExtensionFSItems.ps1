@@ -19,11 +19,11 @@
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSACustomExtensionFSItems
+       Get-VSACustomExtensionFSItems 
     .EXAMPLE
-       Get-VSACustomExtensionFSItems -Path '/NestedFolderLevel1/NestedFolderLevel2/'
+       Get-VSACustomExtensionFSItems -AgentId '10001' -Path '/NestedFolderLevel1/NestedFolderLevel2/'
     .EXAMPLE
-       Get-VSACustomExtensionFSItems -VSAConnection $connection
+       Get-VSACustomExtensionFSItems -AgentId '10001' -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

@@ -24,7 +24,7 @@ function Get-VSALegacyRCLog {
     .INPUTS
        Accepts piped non-persistent VSAConnection
     .OUTPUTS
-       Array of objects that represent the VSA alarm log
+       Array of objects that represent the VSA legacy remote control log
     #>
     [CmdletBinding()]
     param ( 

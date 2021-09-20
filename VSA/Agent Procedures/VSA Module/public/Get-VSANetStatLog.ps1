@@ -24,7 +24,7 @@ function Get-VSANetStatLog {
     .INPUTS
        Accepts piped non-persistent VSAConnection
     .OUTPUTS
-       Array of objects that represent the VSA alarm log
+       Array of objects that represent the VSA network statistics log
     #>
     [CmdletBinding()]
     param ( 

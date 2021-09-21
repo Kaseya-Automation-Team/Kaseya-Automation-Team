@@ -1,27 +1,23 @@
-function Add-VSAMachineGroup
+function Update-VSAMachineGroup
 {
     <#
     .Synopsis
-       Adds new machine group
+       Updates name of machine group
     .DESCRIPTION
-       Adds new machine group in particular organization and parent machine group (if specified).
+       Updates name of specified machine group to new one.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER OrgId
-        Specifies numeric id of organization
+    .PARAMETER MachineGroupId
+        Specifies numeric id of machine group
     .PARAMETER MachineGroupName
-        Specifies name of new machine group
-    .PARAMETER ParentMachineGroupId
-        Optional parameter, specifies numeric id of parent machine group
+        Specifies new name of machine group
     .EXAMPLE
-       Add-VSAMachineGroup -OrgId "34543554343" -MachineGroupName "Kaseya"
-	.EXAMPLE
-       Add-VSAMachineGroup -OrgId "34543554343" -MachineGroupName "Kaseya" -ParentMachineGroupId "3243243242332"
+       Update-VSAMachineGroup -MachineGroupId "34543554343" -MachineGroupName "Kaseya"
     .EXAMPLE
-       Add-VSAMachineGroup -VSAConnection $connection
+       Update-VSAMachineGroup -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -41,32 +37,24 @@ function Add-VSAMachineGroup
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = "api/v1.0/system/orgs/{0}/machinegroups",
+        [string] $URISuffix = "api/v1.0/system/machinegroups/{0}",
         [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
-        [string] $OrgId,
+        [string] $MachineGroupId,
 		[parameter(ParameterSetName = 'Persistent', Mandatory=$true)]
         [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true)]
         [ValidateNotNullOrEmpty()] 
-        [string] $MachineGroupName,
-		[parameter(ParameterSetName = 'Persistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
-        [string] $ParentMachineGroupId
+        [string] $MachineGroupName
 )
-	$URISuffix = $URISuffix -f $OrgId
+	$URISuffix = $URISuffix -f $MachineGroupId
      
     [hashtable]$Params =@{
         URISuffix = $URISuffix
-        Method = 'POST'
+        Method = 'PUT'
     }
 
-	if ($ParentMachineGroupId) {
-		$Body = ConvertTo-Json @{"MachineGroupName"="$MachineGroupName";"ParentMachineGroupId"="$ParentMachineGroupId" }
-	} else {
-		$Body = ConvertTo-Json @{"MachineGroupName"="$MachineGroupName" }
-	}
+    $Body = ConvertTo-Json @{"MachineGroupName"="$MachineGroupName" }
 	
     $Params.Add('Body', $Body)
 
@@ -75,4 +63,4 @@ function Add-VSAMachineGroup
     return Update-VSAItems @Params
 }
 
-Export-ModuleMember -Function Add-VSAMachineGroup
+Export-ModuleMember -Function Update-VSAMachineGroup

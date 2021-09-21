@@ -288,7 +288,7 @@ Add-Type @'
     $URI = "$VSAServer/$AuthSuffix"
     $AuthString  = "Basic $Encoded"
 
-    Log-Event -Msg "Attempting to authenticate" -Id 0000 -Type "Information"
+    Log-Event -Msg "Attempting to authenticate with $VSAServer" -Id 0000 -Type "Information"
     $result = Get-RequestData -URI $URI -authString $AuthString  | Select-Object -ExpandProperty Result
     
     if ($result)

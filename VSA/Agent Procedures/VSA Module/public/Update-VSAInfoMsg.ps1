@@ -55,7 +55,6 @@ function Update-VSAInfoMsg
     }
 
     $Body = "{[$ID]}"
-    Write-Host $Body
     $Params.Add('Body', $Body)
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}

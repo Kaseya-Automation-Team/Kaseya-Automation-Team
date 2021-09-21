@@ -33,6 +33,7 @@ function Get-VSAUsers
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'NonPersistent')]
         [VSAConnection] $VSAConnection,
+
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'NonPersistent')]
@@ -41,18 +42,22 @@ function Get-VSAUsers
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/system/users',
+
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
+
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
+
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort,
+
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [switch] $ResolveIDs

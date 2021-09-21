@@ -11,7 +11,7 @@
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .PARAMETER MachineGroupID
-        Specifies MachineGroupID to return. All Machine Groups are returned if MachineGroupID not specified.
+        Specifies MachineGroupID to return. All Machine Groups are returned if no MachineGroupID specified.
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging

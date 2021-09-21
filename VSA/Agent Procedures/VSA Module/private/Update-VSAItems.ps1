@@ -114,7 +114,7 @@
     "Calling Get-RequestData" | Write-Debug
     $response = Get-RequestData @requestParameters
     if ($response) {
-        if ( ($response.ResponseCode -in @(0, 200, 201, 202)) -or ('OK' -eq $response.Status) )
+        if ( ($response.ResponseCode -in @(0, 200, 201, 202, 204)) -or ('OK' -eq $response.Status) )
         {
             $result = $true
         }

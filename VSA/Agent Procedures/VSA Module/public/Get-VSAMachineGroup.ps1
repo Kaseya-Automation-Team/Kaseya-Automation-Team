@@ -11,8 +11,11 @@
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .PARAMETER MachineGroupID
-        Specifies MachineGroupID to return. All Machine Groups are returned if no MachineGroupID specified.
-    .PARAMETER Filter
+        Specifies MachineGroup ID to get. All Machine Groups are returned if no MachineGroupID specified.
+    .PARAMETER OrganizationID
+        Specifies Organization ID to return machine groups that belong to.
+        Please use {0} as a placeholder for OrganizationID in case a custom URISuffix provided.
+    .PARAMETER Filter.
         Specifies REST API Filter.
     .PARAMETER Paging
         Specifies REST API Paging.
@@ -23,78 +26,130 @@
     .EXAMPLE
        Get-VSAMachineGroup
     .EXAMPLE
+       Get-VSAMachineGroup -OrganizationID '00001'
+    .EXAMPLE
        Get-VSAMachineGroup -MachineGroupID '10001' -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
        Array of objects that represent Machine Groups.
-    #>
-    [CmdletBinding()]
+    #> 
+    [CmdletBinding()] 
     param ( 
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNull()]
-        [VSAConnection] $VSAConnection,
-
-        [parameter(Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = 'api/v1.0/system/machinegroups',
-
-        [Parameter(Mandatory = $false)]
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Organization')] 
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Group')] 
+        [ValidateNotNull()] 
+        [VSAConnection] $VSAConnection, 
+ 
+        [parameter(Mandatory=$true, 
+            ValueFromPipelineByPropertyName=$true, 
+            ParameterSetName = 'Organization',
+            HelpMessage = "Please  use {0} as a placeholder for OrganizationID in case a custom URISuffix provided.")] 
+        [string] $OrganizationID, 
+ 
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Group')]
         [ValidateNotNullOrEmpty()]
         [string] $MachineGroupID,
 
-        [Parameter(Mandatory = $false)]
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Group')]
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Organization',
+            HelpMessage = "Please  use {0} as a placeholder for OrganizationID in case a custom URISuffix provided.")]
+        [ValidateNotNullOrEmpty()]
+        [string] $URISuffix,
+ 
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Group')]
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Organization')]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
 
-        [Parameter(Mandatory = $false)]
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Group')]
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Organization')]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
 
-        [Parameter(Mandatory = $false)]
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Group')]
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Organization')]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort,
 
-        [Parameter(Mandatory = $false)]
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Group')]
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Organization')]
         [switch] $ResolveIDs
-    )
+        )
 
-    if( -not [string]::IsNullOrEmpty($MachineGroupID)) {
-        $URISuffix = "$URISuffix/$MachineGroupID"
-    }
+        
+        if ( $OrganizationID ) { 
+            #Machine groups for specific organization
+            if( [string]::IsNullOrEmpty($URISuffix) ) { $URISuffix = "api/v1.0/system/orgs/{0}/machinegroups" }
+            $URISuffix = $URISuffix -f $OrganizationID
+        } else { 
+            #Machine groups for all organizations
+            if( [string]::IsNullOrEmpty($URISuffix) ) { $URISuffix= "api/v1.0/system/machinegroups" }
 
-    [hashtable]$Params = @{}
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-
-    $Params.Add('URISuffix', $URISuffix)
-    if($Filter)        {$Params.Add('Filter', $Filter)}
-    if($Paging)        {$Params.Add('Paging', $Paging)}
-    if($Sort)          {$Params.Add('Sort', $Sort)}
-
-    $Params | Out-String | Write-Verbose
-    $Params | Out-String | Write-Debug
-
-    $result = Get-VSAItems @Params
-
-    if ($ResolveIDs)
-    {
-        [hashtable]$ResolveParams =@{}
-        if($VSAConnection) {$ResolveParams.Add('VSAConnection', $VSAConnection)}
-
-        [hashtable]$OrganizationDictionary = @{}
-
-        Foreach( $Organization in $(Get-VSAOrganization @ResolveParams) )
-        {
-            if ( -Not $OrganizationDictionary[$Organization.OrgId]) {
-                $OrganizationDictionary.Add($Organization.OrgId, $($Organization | Select-Object * -ExcludeProperty OrgId))
+            if( -not [string]::IsNullOrEmpty($MachineGroupID)) {
+                $URISuffix = "$URISuffix/$MachineGroupID"
             }
         }
+        "URISuffix: $URISuffix" | Write-Verbose
+        "URISuffix: $URISuffix" | Write-Debug
 
-        $result = $result | Select-Object -Property *, `
-            @{Name = 'Organization'; Expression = { $OrganizationDictionary[$_.OrgId] }}
-    }
+        [hashtable]$Params = @{}
+        if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+
+        $Params.Add('URISuffix', $URISuffix)
+        if($Filter)        {$Params.Add('Filter', $Filter)}
+        if($Paging)        {$Params.Add('Paging', $Paging)}
+        if($Sort)          {$Params.Add('Sort', $Sort)}
+
+        $Params | Out-String | Write-Verbose
+        $Params | Out-String | Write-Debug
+
+        $result = Get-VSAItems @Params
+
+        if ($ResolveIDs)
+        {
+            [hashtable]$ResolveParams =@{}
+            if($VSAConnection) {$ResolveParams.Add('VSAConnection', $VSAConnection)}
+
+            [hashtable]$OrganizationDictionary = @{}
+
+            Foreach( $Organization in $(Get-VSAOrganization @ResolveParams) )
+            {
+                if ( -Not $OrganizationDictionary[$Organization.OrgId]) {
+                    $OrganizationDictionary.Add($Organization.OrgId, $($Organization | Select-Object * -ExcludeProperty OrgId))
+                }
+            }
+
+            $result = $result | Select-Object -Property *, `
+                @{Name = 'Organization'; Expression = { $OrganizationDictionary[$_.OrgId] }}
+        }
     
-    return $result
-}
+        return $result
+} 
 Export-ModuleMember -Function Get-VSAMachineGroup

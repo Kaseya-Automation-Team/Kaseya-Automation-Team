@@ -10,6 +10,8 @@ function Get-VSAScope
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
+    .PARAMETER ScopeId
+        Specifies the Scope ID. Returns all scopes if not Scope ID specified
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging

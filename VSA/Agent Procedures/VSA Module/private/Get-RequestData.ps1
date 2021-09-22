@@ -96,7 +96,7 @@ function Get-RequestData
             $response = Invoke-RestMethod @requestParameters -ErrorAction Stop
             if ($response) {
                 $response | Out-String | Write-Debug
-                if ( ($response.ResponseCode -in @(0, 200, 201, 202)) -or ('OK' -eq $response.Status) ) {
+                if ( ($response.ResponseCode -in @(0, 200, 201, 202, 204)) -or ('OK' -eq $response.Status) ) {
                     return $response
                 } else {
                     Write-Error "$response.Error"

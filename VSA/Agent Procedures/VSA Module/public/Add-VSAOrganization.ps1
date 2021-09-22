@@ -175,7 +175,7 @@
     if ($ParentOrgId)       { $BodyHT.Add('ParentOrgId', $ParentOrgId) }
     if ($Website)           { $BodyHT.Add('Website', $Website) }
     if ($NumberOfEmployees) { $BodyHT.Add('NoOfEmployees', $NumberOfEmployees) }
-    if ($AnnualRevenue) { $BodyHT.Add('AnnualRevenue', $AnnualRevenue) }
+    if ($AnnualRevenue)     { $BodyHT.Add('AnnualRevenue', $AnnualRevenue) }
 
     [hashtable]$ContactInfoHT = @{}
     if ($PreferredContactMethod)  { $ContactInfoHT.Add('PreferredContactMethod', $PreferredContactMethod)}

@@ -26,7 +26,7 @@
     .EXAMPLE
        Get-VSAMachineGroup
     .EXAMPLE
-       Get-VSAMachineGroup -OrganizationID '00001'
+       Get-VSAMachineGroup -OrganizationID '10001'
     .EXAMPLE
        Get-VSAMachineGroup -MachineGroupID '10001' -VSAConnection $connection
     .INPUTS
@@ -48,13 +48,24 @@
         [parameter(Mandatory=$true, 
             ValueFromPipelineByPropertyName=$true, 
             ParameterSetName = 'Organization',
-            HelpMessage = "Please  use {0} as a placeholder for OrganizationID in case a custom URISuffix provided.")] 
+            HelpMessage = "Please  use {0} as a placeholder for OrganizationID in case a custom URISuffix provided.")]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $OrganizationID, 
  
         [parameter(Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Group')]
-        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $MachineGroupID,
 
         [parameter(Mandatory = $false,  

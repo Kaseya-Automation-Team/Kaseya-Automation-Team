@@ -10,9 +10,9 @@
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .PARAMETER NoteId
-        Id of note that is changed.
+        Id of the note to remove.
     .EXAMPLE
-       Remove-VSAAgentNote -NoteId '1'
+       Remove-VSAAgentNote -NoteId 1
     .EXAMPLE
        Remove-VSAAgentNote -NoteId '1' -VSAConnection $connection
     .INPUTS
@@ -32,8 +32,12 @@
         [string] $URISuffix = 'api/v1.0/assetmgmt/agent/note/{0}',
 
         [Parameter(Mandatory = $true)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
-        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $NoteId
         )
 

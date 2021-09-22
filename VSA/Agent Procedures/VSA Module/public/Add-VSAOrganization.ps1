@@ -4,10 +4,25 @@
        Creates a new organization.
     .DESCRIPTION
        Creates a new organization.
+       Takes either persistent or non-persistent connection information.
+    .PARAMETER VSAConnection
+        Specifies existing non-persistent VSAConnection.
+    .PARAMETER URISuffix
+        Specifies URI suffix if it differs from the default.
+    .PARAMETER OrganizationName
+        Specifies full organization name.
+    .PARAMETER OrganizationId
+        Specifies string to reference the organization. Must be unique. Usually shorten name or acronim.
+    .PARAMETER DefaultDepartmentName
+        Specifies Default Department Name. root by default.
+    .PARAMETER DefaultMachineGroupName
+        Specifies Default Machine Group Name. root by default.
+    .PARAMETER OrgType
+        Specifies Organization Type.
+    .PARAMETER ParentOrgId
+        Specifies Numeric Id of existing organization that is set as the parent for the new one.
     .EXAMPLE
-       Add-VSAOrganization
-    .EXAMPLE
-       Add-VSAOrganization
+       Add-VSAOrganization -OrganizationName 'My Organization' -OrganizationId 'myorg'
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

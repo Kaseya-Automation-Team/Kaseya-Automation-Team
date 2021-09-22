@@ -41,7 +41,12 @@ function Get-VSAAsset
         [string] $URISuffix = 'api/v1.0/assetmgmt/assets',
 
         [Parameter(Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $AssetId,
 
         [Parameter(Mandatory = $false)]

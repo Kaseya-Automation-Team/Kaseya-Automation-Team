@@ -27,31 +27,41 @@ function Get-VSAScope
     #>
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
+
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/system/scopes',
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
+        [string] $ScopeId,
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
+
+    if( -not [string]::IsNullOrWhiteSpace( $ScopeId ) ) {
+        $URISuffix += "/$ScopeId"
+    }
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix

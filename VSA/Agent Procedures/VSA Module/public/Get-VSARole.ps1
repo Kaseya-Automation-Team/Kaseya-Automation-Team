@@ -1,16 +1,16 @@
-function Get-VSALCAuditLog {
+function Get-VSARole {
     <#
     .Synopsis
-       Returns VSA Live Connect audit log.
+       Returns info about role.
     .DESCRIPTION
-       Returns the VSA Live Connect audit log.
+       Returns detailed information about single user role.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER AgentId
-        Specifies Agent Id to return the agent procedures' log.
+    .PARAMETER RoleId
+        Specifies id of the role.
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging
@@ -18,13 +18,13 @@ function Get-VSALCAuditLog {
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSALCAuditLog  -AgentId '00001'
+       Get-VSARole -RoleId 4
     .EXAMPLE
-       Get-VSALCAuditLog  -VSAConnection $connection -AgentId '00001'
+       Get-VSARole -VSAConnection $connection -RoleId 4
     .INPUTS
        Accepts piped non-persistent VSAConnection
     .OUTPUTS
-       Array of objects that represent the VSA Live Connect audit log
+       Array of objects that represent the VSA Kaseya Remote Control log
     #>
     [CmdletBinding()]
     param ( 
@@ -39,11 +39,11 @@ function Get-VSALCAuditLog {
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = "api/v1.0/assetmgmt/logs/{0}/KLCAuditLogEntry",
+        [string] $URISuffix = "api/v1.0/system/roles/{0}",
         [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
-        [string] $AgentId,
+        [string] $RoleId,
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
@@ -58,7 +58,7 @@ function Get-VSALCAuditLog {
         [string] $Sort
     )
 
-    $URISuffix = $URISuffix -f $AgentId
+    $URISuffix = $URISuffix -f $RoleId
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix
@@ -71,4 +71,4 @@ function Get-VSALCAuditLog {
 
     return Get-VSAItems @Params
 }
-Export-ModuleMember -Function Get-VSALCAuditLog
+Export-ModuleMember -Function Get-VSARole

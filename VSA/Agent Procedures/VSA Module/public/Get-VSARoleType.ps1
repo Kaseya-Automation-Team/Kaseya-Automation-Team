@@ -1,10 +1,10 @@
-function Get-VSARoleTypes
+function Get-VSARoleType
 {
     <#
     .Synopsis
-       Returns VSA user role types.
+       Returns VSA user role type.
     .DESCRIPTION
-       Returns existing VSA user role types.
+       Returns details about specified user role.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
@@ -17,9 +17,9 @@ function Get-VSARoleTypes
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSARoleTypes
+       Get-VSARoleType
     .EXAMPLE
-       Get-VSARoleTypes -VSAConnection $connection
+       Get-VSARoleType -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -38,10 +38,14 @@ function Get-VSARoleTypes
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = 'api/v1.0/system/roletypes',
+        [string] $URISuffix = 'api/v1.0/system/roletypes/{0}',
+        [ValidateNotNullOrEmpty()]
+        [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()] 
+        [string] $RoleId,
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
         [string] $Filter,
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
@@ -50,12 +54,11 @@ function Get-VSARoleTypes
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
-        [string] $Sort,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
-        [switch] $ResolveIDs
+        [string] $Sort
 
     )
+
+    $URISuffix = $URISuffix -f $RoleId
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix
@@ -68,4 +71,4 @@ function Get-VSARoleTypes
 
     return Get-VSAItems @Params
 }
-Export-ModuleMember -Function Get-VSARoleTypes
+Export-ModuleMember -Function Get-VSARoleType

@@ -100,7 +100,7 @@ function Get-RequestData
                     return $response
                 } else {
                     Write-Error "$response.Error"
-                    throw $response.Error
+                    throw $($response.Error)
                 }
             } else {
                 "No response returned" | Write-Debug

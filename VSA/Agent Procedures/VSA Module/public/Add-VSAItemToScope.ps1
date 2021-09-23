@@ -10,20 +10,23 @@ function Add-VSAItemToScope
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER OrganizationId
-        Specifies the Organization Id.
+    .PARAMETER ScopeId
+        Specifies the Scope Id to which a VSA item is added.
     .PARAMETER MachineGroupId
         Specifies the Machine Group Id.
+        Not Compatible with -OrganizationId, -UserId parameters.
+    .PARAMETER OrganizationId
+        Specifies the Organization Id.
+        Not Compatible with -UserId, -MachineGroupId parameters.
     .PARAMETER UserId
         Specifies the User Id.
-    .PARAMETER ScopeId
-        Specifies the Scope Id.
+        Not Compatible with -OrganizationId, -MachineGroupId parameters.
     .EXAMPLE
-       Add-VSAItemToScope -MachineGroupId 10001 -ScopeId 20002
+       Add-VSAItemToScope -ScopeId 10001 -MachineGroupId 20002
     .EXAMPLE
-       Add-VSAItemToScope -MachineGroupId 10001 -OrganizationId 20002
+       Add-VSAItemToScope -ScopeId 10001 -OrganizationId 20002
     .EXAMPLE
-       Add-VSAItemToScope -MachineGroupId 10001 -UserId 20002
+       Add-VSAItemToScope -ScopeId 10001 -UserId 20002
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

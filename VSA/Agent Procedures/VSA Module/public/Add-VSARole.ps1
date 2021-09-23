@@ -55,12 +55,11 @@ function Add-VSARole
 
 	$Body = ConvertTo-Json @{"RoleName"=$RoleName; "RoleTypeIds"=$RoleTypeIds}
 	
-	Write-Host $Body
     $Params.Add('Body', $Body)
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    #return Update-VSAItems @Params
+    return Update-VSAItems @Params
 }
 
 Export-ModuleMember -Function Add-VSARole

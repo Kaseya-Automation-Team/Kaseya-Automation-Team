@@ -77,7 +77,7 @@ function Update-VSADepartment
     if ($ManagerId)          { $BodyHT.Add('ManagerId', $ManagerId) }
 
     $Body = $BodyHT | ConvertTo-Json
-    $Body
+    $Body | Out-String | Write-Debug
 
     [hashtable]$Params = @{}
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
@@ -86,7 +86,6 @@ function Update-VSADepartment
     $Params.Add('Method', 'PUT')
     $Params.Add('Body', $Body)
 
-    $Params
     return Update-VSAItems @Params
 }
 Export-ModuleMember -Function Update-VSADepartment

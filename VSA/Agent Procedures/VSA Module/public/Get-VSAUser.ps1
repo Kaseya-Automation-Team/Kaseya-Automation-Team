@@ -29,23 +29,28 @@ function Get-VSAUser
     .OUTPUTS
        Array of objects that represent existing VSA users
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Users')]
     param ( 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+            ParameterSetName = 'CurrentUser')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Users')]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'CurrentUser')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Users')]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/system/users',
 
-        [Parameter(Mandatory = $false)]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Users')]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
                 throw "Non-numeric Id"
@@ -54,29 +59,48 @@ function Get-VSAUser
         })]
         [string] $UserId,
 
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'CurrentUser')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Users')]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
 
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'CurrentUser')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Users')]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
 
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'CurrentUser')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Users')]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort,
 
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
-        [switch] $ResolveIDs
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Users')]
+        [switch] $ResolveIDs,
+
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'CurrentUser')]
+        [switch] $CurrentUser
     )
 
     if( -not [string]::IsNullOrWhiteSpace($UserId) ) {
         $URISuffix += "/$UserId"
     }
+    if ($CurrentUser) {$URISuffix = 'api/v1.0/system/currentUser'}
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix

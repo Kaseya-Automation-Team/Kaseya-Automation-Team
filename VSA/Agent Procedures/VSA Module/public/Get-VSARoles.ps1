@@ -1,4 +1,4 @@
-function Get-VSARole
+function Get-VSARoles
 {
     <#
     .Synopsis
@@ -89,4 +89,4 @@ function Get-VSARole
     }
     return $result
 }
-Export-ModuleMember -Function Get-VSARole
+Export-ModuleMember -Function Get-VSARoles

@@ -77,7 +77,7 @@ function Get-VSARoles
 
         [hashtable]$RoleTypesDictionary = @{}
 
-        Foreach( $RoleType in $(Get-VSARoleType @ResolveParams) )
+        Foreach( $RoleType in $(Get-VSARoleTypes @ResolveParams) )
         {
             if ( -Not $RoleTypesDictionary[$RoleType.RoleTypeId]) {
                 $RoleTypesDictionary.Add($RoleType.RoleTypeId, $($RoleType | Select-Object * -ExcludeProperty RoleTypeId))

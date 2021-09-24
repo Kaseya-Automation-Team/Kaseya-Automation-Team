@@ -21,7 +21,7 @@ function Add-VSAMachineGroup
 	.EXAMPLE
        Add-VSAMachineGroup -OrgId "34543554343" -MachineGroupName "Kaseya" -ParentMachineGroupId "3243243242332"
     .EXAMPLE
-       Add-VSAMachineGroup -VSAConnection $connection
+       Add-VSAMachineGroup -VSAConnection $connection -MachineGroupName "Kaseya"
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

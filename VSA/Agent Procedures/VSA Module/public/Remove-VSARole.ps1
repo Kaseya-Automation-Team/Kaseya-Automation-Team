@@ -13,9 +13,9 @@ function Remove-VSARole
     .PARAMETER RoleId
         Specifies numeric id of machine group
     .EXAMPLE
-       VSARole -RoleId 581411914
+       Remove-VSARole -RoleId 581411914
     .EXAMPLE
-       VSARole -VSAConnection $connection -RoleId 581411914
+       Remove-VSARole -VSAConnection $connection -RoleId 581411914
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

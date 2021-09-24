@@ -19,9 +19,11 @@ function Get-VSARoles
     .PARAMETER ResolveIDs
         Return Role Types as well as their IDs.
     .EXAMPLE
-       Get-VSARoleTypes
+       Get-VSARoles
+	.EXAMPLE
+	   Get-VSARoles -ResolveIDs
     .EXAMPLE
-       Get-VSARoleTypes -VSAConnection $connection
+       Get-VSARoles -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

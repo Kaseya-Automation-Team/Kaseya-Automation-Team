@@ -17,7 +17,7 @@ function Add-VSARole
     .EXAMPLE
        Add-VSARole -RoleName "Remote desktop" -RoleTypeIds 4, 6, 100, 101
     .EXAMPLE
-       Add-VSARole -VSAConnection $connection
+       Add-VSARole -VSAConnection $connection -RoleName "Remote desktop" -RoleTypeIds 4, 6, 100, 101
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

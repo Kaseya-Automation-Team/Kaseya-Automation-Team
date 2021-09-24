@@ -15,7 +15,7 @@ function Remove-VSAMachineGroup
     .EXAMPLE
        Remove-VSAMachineGroup -MachineGroupId "34543554343"
     .EXAMPLE
-       Remove-VSAMachineGroup -VSAConnection $connection
+       Remove-VSAMachineGroup -VSAConnection $connection -MachineGroupId "34543554343"
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

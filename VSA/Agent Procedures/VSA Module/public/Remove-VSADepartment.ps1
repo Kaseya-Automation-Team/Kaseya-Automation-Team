@@ -10,12 +10,12 @@ function Remove-VSADepartment
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER ParentDepartmentId
-        Specifies the Parent Department Id.
+    .PARAMETER DepartmentId
+        Specifies the Department Id.
     .EXAMPLE
-       Remove-VSADepartment -OrganizationId 10001
+       Remove-VSADepartment -DepartmentId 10001
     .EXAMPLE
-       Remove-VSADepartment -OrganizationId 10001 -VSAConnection $connection
+       Remove-VSADepartment -DepartmentId 10001 -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

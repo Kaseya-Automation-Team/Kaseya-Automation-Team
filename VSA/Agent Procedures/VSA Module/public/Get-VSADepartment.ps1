@@ -31,7 +31,7 @@
     .OUTPUTS
        Array of objects that represent Departments' Data.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Department')]
     param ( 
         
         [parameter(Mandatory = $false,  

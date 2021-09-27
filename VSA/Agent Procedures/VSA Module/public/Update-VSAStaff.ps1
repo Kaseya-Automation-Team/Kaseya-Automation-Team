@@ -186,7 +186,9 @@ function Update-VSAStaff
     if ($DepartmentId)         { $BodyHT.Add('DeptId', $DepartmentId) }
     if ($SupervisorId)         { $BodyHT.Add('SupervisorId', $SupervisorId) }
     if ($Title)                { $BodyHT.Add('Title', $Title) }
-    #if ($Function)             { $BodyHT.Add('Function', $Function) }
+    <#
+    if ($Function)             { $BodyHT.Add('Function', $Function) }
+    #>
     if ($UserId)               { $BodyHT.Add('UserId', $UserId) }
 
     [hashtable]$ContactInfoHT = @{}

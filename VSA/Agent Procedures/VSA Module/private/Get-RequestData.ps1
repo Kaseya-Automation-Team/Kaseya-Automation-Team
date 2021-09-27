@@ -99,6 +99,7 @@ function Get-RequestData
                 if ( ($response.ResponseCode -in @(0, 200, 201, 202, 204)) -or ('OK' -eq $response.Status) ) {
                     return $response
                 } else {
+                    Write-Error "$response.Result"
                     Write-Error "$response.Error"
                     throw $($response.Error)
                 }

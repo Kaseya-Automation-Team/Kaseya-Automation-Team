@@ -60,6 +60,12 @@ function Get-VSAAudit
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Licenses')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'SecurityProducts')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'StartupApps')]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory=$false,
@@ -95,6 +101,12 @@ function Get-VSAAudit
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Licenses')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'SecurityProducts')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'StartupApps')]
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/audit/{0}',
 
@@ -153,6 +165,16 @@ function Get-VSAAudit
             ParameterSetName = 'Licenses')]
         [switch] $Licenses,
 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'SecurityProducts')]
+        [switch] $SecurityProducts,
+
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'StartupApps')]
+        [switch] $StartupApps,
+
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'AllSummaries')]
         [Parameter(Mandatory = $false, 
@@ -175,6 +197,10 @@ function Get-VSAAudit
             ParameterSetName = 'InstalledApps')]
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'Licenses')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'SecurityProducts')]
+        [parameter(Mandatory = $false,
+            ParameterSetName = 'StartupApps')]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
 
@@ -200,6 +226,10 @@ function Get-VSAAudit
             ParameterSetName = 'InstalledApps')]
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'Licenses')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'SecurityProducts')]
+        [parameter(Mandatory = $false,
+            ParameterSetName = 'StartupApps')]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
 
@@ -225,6 +255,10 @@ function Get-VSAAudit
             ParameterSetName = 'InstalledApps')]
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'Licenses')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'SecurityProducts')]
+        [parameter(Mandatory = $false,
+            ParameterSetName = 'StartupApps')]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
@@ -267,6 +301,8 @@ function Get-VSAAudit
         if ($AddRemoveProgramsList)     {$URISuffix = "$URISuffix/software/addremoveprograms"}
         if ($InstalledApps)             {$URISuffix = "$URISuffix/software/installedapplications"}
         if ($Licenses)                  {$URISuffix = "$URISuffix/software/licenses"}
+        if ($SecurityProducts)          {$URISuffix = "$URISuffix/software/securityproducts"}
+        if ($StartupApps)               {$URISuffix = "$URISuffix/software/startupapps"}
 
         [hashtable]$Params = @{
             URISuffix = $($URISuffix -f $AgentID)

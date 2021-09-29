@@ -27,98 +27,131 @@ function Get-VSAAudit
     #>
     [CmdletBinding(DefaultParameterSetName = 'AllSummaries')]
     param ( 
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'AllSummaries')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Credentials')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Groups')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'DiskVolumes')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'PCIAndDisk')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Printers')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'PurchaseAndWarrantyExpire')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'LocalGroupMembers')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'ProgamList')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'InstalledApps')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Licenses')]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true, 
+            ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'AllSummaries')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Credentials')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Groups')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'DiskVolumes')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'PCIAndDisk')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Printers')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'PurchaseAndWarrantyExpire')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'LocalGroupMembers')]
-        [ValidateNotNullOrEmpty()] 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'ProgamList')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'InstalledApps')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Licenses')]
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/audit/{0}',
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'AllSummaries')]
         [switch] $AllSummaries,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Credentials')]
         [switch] $Credentials,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Groups')]
         [switch] $Groups,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'DiskVolumes')]
         [switch] $DiskVolumes,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'PCIAndDisk')]
         [switch] $PCIAndDisk,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Printers')]
         [switch] $Printers,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'PurchaseAndWarrantyExpire')]
         [switch] $PurchaseAndWarrantyExpire,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'LocalGroupMembers')]
         [switch] $LocalGroupMembers,
+
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'ProgamList')]
+        [switch] $AddRemoveProgramsList,
+        
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'InstalledApps')]
+        [switch] $InstalledApps,
+
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Licenses')]
+        [switch] $Licenses,
 
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'AllSummaries')]
@@ -136,6 +169,12 @@ function Get-VSAAudit
             ParameterSetName = 'PurchaseAndWarrantyExpire')]
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'LocalGroupMembers')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'ProgamList')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'InstalledApps')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'Licenses')]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
 
@@ -155,6 +194,12 @@ function Get-VSAAudit
             ParameterSetName = 'PurchaseAndWarrantyExpire')]
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'LocalGroupMembers')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'ProgamList')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'InstalledApps')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'Licenses')]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
 
@@ -174,6 +219,12 @@ function Get-VSAAudit
             ParameterSetName = 'PurchaseAndWarrantyExpire')]
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'LocalGroupMembers')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'ProgamList')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'InstalledApps')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'Licenses')]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
@@ -212,6 +263,10 @@ function Get-VSAAudit
         if ($Printers)                  {$URISuffix = "$URISuffix/hardware/printers"}
         if ($PurchaseAndWarrantyExpire) {$URISuffix = "$URISuffix/hardware/purchaseandwarrantyexpire"}
         if ($LocalGroupMembers)         {$URISuffix = "$URISuffix/members"}
+        if ($LocalGroupMembers)         {$URISuffix = "$URISuffix/members"}
+        if ($AddRemoveProgramsList)     {$URISuffix = "$URISuffix/software/addremoveprograms"}
+        if ($InstalledApps)             {$URISuffix = "$URISuffix/software/installedapplications"}
+        if ($Licenses)                  {$URISuffix = "$URISuffix/software/licenses"}
 
         [hashtable]$Params = @{
             URISuffix = $($URISuffix -f $AgentID)

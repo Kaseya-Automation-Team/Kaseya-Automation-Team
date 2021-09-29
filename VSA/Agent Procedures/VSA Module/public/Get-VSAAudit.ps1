@@ -10,6 +10,38 @@ function Get-VSAAudit
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
+    .PARAMETER AllSummaries
+        Returns an array of audit summary records.
+    .PARAMETER Credentials
+        Returns an array of credentials for an agent.
+    .PARAMETER Groups
+        Returns an array of local user groups on the agent machine.
+    .PARAMETER DiskVolumes
+        Returns an array of disk volumes on the agent machine.
+    .PARAMETER PCIAndDisk
+        Returns an array of disk drives and PCI devices on the agent machine.
+    .PARAMETER Printers
+        Returns an array of printers and ports configured on an agent machine.
+    .PARAMETER PurchaseAndWarrantyExpire
+        Returns the purchase date and warranty expiration date for a single agent.
+    .PARAMETER LocalGroupMembers
+        Returns an array of local users in each local user group on the agent machine.
+    .PARAMETER AddRemoveProgramsList
+        Returns an array of program entries in the add/remove list of Windows machines.
+    .PARAMETER InstalledApps
+        Returns an array of installed applications on the agent machine.
+    .PARAMETER Licenses
+        Returns an array of licenses used by the agent machine.
+    .PARAMETER SecurityProducts
+        Returns an array of security products installed on the agent machine.
+    .PARAMETER StartupApps
+        Returns an array of startup apps on the agent machine.
+    .PARAMETER Summary
+        Returns the audit summary for the agent machine.
+    .PARAMETER LocalUsers
+        Returns an array of user accounts on the agent machine.
+    .PARAMETER AgentID
+        Specifies Agent ID to return audit entries for.
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging
@@ -66,6 +98,12 @@ function Get-VSAAudit
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'StartupApps')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Summary')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Users')]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory=$false,
@@ -107,6 +145,12 @@ function Get-VSAAudit
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'StartupApps')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Summary')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Users')]
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/audit/{0}',
 
@@ -175,6 +219,16 @@ function Get-VSAAudit
             ParameterSetName = 'StartupApps')]
         [switch] $StartupApps,
 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Summary')]
+        [switch] $Summary,
+
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Users')]
+        [switch] $LocalUsers,
+
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'AllSummaries')]
         [Parameter(Mandatory = $false, 
@@ -201,6 +255,10 @@ function Get-VSAAudit
             ParameterSetName = 'SecurityProducts')]
         [parameter(Mandatory = $false,
             ParameterSetName = 'StartupApps')]
+        [parameter(Mandatory = $false,
+            ParameterSetName = 'Summary')]
+        [parameter(Mandatory = $false,
+            ParameterSetName = 'Users')]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
 
@@ -230,6 +288,10 @@ function Get-VSAAudit
             ParameterSetName = 'SecurityProducts')]
         [parameter(Mandatory = $false,
             ParameterSetName = 'StartupApps')]
+        [parameter(Mandatory = $false,
+            ParameterSetName = 'Summary')]
+        [parameter(Mandatory = $false,
+            ParameterSetName = 'Users')]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
 
@@ -259,6 +321,10 @@ function Get-VSAAudit
             ParameterSetName = 'SecurityProducts')]
         [parameter(Mandatory = $false,
             ParameterSetName = 'StartupApps')]
+        [parameter(Mandatory = $false,
+            ParameterSetName = 'Summary')]
+        [parameter(Mandatory = $false,
+            ParameterSetName = 'Users')]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
@@ -303,6 +369,8 @@ function Get-VSAAudit
         if ($Licenses)                  {$URISuffix = "$URISuffix/software/licenses"}
         if ($SecurityProducts)          {$URISuffix = "$URISuffix/software/securityproducts"}
         if ($StartupApps)               {$URISuffix = "$URISuffix/software/startupapps"}
+        if ($Summary)                   {$URISuffix = "$URISuffix/summary"}
+        if ($LocalUsers)                {$URISuffix = "$URISuffix/useraccounts"}
 
         [hashtable]$Params = @{
             URISuffix = $($URISuffix -f $AgentID)

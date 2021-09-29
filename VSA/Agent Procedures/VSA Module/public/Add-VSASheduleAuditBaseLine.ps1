@@ -86,6 +86,16 @@ function Add-VSASheduleAuditBaseLine
             $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('DayOfMonth', [string], $AttributeCollection)
             $RuntimeParameterDictionary.Add('DayOfMonth', $RuntimeParameter)
 
+            $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
+            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $false
+            $AttributeCollection.Add($ParameterAttribute)
+            [string[]] $ValidateSet = @('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
+            $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
+            $AttributeCollection.Add($ValidateSetAttribute)
+            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('MonthOfYear', [string], $AttributeCollection)
+            $RuntimeParameterDictionary.Add('MonthOfYear', $RuntimeParameter)
+
             return $RuntimeParameterDictionary
         }
     }
@@ -96,9 +106,10 @@ function Add-VSASheduleAuditBaseLine
 
         $URISuffix = $URISuffix -f $AgentID
 
-        [string] $Times      = $PSBoundParameters.Times
-        [string] $DaysOfWeek = $PSBoundParameters.DaysOfWeek
-        [string] $DayOfMonth = $PSBoundParameters.DayOfMonth        
+        [string] $Times       = $PSBoundParameters.Times
+        [string] $DaysOfWeek  = $PSBoundParameters.DaysOfWeek
+        [string] $DayOfMonth  = $PSBoundParameters.DayOfMonth
+        [string] $MonthOfYear = $PSBoundParameters.MonthOfYear
 
         [hashtable]$Recurrence = @{
             Repeat  = $Repeat
@@ -106,12 +117,12 @@ function Add-VSASheduleAuditBaseLine
             EndOn = $EndOn
         }
 
-        if ($Times)                 { $Recurrence.Add('Times', $Times) }
-        if ($DaysOfWeek)            { $Recurrence.Add('DaysOfWeek', $DaysOfWeek) }
-        if ($DayOfMonth)            { $Recurrence.Add('DayOfMonth', $DayOfMonth) }
-        if ($SpecificDayOfMonth)    { $Recurrence.Add('SpecificDayOfMonth', $SpecificDayOfMonth) }
-        if ($MonthOfYear)           { $Recurrence.Add('MonthOfYear', $MonthOfYear)}
-        if ($EndAfterIntervalTimes) { $Recurrence.Add('EndAfterIntervalTimes', $EndAfterIntervalTimes) }
+        if ( -not [string]::IsNullOrEmpty($Times) )                 { $Recurrence.Add('Times', $Times) }
+        if ( -not [string]::IsNullOrEmpty($DaysOfWeek) )            { $Recurrence.Add('DaysOfWeek', $DaysOfWeek) }
+        if ( -not [string]::IsNullOrEmpty($DayOfMonth) )            { $Recurrence.Add('DayOfMonth', $DayOfMonth) }
+        if ( -not [string]::IsNullOrEmpty($SpecificDayOfMonth) )    { $Recurrence.Add('SpecificDayOfMonth', $SpecificDayOfMonth) }
+        if ( -not [string]::IsNullOrEmpty($MonthOfYear) )           { $Recurrence.Add('MonthOfYear', $MonthOfYear)}
+        if ( -not [string]::IsNullOrEmpty($EndAfterIntervalTimes) ) { $Recurrence.Add('EndAfterIntervalTimes', $EndAfterIntervalTimes) }
     
         [hashtable]$Distribution = @{
             Interval  = $Interval

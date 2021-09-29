@@ -328,21 +328,21 @@ function Get-VSAAudit
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
-     DynamicParam {
-            if ( $($PSCmdlet.ParameterSetName) -notmatch 'AllSummaries' ) {
-                $attribute = New-Object System.Management.Automation.ParameterAttribute 
-                $attribute.ParameterSetName = "__AllParameterSets" 
-                $attribute.Mandatory = $true 
+    DynamicParam {
+        if ( $($PSCmdlet.ParameterSetName) -notmatch 'AllSummaries' ) {
+            $attribute = New-Object System.Management.Automation.ParameterAttribute 
+            $attribute.ParameterSetName = "__AllParameterSets" 
+            $attribute.Mandatory = $true 
  
-                $collection = New-Object System.Collections.ObjectModel.Collection[System.Attribute] 
-                $collection.Add($attribute) 
+            $collection = New-Object System.Collections.ObjectModel.Collection[System.Attribute] 
+            $collection.Add($attribute) 
  
-                $param = New-Object System.Management.Automation.RuntimeDefinedParameter('AgentID', [string], $collection) 
-                $dictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary 
-                $dictionary.Add('AgentID', $param) 
-                return $dictionary
-            }
+            $param = New-Object System.Management.Automation.RuntimeDefinedParameter('AgentID', [string], $collection) 
+            $dictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary 
+            $dictionary.Add('AgentID', $param) 
+            return $dictionary
         }
+    }
     Begin {
         if ( $($PSBoundParameters.AgentID) -and ($($PSBoundParameters.AgentID)  -notmatch "^\d+$")) {
             Write-Error "AgentID must be a numeric value!" -ErrorAction Stop

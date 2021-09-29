@@ -45,31 +45,6 @@ function Add-VSASheduleAuditBaseLine
         [ValidateSet('Never', 'Minutes', 'Hours', 'Days', 'Weeks', 'Months', 'Years')]
         [string] $Repeat = 'Never',
 
-
-        [Parameter(Mandatory = $false)]
-        [string] $DaysOfWeek,
-
-        [Parameter(Mandatory = $false)]
-        [string] $DayOfMonth,
-        
-        [Parameter(Mandatory = $false)]
-        [string] $SpecificDayOfMonth,
-
-        [Parameter(Mandatory = $false)]
-        [string] $MonthOfYear,
-
-        [Parameter(Mandatory = $false)]
-        [string] $EndAt,
-
-        [Parameter(Mandatory = $false)]
-        [string] $EndOn,
-
-        [Parameter(Mandatory = $false)]
-        [string] $EndAfterIntervalTimes,
-
-        [Parameter(Mandatory = $false)]
-        [string] $Interval = 'Minutes',
-
         [Parameter(Mandatory = $false)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -121,15 +96,14 @@ function Add-VSASheduleAuditBaseLine
 
         $URISuffix = $URISuffix -f $AgentID
 
+        [string] $Times      = $PSBoundParameters.Times
+        [string] $DaysOfWeek = $PSBoundParameters.DaysOfWeek
+        [string] $DayOfMonth = $PSBoundParameters.DayOfMonth        
+
         [hashtable]$Recurrence = @{
             Repeat  = $Repeat
             EndAt = $EndAt
             EndOn = $EndOn
-        }
-    
-        [hashtable]$Distribution = @{
-            Interval  = $Interval
-            Magnitude = $Magnitude
         }
 
         if ($Times)                 { $Recurrence.Add('Times', $Times) }
@@ -138,6 +112,20 @@ function Add-VSASheduleAuditBaseLine
         if ($SpecificDayOfMonth)    { $Recurrence.Add('SpecificDayOfMonth', $SpecificDayOfMonth) }
         if ($MonthOfYear)           { $Recurrence.Add('MonthOfYear', $MonthOfYear)}
         if ($EndAfterIntervalTimes) { $Recurrence.Add('EndAfterIntervalTimes', $EndAfterIntervalTimes) }
+    
+        [hashtable]$Distribution = @{
+            Interval  = $Interval
+            Magnitude = $Magnitude
+        }
+
+        [hashtable]$BodyHT = @{}
+        
+        if ( 0 -lt $($Recurrence.Count) )   { $BodyHT.Add('Recurrence', $Recurrence) }
+        if ( 0 -lt $($Distribution.Count) ) { $BodyHT.Add('Distribution', $Distribution) }
+
+        $Body = ConvertTo-Json $BodyHT
+
+        $Body | Out-String | Write-Output
 
         [hashtable]$Params = @{
             URISuffix = $($URISuffix -f $AgentID)
@@ -147,7 +135,7 @@ function Add-VSASheduleAuditBaseLine
 
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-        return Update-VSAItems @Params
+        #return Update-VSAItems @Params
     }
 }
 Export-ModuleMember -Function Add-VSASheduleAuditBaseLine

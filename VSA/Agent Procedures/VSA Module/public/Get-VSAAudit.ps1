@@ -25,11 +25,11 @@ function Get-VSAAudit
     .OUTPUTS
        Array of objects that represent VSA audit summary.
     #>
-    [CmdletBinding(DefaultParameterSetName = 'Summaries')]
+    [CmdletBinding(DefaultParameterSetName = 'AllSummaries')]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true, 
-            ParameterSetName = 'Summaries')]
+            ParameterSetName = 'AllSummaries')]
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Credentials')]
@@ -45,11 +45,17 @@ function Get-VSAAudit
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Printers')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'PurchaseAndWarrantyExpire')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'LocalGroupMembers')]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true, 
-            ParameterSetName = 'Summaries')]
+            ParameterSetName = 'AllSummaries')]
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Credentials')]
@@ -65,13 +71,19 @@ function Get-VSAAudit
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Printers')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'PurchaseAndWarrantyExpire')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'LocalGroupMembers')]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/assetmgmt/audit/{0}',
 
         [parameter(Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
-            ParameterSetName = 'Summaries')]
-        [switch] $Summaries,
+            ParameterSetName = 'AllSummaries')]
+        [switch] $AllSummaries,
 
         [parameter(Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
@@ -98,8 +110,18 @@ function Get-VSAAudit
             ParameterSetName = 'Printers')]
         [switch] $Printers,
 
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'PurchaseAndWarrantyExpire')]
+        [switch] $PurchaseAndWarrantyExpire,
+
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'LocalGroupMembers')]
+        [switch] $LocalGroupMembers,
+
         [Parameter(Mandatory = $false, 
-            ParameterSetName = 'Summaries')]
+            ParameterSetName = 'AllSummaries')]
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'Credentials')]
         [parameter(Mandatory = $false, 
@@ -110,11 +132,15 @@ function Get-VSAAudit
             ParameterSetName = 'PCIAndDisk')]
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'Printers')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'PurchaseAndWarrantyExpire')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'LocalGroupMembers')]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
 
         [Parameter(Mandatory = $false, 
-            ParameterSetName = 'Summaries')]
+            ParameterSetName = 'AllSummaries')]
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'Credentials')]
         [parameter(Mandatory = $false, 
@@ -125,11 +151,15 @@ function Get-VSAAudit
             ParameterSetName = 'PCIAndDisk')]
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'Printers')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'PurchaseAndWarrantyExpire')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'LocalGroupMembers')]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
 
         [Parameter(Mandatory = $false, 
-            ParameterSetName = 'Summaries')]
+            ParameterSetName = 'AllSummaries')]
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'Credentials')]
         [parameter(Mandatory = $false, 
@@ -140,11 +170,15 @@ function Get-VSAAudit
             ParameterSetName = 'PCIAndDisk')]
         [Parameter(Mandatory = $false, 
             ParameterSetName = 'Printers')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'PurchaseAndWarrantyExpire')]
+        [Parameter(Mandatory = $false, 
+            ParameterSetName = 'LocalGroupMembers')]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
-    DynamicParam { 
-            if ( -not $Summaries) {
+     DynamicParam {
+            if ( $($PSCmdlet.ParameterSetName) -notmatch 'AllSummaries' ) {
                 $attribute = New-Object System.Management.Automation.ParameterAttribute 
                 $attribute.ParameterSetName = "__AllParameterSets" 
                 $attribute.Mandatory = $true 
@@ -157,24 +191,27 @@ function Get-VSAAudit
                 $dictionary.Add('AgentID', $param) 
                 return $dictionary
             }
-            
         }
     Begin {
         if ( $($PSBoundParameters.AgentID) -and ($($PSBoundParameters.AgentID)  -notmatch "^\d+$")) {
             Write-Error "AgentID must be a numeric value!" -ErrorAction Stop
         }
     }
+
     Process {
+
         [string] $AgentID = $PSBoundParameters.AgentID
 
         if ( [string]::IsNullOrEmpty($AgentID) ) {$AgentID = ''}
         $URISuffix = $URISuffix -f $AgentID
 
-        if ($Credentials) {$URISuffix = "$URISuffix/credentials"}
-        if ($Groups)      {$URISuffix = "$URISuffix/groups"}
-        if ($DiskVolumes) {$URISuffix = "$URISuffix/diskvolumes"}
-        if ($PCIAndDisk)  {$URISuffix = "$URISuffix/pcianddisk"}
-        if ($Printers)    {$URISuffix = "$URISuffix/printers"}
+        if ($Credentials)               {$URISuffix = "$URISuffix/credentials"}
+        if ($Groups)                    {$URISuffix = "$URISuffix/groups"}
+        if ($DiskVolumes)               {$URISuffix = "$URISuffix/hardware/diskvolumes"}
+        if ($PCIAndDisk)                {$URISuffix = "$URISuffix/hardware/pcianddisk"}
+        if ($Printers)                  {$URISuffix = "$URISuffix/hardware/printers"}
+        if ($PurchaseAndWarrantyExpire) {$URISuffix = "$URISuffix/hardware/purchaseandwarrantyexpire"}
+        if ($LocalGroupMembers)         {$URISuffix = "$URISuffix/members"}
 
         [hashtable]$Params = @{
             URISuffix = $($URISuffix -f $AgentID)

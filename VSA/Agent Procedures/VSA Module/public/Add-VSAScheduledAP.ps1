@@ -2,22 +2,52 @@ function Add-VSAScheduledAP
 {
     <#
     .Synopsis
-       Adds new user role
+       Adds new scheduled procedure
     .DESCRIPTION
-       Adds new user role in VSA with specified role type ids
+       Adds new scheduled procedure to the specified agent machine
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER RoleName
-        Specifies name of the role
-    .PARAMETER RoleTypeIds
-        Specifies array of role type ids
+    .PARAMETER AgentId
+        Specifies numeric id of agent machine
+    .PARAMETER AgentProcedureId
+        Specifies numeric id of agent procedure
+     .PARAMETER ScriptPrompts
+        Specifies data used to fill fields prompted by procedure
+    .PARAMETER ServerTimeZone
+        Specifies if procedure should be scheduled in server time zone
+    .PARAMETER SkipIfOffLine
+        Specifies if procedure should NOT be executed if agent is offline at scheduled time     
+    .PARAMETER PowerUpIfOffLine
+        Specifies if machine should be powered up at scheduled time        
+    .PARAMETER SpecificDayOfMonth
+        Specifies index of day in the month       
+    .PARAMETER EndAt
+        Specifies 15 minutes interval when procedure should end
+    .PARAMETER EndOn
+        Specifies date and time when recurrence should be ended   
+    .PARAMETER EndAfterIntervalTimes
+        Specifies if recurrence should end after specific amount of executions                  
+    .PARAMETER Interval
+        Specifies unit of measurement for interval of distribution window
+    .PARAMETER Magniture
+        Specifies numeric interval of distribution window
+    .PARAMETER StartOn
+    Specifies date and time when procedure should be executed
+    .PARAMETER StartAt
+    Specifies 15 minutes interval when procedure should be executed
+    .PARAMETER ExcludeFrom
+    Specifies interval for exclusion of execution
+    .PARAMETER ExcludeTo
+    Specifies interval for exclusion of execution
+    .PARAMETER AgentTime
+    Specifies if agent procedure should be scheduled in time of agent
     .EXAMPLE
-       Add-VSAScheduledTask -RoleName "Remote desktop" -RoleTypeIds 4, 6, 100, 101
+       Add-VSAScheduledAP -AgentId 2343322 -AgentProcedureId 1435 -Repeat "Never" -PowerUpIfOffLine -SkipIfOffLine -ScriptPrompts @(@{Caption="Please enter your username"; Name="username"; value="administrator"}) -StartOn "2021-09-30T11:20:00.000Z"
     .EXAMPLE
-       Add-VSAScheduledTask -VSAConnection $connection -RoleName "Remote desktop" -RoleTypeIds 4, 6, 100, 101
+       Add-VSAScheduledAP -AgentId 2343322 -AgentProcedureId 1435 -EndAt "T1345" -EndOn "2021-10-30T12:00:00.000Z" -Repeat "Days" -Times 3 -AgentTime -ExcludeFrom "T1000" -ExcludeTo "T1200"
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -208,17 +238,15 @@ function Add-VSAScheduledAP
 
         $BodyHT = @{"ServerTimeZone"=$ServerTimeZone.ToBool(); "SkipIfOffline"=$SkipIfOffLine.ToBool(); "PowerUpIfOffLine"=$PowerUpIfOffLine.ToBool(); "Recurrence"=$Recurrence; "Distribution"=$Distribution; "SchedInAgentTime"=$AgentTime.ToBool()}
 
-        if ( -not [string]::IsNullOrEmpty($StartOn) )           {  $BodyHT.Add('Start', $Start) }
-        if ( -not [string]::IsNullOrEmpty($ScriptPrompts) )           {  $BodyHT.Add('ScriptPrompts', @($ScriptPrompts)) }
-        if ( (-not [string]::IsNullOrEmpty($ExcludeFrom)) -and (-not [string]::IsNullOrEmpty($ExcludeTo)))           {  $BodyHT.Add('Exclusion', $Exclusion) }
+        if ( -not [string]::IsNullOrEmpty($StartOn) )         {  $BodyHT.Add('Start', $Start) }
+        if ( -not [string]::IsNullOrEmpty($ScriptPrompts) )   {  $BodyHT.Add('ScriptPrompts', @($ScriptPrompts)) }
+        if ( (-not [string]::IsNullOrEmpty($ExcludeFrom)) -and (-not [string]::IsNullOrEmpty($ExcludeTo)))  {  $BodyHT.Add('Exclusion', $Exclusion) }
 
         $Body = $BodyHT | ConvertTo-Json
 	
         $Params.Add('Body', $Body)
 
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-
-        Write-Host $Body
 
         return Update-VSAItems @Params
     }

@@ -40,10 +40,19 @@ function Add-VSASheduleAuditBaseLine
         })]
         [string] $AgentID,
 
-        [parameter(Mandatory = $false,
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateSet('Never', 'Minutes', 'Hours', 'Days', 'Weeks', 'Months', 'Years')]
         [string] $Repeat = 'Never',
+
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric value"
+            }
+            return $true
+        })]
+        [string] $Times,
 
         [Parameter(Mandatory = $false)]
         [ValidateScript({
@@ -57,44 +66,54 @@ function Add-VSASheduleAuditBaseLine
     DynamicParam {
         if ( 'Never' -notmatch $Repeat ) {
 
-            $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $false
-            $AttributeCollection.Add($ParameterAttribute)
             $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('Times', [int], $AttributeCollection)
-            $RuntimeParameterDictionary.Add('Times', $RuntimeParameter)
 
-
-            $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
+            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
             $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
             $ParameterAttribute.Mandatory = $false
-            $AttributeCollection.Add($ParameterAttribute)
+            $AttributesCollection.Add($ParameterAttribute)
             [string[]] $ValidateSet = @('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday')
             $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-            $AttributeCollection.Add($ValidateSetAttribute)
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('DaysOfWeek', [string], $AttributeCollection)
+            $AttributesCollection.Add($ValidateSetAttribute)
+            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('DaysOfWeek', [string], $AttributesCollection)
             $RuntimeParameterDictionary.Add('DaysOfWeek', $RuntimeParameter)
 
-            $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
+            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
             $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
             $ParameterAttribute.Mandatory = $false
-            $AttributeCollection.Add($ParameterAttribute)
+            $AttributesCollection.Add($ParameterAttribute)
+            
+            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('SpecificDayOfMonth', [int], $AttributesCollection)
+            $RuntimeParameterDictionary.Add('SpecificDayOfMonth', $RuntimeParameter)
+
+            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
+            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $true
+            $AttributesCollection.Add($ParameterAttribute)
+            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('EndAfterIntervalTimes', [int], $AttributesCollection)
+            $RuntimeParameterDictionary.Add('EndAfterIntervalTimes', $RuntimeParameter)
+
+            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
+            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $false
+            $AttributesCollection.Add($ParameterAttribute)
             [string[]] $ValidateSet = @('FirstSunday', 'SecondSunday', 'ThirdSunday', 'FourthSunday', 'LastSunday', 'FirstMonday', 'SecondMonday', 'ThirdMonday', 'FourthMonday', 'LastMonday', 'FirstTuesday', 'SecondTuesday', 'ThirdTuesday', 'FourthTuesday', 'LastTuesday', 'FirstWednesday', 'SecondWednesday', 'ThirdWednesday', 'FourthWednesday', 'LastWednesday', 'FirstThursday', 'SecondThursday', 'ThirdThursday', 'FourthThursday', 'LastThursday', 'FirstFriday', 'SecondFriday', 'ThirdFriday', 'FourthFriday', 'LastFriday', 'FirstSaturday', 'SecondSaturday', 'ThirdSaturday', 'FourthSaturday', 'LastSaturday', 'FirstWeekDay', 'SecondWeekDay', 'ThirdWeekDay', 'FourthWeekDay', 'LastWeekDay', 'FirstWeekendDay', 'SecondWeekendDay', 'ThirdWeekendDay', 'FourthWeekendDay', 'LastWeekendDay', 'FirstDay', 'SecondDay', 'ThirdDay', 'FourthDay', 'LastDay')
             $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-            $AttributeCollection.Add($ValidateSetAttribute)
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('DayOfMonth', [string], $AttributeCollection)
+            $AttributesCollection.Add($ValidateSetAttribute)
+            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('DayOfMonth', [string], $AttributesCollection)
             $RuntimeParameterDictionary.Add('DayOfMonth', $RuntimeParameter)
-
-            $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
+            
+            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
             $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
             $ParameterAttribute.Mandatory = $false
-            $AttributeCollection.Add($ParameterAttribute)
+            $AttributesCollection.Add($ParameterAttribute)
             [string[]] $ValidateSet = @('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
             $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-            $AttributeCollection.Add($ValidateSetAttribute)
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('MonthOfYear', [string], $AttributeCollection)
+            $AttributesCollection.Add($ValidateSetAttribute)
+            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('MonthOfYear', [string], $AttributesCollection)
             $RuntimeParameterDictionary.Add('MonthOfYear', $RuntimeParameter)
+
+            EndAfterIntervalTimes
 
             return $RuntimeParameterDictionary
         }
@@ -106,10 +125,10 @@ function Add-VSASheduleAuditBaseLine
 
         $URISuffix = $URISuffix -f $AgentID
 
-        [string] $Times       = $PSBoundParameters.Times
-        [string] $DaysOfWeek  = $PSBoundParameters.DaysOfWeek
-        [string] $DayOfMonth  = $PSBoundParameters.DayOfMonth
-        [string] $MonthOfYear = $PSBoundParameters.MonthOfYear
+        [string] $EndAfterIntervalTimes = $PSBoundParameters.EndAfterIntervalTimes
+        [string] $DaysOfWeek            = $PSBoundParameters.DaysOfWeek
+        [string] $DayOfMonth            = $PSBoundParameters.DayOfMonth
+        [string] $MonthOfYear           = $PSBoundParameters.MonthOfYear
 
         [hashtable]$Recurrence = @{
             Repeat  = $Repeat
@@ -117,7 +136,7 @@ function Add-VSASheduleAuditBaseLine
             EndOn = $EndOn
         }
 
-        if ( -not [string]::IsNullOrEmpty($Times) )                 { $Recurrence.Add('Times', $Times) }
+        if ( -not [string]::IsNullOrEmpty($Times) )                 { $Recurrence.Add('Times', [int]$Times ) }
         if ( -not [string]::IsNullOrEmpty($DaysOfWeek) )            { $Recurrence.Add('DaysOfWeek', $DaysOfWeek) }
         if ( -not [string]::IsNullOrEmpty($DayOfMonth) )            { $Recurrence.Add('DayOfMonth', $DayOfMonth) }
         if ( -not [string]::IsNullOrEmpty($SpecificDayOfMonth) )    { $Recurrence.Add('SpecificDayOfMonth', $SpecificDayOfMonth) }

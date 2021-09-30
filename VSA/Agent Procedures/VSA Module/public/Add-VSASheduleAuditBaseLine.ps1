@@ -54,6 +54,18 @@ function Add-VSASheduleAuditBaseLine
         })]
         [string] $Times,
 
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $EndOn,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $EndAt,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Interval = 'Minutes',
+
         [Parameter(Mandatory = $false)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -61,7 +73,23 @@ function Add-VSASheduleAuditBaseLine
             }
             return $true
         })]
-        [string] $Magnitude = '0'
+        [string] $Magnitude = '0',
+
+        [Parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $StartOn,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $StartAt,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $ExcludeFrom,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $ExcludeTo
     )
     DynamicParam {
         if ( 'Never' -notmatch $Repeat ) {
@@ -88,7 +116,7 @@ function Add-VSASheduleAuditBaseLine
 
             $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
             $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $true
+            $ParameterAttribute.Mandatory = $false
             $AttributesCollection.Add($ParameterAttribute)
             $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('EndAfterIntervalTimes', [int], $AttributesCollection)
             $RuntimeParameterDictionary.Add('EndAfterIntervalTimes', $RuntimeParameter)
@@ -113,27 +141,38 @@ function Add-VSASheduleAuditBaseLine
             $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('MonthOfYear', [string], $AttributesCollection)
             $RuntimeParameterDictionary.Add('MonthOfYear', $RuntimeParameter)
 
-            EndAfterIntervalTimes
-
             return $RuntimeParameterDictionary
         }
-    }
+    }# DynamicParam
+
     Begin {
-    }
+        if ( ( $Repeat -match 'Days' ) -and `
+            -not ` (
+            $PSBoundParameters.DaysOfWeek -or `
+            $PSBoundParameters.SpecificDayOfMonth ) ) {
+            Write-Error "Repeat set to $Repeat, but no details specified" -ErrorAction Stop
+        }
+        if ( ( $Repeat -in @('Days', 'Weeks', 'Months')) -and `
+            -not ` (
+            $PSBoundParameters.DaysOfWeek -or `
+            $PSBoundParameters.DayOfMonth -or `
+            $PSBoundParameters.MonthOfYear -or `
+            $PSBoundParameters.SpecificDayOfMonth ) ) {
+            Write-Error "Repeat set to $Repeat, but no details specified" -ErrorAction Stop
+        }
+
+    }# Begin
 
     Process {
-
-        $URISuffix = $URISuffix -f $AgentID
-
-        [string] $EndAfterIntervalTimes = $PSBoundParameters.EndAfterIntervalTimes
         [string] $DaysOfWeek            = $PSBoundParameters.DaysOfWeek
         [string] $DayOfMonth            = $PSBoundParameters.DayOfMonth
         [string] $MonthOfYear           = $PSBoundParameters.MonthOfYear
+        [string] $EndAfterIntervalTimes = $PSBoundParameters.EndAfterIntervalTimes
 
-        [hashtable]$Recurrence = @{
-            Repeat  = $Repeat
-            EndAt = $EndAt
-            EndOn = $EndOn
+        [hashtable]  $Recurrence = @{
+            Repeat = $Repeat
+            EndAt  = $EndAt
+            EndOn  = $EndOn
         }
 
         if ( -not [string]::IsNullOrEmpty($Times) )                 { $Recurrence.Add('Times', [int]$Times ) }
@@ -142,16 +181,25 @@ function Add-VSASheduleAuditBaseLine
         if ( -not [string]::IsNullOrEmpty($SpecificDayOfMonth) )    { $Recurrence.Add('SpecificDayOfMonth', $SpecificDayOfMonth) }
         if ( -not [string]::IsNullOrEmpty($MonthOfYear) )           { $Recurrence.Add('MonthOfYear', $MonthOfYear)}
         if ( -not [string]::IsNullOrEmpty($EndAfterIntervalTimes) ) { $Recurrence.Add('EndAfterIntervalTimes', $EndAfterIntervalTimes) }
-    
-        [hashtable]$Distribution = @{
-            Interval  = $Interval
-            Magnitude = $Magnitude
-        }
+
+        [hashtable]$Distribution = @{}
+        if ( -not [string]::IsNullOrEmpty($Interval) )              { $Distribution.Add('Interval', $Interval) }
+        if ( -not [string]::IsNullOrEmpty($Magnitude) )             { $Distribution.Add('Magnitude', $Magnitude) }
+
+        [hashtable]$Start =@{}
+        if ( -not [string]::IsNullOrEmpty($StartOn) )               { $Start.Add('StartOn', $StartOn) }
+        if ( -not [string]::IsNullOrEmpty($StartAt) )               { $Start.Add('StartAt', $StartAt) }
+
+        [hashtable]$Exclusion =@{}
+        if ( -not [string]::IsNullOrEmpty($ExcludeFrom) )           { $Exclusion.Add('ExcludeFrom', $ExcludeFrom) }
+        if ( -not [string]::IsNullOrEmpty($ExcludeTo) )             { $Exclusion.Add('ExcludeTo', $ExcludeTo) }
 
         [hashtable]$BodyHT = @{}
         
         if ( 0 -lt $($Recurrence.Count) )   { $BodyHT.Add('Recurrence', $Recurrence) }
         if ( 0 -lt $($Distribution.Count) ) { $BodyHT.Add('Distribution', $Distribution) }
+        if ( 0 -lt $($Start.Count) )        { $BodyHT.Add('Start', $Start) }
+        if ( 0 -lt $($Exclusion.Count) )    { $BodyHT.Add('Exclusion', $Exclusion) }
 
         $Body = ConvertTo-Json $BodyHT
 
@@ -166,6 +214,6 @@ function Add-VSASheduleAuditBaseLine
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
         #return Update-VSAItems @Params
-    }
+    }# Process
 }
 Export-ModuleMember -Function Add-VSASheduleAuditBaseLine

@@ -131,7 +131,7 @@
             }
         }
     }
-    "Result"  | Write-Debug 
-    $result | Out-String | Write-Debug 
+    "Result"  | Write-Debug
+    $result | Out-String | Write-Debug
     return $result
 }

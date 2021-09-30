@@ -70,6 +70,6 @@ function Get-VSAAPLog
     if($Paging)        {$Params.Add('Paging', $Paging)}
     if($Sort)          {$Params.Add('Sort', $Sort)}
 
-    return Get-VSAItems @Params
+    return Get-VSAItems @Params | Sort-Object -Property LastExecution
 }
 Export-ModuleMember -Function Get-VSAAPLog

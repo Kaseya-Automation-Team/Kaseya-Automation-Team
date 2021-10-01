@@ -149,15 +149,12 @@ function Add-VSASheduleAuditBaseLine
         if ( ( $Repeat -match 'Days' ) -and `
             -not ` (
             $PSBoundParameters.DaysOfWeek -or `
+            $PSBoundParameters.DayOfMonth -or `
             $PSBoundParameters.SpecificDayOfMonth ) ) {
             Write-Error "Repeat set to $Repeat, but no details specified" -ErrorAction Stop
         }
-        if ( ( $Repeat -in @('Days', 'Weeks', 'Months')) -and `
-            -not ` (
-            $PSBoundParameters.DaysOfWeek -or `
-            $PSBoundParameters.DayOfMonth -or `
-            $PSBoundParameters.MonthOfYear -or `
-            $PSBoundParameters.SpecificDayOfMonth ) ) {
+        if ( ( $Repeat -match 'Months') -and `
+            -not ` ( $PSBoundParameters.MonthOfYear) ) {
             Write-Error "Repeat set to $Repeat, but no details specified" -ErrorAction Stop
         }
 

@@ -10,10 +10,42 @@ function Add-VSASheduleAuditBaseLine
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
+    .PARAMETER URISuffix
+        Specifies URI suffix if it differs from the default.
+    .PARAMETER Repeat
+        RecurrenceOptions
+    .PARAMETER Times
+        RecurrenceOptions
+    .PARAMETER DaysOfWeek
+        RecurrenceOptions
+    .PARAMETER DayOfMonth
+        RecurrenceOptions
+    .PARAMETER SpecificDayOfMonth
+        RecurrenceOptions
+    .PARAMETER MonthOfYear
+        RecurrenceOptions
+    .PARAMETER EndAt
+        RecurrenceOptions
+    .PARAMETER EndOn
+        RecurrenceOptions
+    .PARAMETER EndAfterIntervalTimes
+        RecurrenceOptions
+    .PARAMETER Interval
+        DistributionWindow
+    .PARAMETER Magnitude
+        DistributionWindow
+    .PARAMETER StartOn
+        StartOptions
+    .PARAMETER StartAt
+        StartOptions
+    .PARAMETER ExcludeFrom
+        ExclusionWindow
+    .PARAMETER ExcludeTo
+        ExclusionWindow
     .EXAMPLE
-       Add-VSASheduleAuditBaseLine  -AgentID 10001
+       Add-VSASheduleAuditBaseLine -AgentID 10001 -Repeat Never
     .EXAMPLE
-       Add-VSASheduleAuditBaseLine  -AgentID 10001 -VSAConnection $connection
+       Add-VSASheduleAuditBaseLine -AgentID 10001 -Repeat Never -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -44,23 +76,6 @@ function Add-VSASheduleAuditBaseLine
             ValueFromPipelineByPropertyName = $true)]
         [ValidateSet('Never', 'Minutes', 'Hours', 'Days', 'Weeks', 'Months', 'Years')]
         [string] $Repeat = 'Never',
-
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric value"
-            }
-            return $true
-        })]
-        [string] $Times,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $EndOn,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $EndAt,
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
@@ -99,6 +114,13 @@ function Add-VSASheduleAuditBaseLine
             $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
             $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
             $ParameterAttribute.Mandatory = $false
+            $AttributesCollection.Add($ParameterAttribute)            
+            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('Times', [int], $AttributesCollection)
+            $RuntimeParameterDictionary.Add('Times', $RuntimeParameter)
+
+            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
+            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $false
             $AttributesCollection.Add($ParameterAttribute)
             [string[]] $ValidateSet = @('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday')
             $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
@@ -109,8 +131,7 @@ function Add-VSASheduleAuditBaseLine
             $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
             $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
             $ParameterAttribute.Mandatory = $false
-            $AttributesCollection.Add($ParameterAttribute)
-            
+            $AttributesCollection.Add($ParameterAttribute)            
             $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('SpecificDayOfMonth', [int], $AttributesCollection)
             $RuntimeParameterDictionary.Add('SpecificDayOfMonth', $RuntimeParameter)
 
@@ -141,6 +162,22 @@ function Add-VSASheduleAuditBaseLine
             $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('MonthOfYear', [string], $AttributesCollection)
             $RuntimeParameterDictionary.Add('MonthOfYear', $RuntimeParameter)
 
+            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
+            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $false
+            $AttributesCollection.Add($ParameterAttribute)
+            $AttributesCollection.Add($ValidateSetAttribute)
+            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('EndAt', [string], $AttributesCollection)
+            $RuntimeParameterDictionary.Add('EndAt', $RuntimeParameter)
+
+            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
+            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $false
+            $AttributesCollection.Add($ParameterAttribute)
+            $AttributesCollection.Add($ValidateSetAttribute)
+            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('EndOn', [string], $AttributesCollection)
+            $RuntimeParameterDictionary.Add('EndOn', $RuntimeParameter)
+
             return $RuntimeParameterDictionary
         }
     }# DynamicParam
@@ -161,15 +198,17 @@ function Add-VSASheduleAuditBaseLine
     }# Begin
 
     Process {
+        [string] $Times                 = $PSBoundParameters.Times
         [string] $DaysOfWeek            = $PSBoundParameters.DaysOfWeek
         [string] $DayOfMonth            = $PSBoundParameters.DayOfMonth
+        [string] $SpecificDayOfMonth    = $PSBoundParameters.SpecificDayOfMonth
         [string] $MonthOfYear           = $PSBoundParameters.MonthOfYear
+        [string] $EndAt                 = $PSBoundParameters.EndAt
+        [string] $EndOn                 = $PSBoundParameters.EndOn
         [string] $EndAfterIntervalTimes = $PSBoundParameters.EndAfterIntervalTimes
 
         [hashtable]  $Recurrence = @{
             Repeat = $Repeat
-            EndAt  = $EndAt
-            EndOn  = $EndOn
         }
 
         if ( -not [string]::IsNullOrEmpty($Times) )                 { $Recurrence.Add('Times', [int]$Times ) }
@@ -177,7 +216,9 @@ function Add-VSASheduleAuditBaseLine
         if ( -not [string]::IsNullOrEmpty($DayOfMonth) )            { $Recurrence.Add('DayOfMonth', $DayOfMonth) }
         if ( -not [string]::IsNullOrEmpty($SpecificDayOfMonth) )    { $Recurrence.Add('SpecificDayOfMonth', $SpecificDayOfMonth) }
         if ( -not [string]::IsNullOrEmpty($MonthOfYear) )           { $Recurrence.Add('MonthOfYear', $MonthOfYear)}
-        if ( -not [string]::IsNullOrEmpty($EndAfterIntervalTimes) ) { $Recurrence.Add('EndAfterIntervalTimes', $EndAfterIntervalTimes) }
+        if ( -not [string]::IsNullOrEmpty($EndAfterIntervalTimes) ) { $Recurrence.Add('EndAfterIntervalTimes', [int]$EndAfterIntervalTimes) }
+        if ( -not [string]::IsNullOrEmpty($EndAt) )                 { $Recurrence.Add('EndAt', $EndAt) }
+        if ( -not [string]::IsNullOrEmpty($EndOn) )                 { $Recurrence.Add('EndOn', $EndOn) }
 
         [hashtable]$Distribution = @{}
         if ( -not [string]::IsNullOrEmpty($Interval) )              { $Distribution.Add('Interval', $Interval) }
@@ -200,7 +241,7 @@ function Add-VSASheduleAuditBaseLine
 
         $Body = ConvertTo-Json $BodyHT
 
-        $Body | Out-String | Write-Output
+        $Body | Out-String | Write-Debug
 
         [hashtable]$Params = @{
             URISuffix = $($URISuffix -f $AgentID)
@@ -210,7 +251,7 @@ function Add-VSASheduleAuditBaseLine
 
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-        #return Update-VSAItems @Params
+        return Update-VSAItems @Params
     }# Process
 }
 Export-ModuleMember -Function Add-VSASheduleAuditBaseLine

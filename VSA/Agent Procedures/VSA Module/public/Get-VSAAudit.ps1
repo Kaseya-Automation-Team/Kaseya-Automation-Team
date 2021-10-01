@@ -10,10 +10,10 @@ function Get-VSAAudit
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER Inventory
+    .PARAMETER AuditOf
         Specifies inventory to audit.
         Valid values
-            AllSummaries
+            AllAgentsSummaries
                 Returns an array of audit summary records for all agents.
             Credentials
                 Returns an array of credentials for an agent.
@@ -73,8 +73,8 @@ function Get-VSAAudit
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateSet('AllSummaries','Credentials','Groups','DiskVolumes','PCIAndDisk','Printers','PurchaseAndWarrantyExpire','LocalGroupMembers','AddRemoveProgramsList','InstalledApps','Licenses','SecurityProducts','StartupApps','Summary','Users')]
-        [string] $Inventory = 'AllSummaries',
+        [ValidateSet('AllAgentsSummaries','Credentials','Groups','DiskVolumes','PCIAndDisk','Printers','PurchaseAndWarrantyExpire','LocalGroupMembers','AddRemoveProgramsList','InstalledApps','Licenses','SecurityProducts','StartupApps','Summary','Users')]
+        [string] $AuditOf = 'AllAgentsSummaries',
 
         [parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
@@ -89,7 +89,7 @@ function Get-VSAAudit
         [string] $Sort
     )
     DynamicParam {
-        if ( 'AllSummaries' -notmatch $Inventory ) {
+        if ( 'AllAgentsSummaries' -notmatch $AuditOf ) {
             $attribute = New-Object System.Management.Automation.ParameterAttribute 
             $attribute.ParameterSetName = "__AllParameterSets" 
             $attribute.Mandatory = $true 
@@ -116,7 +116,7 @@ function Get-VSAAudit
 
         $URISuffix = $URISuffix -f $AgentID
 
-        switch ($Inventory) {
+        switch ($AuditOf) {
             'Credentials'               {$URISuffix = "$URISuffix/credentials"}
             'Groups'                    {$URISuffix = "$URISuffix/groups"}
             'DiskVolumes'               {$URISuffix = "$URISuffix/hardware/diskvolumes"}

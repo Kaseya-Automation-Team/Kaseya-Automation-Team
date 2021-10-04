@@ -2,7 +2,7 @@
 {
     <#
     .Synopsis
-       Returns Documents.
+       Returns array of documents.
     .DESCRIPTION
        Returns an array of documents from the Audit > Documents page.
        Takes either persistent or non-persistent connection information.
@@ -60,17 +60,18 @@
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
-
-    $Path = $Path -replace '\\', '/'
-    #if ($Path -notmatch '^\/') { $Path = "/$Path"}
-    #if ($Path -notmatch '\/$') { $Path = "$Path/"}
+    if (-not [string]::IsNullOrEmpty($Path) ) {
+        $Path = $Path -replace '\\', '/'
+        #if ($Path -notmatch '^\/') { $Path = "/$Path"}
+        #if ($Path -notmatch '\/$') { $Path = "$Path/"}
+    }
 
     $URISuffix = $URISuffix -f $AgentId, $Path
 
     [hashtable]$Params = @{}
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    If ( $AgentId -in $(Get-VSAAgents @Params | Select-Object -ExpandProperty AgentID) ) {
+    If ( $AgentId -in $(Get-VSAAgent @Params | Select-Object -ExpandProperty AgentID) ) {
 
         $Params.Add('URISuffix', $URISuffix)
         if($Filter)        {$Params.Add('Filter', $Filter)}

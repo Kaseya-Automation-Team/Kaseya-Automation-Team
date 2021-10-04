@@ -56,7 +56,7 @@ function Get-VSAAPLog
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
-        [string] $Sort
+        [string] $Sort = 'LastExecution'
     )
 
     $URISuffix = $URISuffix -f $AgentId
@@ -70,6 +70,6 @@ function Get-VSAAPLog
     if($Paging)        {$Params.Add('Paging', $Paging)}
     if($Sort)          {$Params.Add('Sort', $Sort)}
 
-    return Get-VSAItems @Params | Sort-Object -Property LastExecution
+    return Get-VSAItems @Params # | Sort-Object -Property LastExecution
 }
 Export-ModuleMember -Function Get-VSAAPLog

@@ -1,17 +1,16 @@
-function Get-VSAAgent
-{
+function Get-VSAAgentsUptime {
     <#
     .Synopsis
-       Returns all VSA agents or specific one
+       Returns an array of agent uptime records
     .DESCRIPTION
-       Returns all VSA agents or specific one if agent id supplie.
+       Returns an array of agent uptime records.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER AgentId
-        Specifies id of agent machine.
+    .PARAMETER Since
+        Specifies start date.
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging
@@ -19,15 +18,13 @@ function Get-VSAAgent
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSAAgent
+       Get-VSAAgentsUptime -Since "2021-03-04"
     .EXAMPLE
-       Get-VSAAgent -AgentId 3423232424
-    .EXAMPLE
-       Get-VSAAgent -VSAConnection $connection
+       Get-VSAAgentsUptime -VSAConnection $connection -Since "2021-03-04"
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       Array of custom objects that represent existing VSA agents or specific agent
+       Array of items that represent system agent views
     #>
 
     [CmdletBinding()]
@@ -43,15 +40,11 @@ function Get-VSAAgent
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = 'api/v1.0/assetmgmt/agents',
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric Id"
-            }
-            return $true
-        })]
-        [string] $AgentId,
+        [string] $URISuffix = 'api/v1.0/assetmgmt/agents/uptime/{0}',
+        [Parameter(ParameterSetName = 'Persistent', Mandatory = $true)]
+        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $true)]
+        [ValidateNotNullOrEmpty()] 
+        [string] $Since,
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
@@ -66,10 +59,7 @@ function Get-VSAAgent
         [string] $Sort
     )
 
-
-    if( -not [string]::IsNullOrWhiteSpace( $AgentId) ) {
-        $URISuffix += "/$AgentId"
-    }
+    $URISuffix = $URISuffix -f $Since
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix
@@ -83,4 +73,4 @@ function Get-VSAAgent
     return Get-VSAItems @Params
 }
 
-Export-ModuleMember -Function Get-VSAAgent
+Export-ModuleMember -Function Get-VSAAgentsUptime

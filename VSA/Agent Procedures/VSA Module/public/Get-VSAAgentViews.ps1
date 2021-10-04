@@ -8,7 +8,7 @@ function Get-VSAAgentViews {
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
-        Specifies id of agent machine.
+        Specifies URI suffix if it differs from the default.
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging

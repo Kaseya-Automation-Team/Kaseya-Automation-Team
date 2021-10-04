@@ -1,15 +1,17 @@
-function Get-VSAAgents
+function Get-VSAAgentSettings
 {
     <#
     .Synopsis
-       Returns VSA agents
+       Returns settings of specific agent machine
     .DESCRIPTION
-       Returns existing VSA agents.
+       Returns settings of specific agent machine.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
+    .PARAMETER AgentId
+        Specifies id of agent machine.
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging
@@ -17,13 +19,13 @@ function Get-VSAAgents
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSAAgents
+       Get-VSAAgentSettings -AgentId 3423232424
     .EXAMPLE
-       Get-VSAAgents -VSAConnection $connection
+       Get-VSAAgentSettings -VSAConnection $connection -AgentId 3423232424
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       Array of custom objects that represent existing VSA agents
+       Array of custom objects that represent settings of specific agent machine
     #>
 
     [CmdletBinding()]
@@ -39,7 +41,15 @@ function Get-VSAAgents
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = 'api/v1.0/assetmgmt/agents',
+        [string] $URISuffix = 'api/v1.0/assetmgmt/agent/{0}/settings',
+        [Parameter(Mandatory = $false)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
+        [string] $AgentId,
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
@@ -55,6 +65,8 @@ function Get-VSAAgents
     )
 
 
+    $URISuffix = $URISuffix -f $AgentId
+
     [hashtable]$Params =@{
         URISuffix = $URISuffix
     }
@@ -67,4 +79,4 @@ function Get-VSAAgents
     return Get-VSAItems @Params
 }
 
-Export-ModuleMember -Function Get-VSAAgents
+Export-ModuleMember -Function Get-VSAAgentSettings

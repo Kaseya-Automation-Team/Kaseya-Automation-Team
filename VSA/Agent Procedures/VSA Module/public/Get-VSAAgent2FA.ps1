@@ -1,17 +1,16 @@
-function Get-VSAAgent
-{
+function Get-VSAAgent2FA {
     <#
     .Synopsis
-       Returns all VSA agents or specific one
+       Returns 2FA settings for a specified agent ID
     .DESCRIPTION
-       Returns all VSA agents or specific one if agent id supplie.
+       Returns 2FA settings for a specified agent ID.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .PARAMETER AgentId
-        Specifies id of agent machine.
+        Specifies numeric id of agent machine.
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging
@@ -19,15 +18,13 @@ function Get-VSAAgent
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSAAgent
+       Get-VSAAgent2FA -AgentId 34234234
     .EXAMPLE
-       Get-VSAAgent -AgentId 3423232424
-    .EXAMPLE
-       Get-VSAAgent -VSAConnection $connection
+       Get-VSAAgent2FA -VSAConnection $connection -AgentId 34234234
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       Array of custom objects that represent existing VSA agents or specific agent
+       Array of items that represent 2FA settings
     #>
 
     [CmdletBinding()]
@@ -43,14 +40,10 @@ function Get-VSAAgent
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = 'api/v1.0/assetmgmt/agents',
-        [Parameter(Mandatory = $false)]
-        [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric Id"
-            }
-            return $true
-        })]
+        [string] $URISuffix = 'api/v1.0/assetmgmt/agent/{0}/twofasettings',
+        [Parameter(ParameterSetName = 'Persistent', Mandatory = $true, ValueFromPipelineByPropertyName=$true)]
+        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $true, ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()] 
         [string] $AgentId,
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
@@ -66,10 +59,7 @@ function Get-VSAAgent
         [string] $Sort
     )
 
-
-    if( -not [string]::IsNullOrWhiteSpace( $AgentId) ) {
-        $URISuffix += "/$AgentId"
-    }
+    $URISuffix = $URISuffix -f $AgentId
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix
@@ -83,4 +73,4 @@ function Get-VSAAgent
     return Get-VSAItems @Params
 }
 
-Export-ModuleMember -Function Get-VSAAgent
+Export-ModuleMember -Function Get-VSAAgent2FA

@@ -75,7 +75,7 @@
         "--$Boundary--$LF" 
     ) -join $LF
 
-    If ( $AgentId -in $(Get-VSAAgents @Params | Select-Object -ExpandProperty AgentID) ) {
+    If ( $AgentId -in $(Get-VSAAgent @Params | Select-Object -ExpandProperty AgentID) ) {
 
         $Params.Add('URISuffix', $URISuffix)
         $Params.Add('Method', 'PUT')

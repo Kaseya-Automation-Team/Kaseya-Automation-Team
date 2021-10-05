@@ -60,8 +60,6 @@ function Update-VSAAgentTempDir
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    Write-Host $Body
-
     return Update-VSAItems @Params
 }
 

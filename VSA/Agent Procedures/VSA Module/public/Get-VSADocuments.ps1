@@ -19,8 +19,6 @@
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSADocuments 
-    .EXAMPLE
        Get-VSADocuments -AgentId 10001 -Path 'FolderLevel1/FolderLevel2'
     .EXAMPLE
        Get-VSADocuments -AgentId 10001 -VSAConnection $connection
@@ -74,26 +72,15 @@
 
     $URISuffix = $URISuffix -f $AgentId, $Path
 
-    [hashtable]$Params = @{}
+    [hashtable]$Params = @{'URISuffix' = $URISuffix}
+
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+    if($Filter)        {$Params.Add('Filter', $Filter)}
+    if($Paging)        {$Params.Add('Paging', $Paging)}
+    if($Sort)          {$Params.Add('Sort', $Sort)}
 
-    If ( $AgentId -in $(Get-VSAAgent @Params | Select-Object -ExpandProperty AgentID) ) {
+    $Params | Out-String | Write-Debug
 
-        $Params.Add('URISuffix', $URISuffix)
-        if($Filter)        {$Params.Add('Filter', $Filter)}
-        if($Paging)        {$Params.Add('Paging', $Paging)}
-        if($Sort)          {$Params.Add('Sort', $Sort)}
-
-        $Params | Out-String | Write-Verbose
-        $Params | Out-String | Write-Debug
-
-        $result = Get-VSAItems @Params
-
-    } else {
-        $Message = "The asset with Agent ID `'$AgentId`' does not exist"
-        Log-Event -Msg $Message -Id 4000 -Type "Error"
-        throw $Message
-    }
-    return $result
+    return Get-VSAItems @Params
 }
 Export-ModuleMember -Function Get-VSADocuments

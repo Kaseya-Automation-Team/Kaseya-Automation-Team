@@ -56,17 +56,22 @@
     $Source      = $Source -replace '\\', '/'
     $Destination = $Destination -replace '\\', '/'
 
-    $URISuffix   = $URISuffix -f $AgentId, $Source, $Destination
+    if ($Source -ne $Destination) {
 
-    [hashtable]$Params = @{
-                            'URISuffix' = $URISuffix
-                            'Method'    = 'DELETE'
-                          }
+        $URISuffix   = $URISuffix -f $AgentId, $Source, $Destination
 
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+        [hashtable]$Params = @{
+                                'URISuffix' = $URISuffix
+                                'Method'    = 'DELETE'
+                              }
 
-    $Params | Out-String | Write-Debug
+        if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+        $Params | Out-String | Write-Debug
+
+        return Update-VSAItems @Params
+    } else {
+        return $false
+    }
 }
 Export-ModuleMember -Function Rename-VSADocument

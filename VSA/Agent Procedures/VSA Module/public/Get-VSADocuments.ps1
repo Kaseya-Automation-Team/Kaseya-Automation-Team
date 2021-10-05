@@ -64,10 +64,7 @@
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
-        [string] $Sort,
-
-        [Parameter(Mandatory = $false)]
-        [switch] $DownloadFile
+        [string] $Sort
     )
     if (-not [string]::IsNullOrEmpty($Path) ) {
         $Path = $Path -replace '\\', '/'

@@ -2,7 +2,7 @@
 {
     <#
     .Synopsis
-       Returns array of documents.
+       Renames a document.
     .DESCRIPTION
        Rename a single document on the Audit > Documents page. Enter the existing name of the document in the Source parameter and the new name in the Destination parameter.
        Takes either persistent or non-persistent connection information.

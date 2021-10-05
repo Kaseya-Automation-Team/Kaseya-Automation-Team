@@ -14,9 +14,9 @@
     .PARAMETER Note
         Note text.
     .EXAMPLE
-       Update-VSAAgentNote -NoteId '1' -Note 'Changed note'
+       Update-VSAAgentNote -NoteId 1 -Note 'Changed note'
     .EXAMPLE
-       Update-VSAAgentNote -NoteId '1' -Note 'Changed note' -VSAConnection $connection
+       Update-VSAAgentNote -NoteId 1 -Note 'Changed note' -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -35,7 +35,12 @@
 
         [Parameter(Mandatory = $true)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
-        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $NoteId,
 
         [Parameter(Mandatory = $true)]

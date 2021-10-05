@@ -21,7 +21,7 @@
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       Array of objects that represent Custom Extension Folders and Files.
+       True if successful.
     #>
     [CmdletBinding()]
     param ( 

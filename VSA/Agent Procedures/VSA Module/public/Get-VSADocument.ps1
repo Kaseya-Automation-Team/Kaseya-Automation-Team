@@ -12,6 +12,8 @@
         Specifies URI suffix if it differs from the default.
     .PARAMETER Path
         Specifies path to a file.
+    .PARAMETER DownloadsFolder
+        Specifies folder to dowload the file. By default, current profiles' default Downloads folder.
     .EXAMPLE
        Get-VSADocument -AgentId 10001 -Path 'Folder/Document.doc'
     .EXAMPLE
@@ -19,7 +21,7 @@
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       File stored in the profiles' default Downloads folder.
+       File stored in the DownloadsFolder.
     #>
     [CmdletBinding()]
     param ( 
@@ -44,7 +46,11 @@
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
-        [string] $Path
+        [string] $Path,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DownloadsFolder
     )
 
     if (-not [string]::IsNullOrEmpty($Path) ) {
@@ -52,7 +58,9 @@
         #if ($Path -notmatch '^\/') { $Path = "/$Path"}
         #if ($Path -notmatch '\/$') { $Path = "$Path/"}
     }
-    $DownloadsFolder = (New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    if ( [string]::IsNullOrEmpty($DownloadsFolder) ) {
+        $DownloadsFolder = (New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    }
     $OutFile         = Join-Path -Path $DownloadsFolder -ChildPath $(Split-Path $Path -leaf)
     $URISuffix = $URISuffix -f $AgentId, $Path
 

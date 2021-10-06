@@ -19,8 +19,6 @@
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSAGetGetFiles 
-    .EXAMPLE
        Get-VSAGetGetFiles -AgentId 10001 -Path 'Folder'
     .EXAMPLE
        Get-VSAGetGetFiles -AgentId 10001 -VSAConnection $connection
@@ -66,7 +64,11 @@
         [string] $Sort
     )
     
-    $Path = $Path -replace '\\', '/'
+    if (-not [string]::IsNullOrEmpty($Path) ) {
+        $Path = $Path -replace '\\', '/'
+        #if ($Path -notmatch '^\/') { $Path = "/$Path"}
+        #if ($Path -notmatch '\/$') { $Path = "$Path/"}
+    }
 
     $URISuffix = $URISuffix -f $AgentId, $Path
 

@@ -1,17 +1,17 @@
-﻿function Get-VSADocuments
+﻿function Get-VSAGetGetFiles
 {
     <#
     .Synopsis
-       Returns array of documents.
+       Returns an array of files.
     .DESCRIPTION
-       Returns an array of documents from the Audit > Documents page.
+       Returns an array of files on the Agent Procedures > Get File page.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .PARAMETER Path
-        Specifies path to a folder.
+        Specifies Relative path.
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging
@@ -19,13 +19,13 @@
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSADocuments -AgentId 10001 -Path 'FolderLevel1/FolderLevel2'
+       Get-VSAGetGetFiles -AgentId 10001 -Path 'Folder'
     .EXAMPLE
-       Get-VSADocuments -AgentId 10001 -VSAConnection $connection
+       Get-VSAGetGetFiles -AgentId 10001 -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       Array of objects that represent Documents Folder content.
+       Array of objects that represent files on the Agent Procedures > Get File page.
     #>
     [CmdletBinding()]
     param ( 
@@ -36,21 +36,20 @@
 
         [parameter(Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $URISuffix = 'api/v1.0/assetmgmt/documents/{0}/folder/{1}',
+        [string] $URISuffix = 'api/v1.0/assetmgmt/getfiles/{0}/folder/{1}',
 
-        [parameter(Mandatory = $true,  
-            ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
                 throw "Non-numeric Id"
             }
             return $true
         })]
-        [string] $AgentID,
+        [string] $AgentId,
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
-        [string] $Path,
+        [string] $Path = '/',
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
@@ -64,6 +63,7 @@
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
+    
     if (-not [string]::IsNullOrEmpty($Path) ) {
         $Path = $Path -replace '\\', '/'
         #if ($Path -notmatch '^\/') { $Path = "/$Path"}
@@ -83,4 +83,4 @@
 
     return Get-VSAItems @Params
 }
-Export-ModuleMember -Function Get-VSADocuments
+Export-ModuleMember -Function Get-VSAGetGetFiles

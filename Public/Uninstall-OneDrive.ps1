@@ -1,65 +1,63 @@
-﻿## Kaseya Automation Team
-## Used by the "Install/Uninstall Microsoft OneDrive" Agent Procedure
+﻿<#
+.Synopsis
+   Uninstall program
+.DESCRIPTION
+   Uninstall Microsoft OneDrive for all users
+.EXAMPLE
+   .\Uninstall-Onedrive.ps1
+.NOTES
+   Version 1.0
+   Author: Proserv Team - SM
+#>
 
-param (
-    [parameter(Mandatory=$true)]
-	[string]$Path = "",
-    [parameter(Mandatory=$true)]
-	[string]$User = "",
-    [switch]$Install = $false,
-    [switch]$Run = $false
-)
+#region Change Users' Hives
+[string] $SIDPattern = '^S-1-5-21-(\d+-?){4}$'
+[string] $RegKeyUserProfiles = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\*'
+[array] $ProfileList = Get-ItemProperty -Path Registry::$RegKeyUserProfiles | `
+                    Select-Object  @{name="SID";expression={$_.PSChildName}}, 
+                    @{name="UserHive";expression={"$($_.ProfileImagePath)\ntuser.dat"}}, 
+                    @{name="UserName";expression={$_.ProfileImagePath -replace '^(.*[\\\/])', ''}} | `
+                    Where-Object {$_.SID -match $SIDPattern}
+# Loop through each profile on the machine
+Foreach ($Profile in $ProfileList)
+{
+    # Load User ntuser.dat if it's not already loaded
+    [bool] $IsProfileLoaded = Test-Path Registry::HKEY_USERS\$($Profile.SID)
+    #$IsProfileLoaded 
+    #"HKEY_USERS\$($Profile.SID)"
+    if ( -Not $IsProfileLoaded )
+    {
+        reg load "HKU\$($Profile.SID)" "$($Profile.UserHive)"
+    }
+ 
+    #####################################################################
+    # Modifying a user`s hive of the registry
+    "{0} {1}" -f "`tUser:", $($Profile.UserName) | Write-Verbose
+    $UninstallCommand = Get-ItemProperty Registry::"HKEY_USERS\$($Profile.SID)\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\OneDriveSetup.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty UninstallString
+    #$UninstallCommand
+    if ($null -ne $UninstallCommand)
+    {
+        Write-Debug $UninstallCommand
+        #Also execute the command here
+        $UninstallCommand = $UninstallCommand.Split('/')
+        $FinalCmd = ($UninstallCommand.Split('/'))[0]
+        & $FinalCmd /uninstall /quiet
+        #$FinalCmd = ($UninstallCommand -split '"')[1]
+        #Start-Process -FilePath "$FinalCmd" -ArgumentList "--uninstall -s"
+        #$FinalCmd
+        #Write-Output "I will work only when Mr.Vlad debugs me.."
+        #$FinalCmd = ($UninstallCommand.Split('/'))[0] -replace '"', ''
+        #& $FinalCmd /uninstall /quiet
 
-if ($Install) {
-
-    try {
-
-        $TaskAction = New-ScheduledTaskAction -Execute "$Path" -Argument "/uninstall"
-
-        $Repeat = (New-TimeSpan -Minutes 10)
-
-        $RunAt = (Get-Date).Date.AddHours(2)
-
-        $TaskTrigger = New-ScheduledTaskTrigger -Once -At $RunAt
-
-        Register-ScheduledTask -TaskName "UninstallOneDrive" -User $User -RunLevel Highest -Action $TaskAction -Trigger $TaskTrigger -Description "Start OneDrive uninstaller" -ErrorAction Stop
-
-        $TaskExists = Get-ScheduledTask -TaskName "UninstallOneDrive" -ErrorAction SilentlyContinue
-
-        if ($TaskExists) {
-            Write-Host "Uninstall task has been successfully created."
-        }
-
-    } catch {
-        #Handle errors
-        Write-Host "Unable to create task."
-        Write-Host $_.Exception.Message
+    }
+    #####################################################################
+ 
+    # Unload ntuser.dat        
+    iF ( -Not $IsProfileLoaded )
+    {
+        ### Garbage collection required before closing ntuser.dat ###
+        [gc]::Collect()
+        reg unload "HKU\$($Profile.SID)"
     }
 }
-
-if ($Run) {
-    Start-ScheduledTask -TaskName "UninstallOneDrive"
-
-    $timeout = 360 ##  seconds
-
-    $timer =  [Diagnostics.Stopwatch]::StartNew()
-
-    while (((Get-ScheduledTask -TaskName "UninstallOneDrive").State -ne  "Ready") -and  ($timer.Elapsed.TotalSeconds -lt $timeout)) {    
-
-      Start-Sleep -Seconds  3
-
-    }
-
-    $timer.Stop()
-
-    Unregister-ScheduledTask -TaskName "UninstallOneDrive" -Confirm:$false
-
-    $Status = (Get-Package | Where-Object {$_.Name -eq "Microsoft OneDrive"} | Select-Object -Property Status).Status
-
-    if ($Status -eq "Installed") {
-        Write-Host "Installation has been successully completed"
-    } else {
-        Write-Host "Installation could not be completed"
-    }
-
-}
+#endregion Change Users' Hives

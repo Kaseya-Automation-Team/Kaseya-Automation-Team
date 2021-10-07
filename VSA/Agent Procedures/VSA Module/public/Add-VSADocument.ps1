@@ -1,25 +1,23 @@
-﻿function Add-VSACustomExtensionFile
+﻿function Add-VSADocument
 {
     <#
     .Synopsis
-       Uploads a file to Custom Extension Folder.
+       Uploads a file to Documents page.
     .DESCRIPTION
-       Uploads a file to the agent's Custom Extension Folder.
+       Uploads a file from your local computer or network to the Audit > Documents page for a specified agent.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .PARAMETER SourceFilePath
-        Specifies file to upload to the agent's custom extension folder. The root custom extension folder by default.
+        Specifies file to upload.
     .PARAMETER $DestinationFolder
-        Specifies agent's custom extension folder to upload the file.
+        Specifies a Document folder to upload the file
     .EXAMPLE
-       Add-VSACustomExtensionFile -AgentId '10001' -SourceFilePath 'File.txt'
+       Add-VSADocument -AgentId 10001 -SourceFilePath 'File.txt'
     .EXAMPLE
-       Add-VSACustomExtensionFile -AgentId '10001' -SourceFilePath 'File.txt' -DestinationFolder 'ExistingFolder'
-    .EXAMPLE
-       Add-VSACustomExtensionFile -AgentId '10001' -SourceFilePath 'File.txt' -VSAConnection $connection
+       Add-VSADocument -AgentId 10001 -SourceFilePath 'File.txt' -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -34,10 +32,15 @@
 
         [parameter(Mandatory=$false)]
         [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = 'api/v1.0/assetmgmt/customextensions/{0}/file/{1}',
+        [string] $URISuffix = 'api/v1.0/assetmgmt/documents/{0}/file/{1}',
 
         [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $AgentId,
 
         [Parameter(Mandatory = $true)]
@@ -58,7 +61,10 @@
     $DestinationFolder = $DestinationFolder -replace '\\', '/'
     $URISuffix         = $URISuffix -f $AgentId, $DestinationFolder
 
-    [hashtable]$Params = @{}
+    [hashtable]$Params = @{
+                            'URISuffix' = $URISuffix
+                            'Method'    = 'PUT'
+                          }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
     
@@ -75,27 +81,12 @@
         "--$Boundary--$LF" 
     ) -join $LF
 
-    If ( $AgentId -in $(Get-VSAAgent @Params | Select-Object -ExpandProperty AgentID) ) {
 
-        $Params.Add('URISuffix', $URISuffix)
-        $Params.Add('Method', 'PUT')
-        $Params.Add('ContentType', "multipart/form-data; boundary=`"$Boundary`"")
-        $Params.Add('Body', $BodyLines)
+    $Params.Add('ContentType', "multipart/form-data; boundary=`"$Boundary`"")
+    $Params.Add('Body', $BodyLines)
 
-        $Params | Out-String | Write-Verbose
-        $Params | Out-String | Write-Debug
+    $Params | Out-String | Write-Debug
 
-        $result = Update-VSAItems @Params
-    } else {
-        $Message = "The asset with Agent ID `'$AgentId`' does not exist"
-        Log-Event -Msg $Message -Id 4000 -Type "Error"
-        throw $Message
-    }
-    
-    if ($result) {
-        Log-Event -Msg "`"$SourceFilePath uploaded`" to `"$DestinationFolder`"" -Id 1000 -Type "Infomation"
-    }
-
-    return $result
+    return Update-VSAItems @Params
 }
-Export-ModuleMember -Function Add-VSACustomExtensionFile
+Export-ModuleMember -Function Add-VSADocument

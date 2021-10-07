@@ -23,8 +23,7 @@ Foreach ($Profile in $ProfileList)
 {
     # Load User ntuser.dat if it's not already loaded
     [bool] $IsProfileLoaded = Test-Path Registry::HKEY_USERS\$($Profile.SID)
-    #$IsProfileLoaded 
-    #"HKEY_USERS\$($Profile.SID)"
+   
     if ( -Not $IsProfileLoaded )
     {
         reg load "HKU\$($Profile.SID)" "$($Profile.UserHive)"
@@ -34,7 +33,7 @@ Foreach ($Profile in $ProfileList)
     # Modifying a user`s hive of the registry
     "{0} {1}" -f "`tUser:", $($Profile.UserName) | Write-Verbose
     $UninstallCommand = Get-ItemProperty Registry::"HKEY_USERS\$($Profile.SID)\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\OneDriveSetup.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty UninstallString
-    #$UninstallCommand
+    
     if ($null -ne $UninstallCommand)
     {
         Write-Debug $UninstallCommand
@@ -42,13 +41,7 @@ Foreach ($Profile in $ProfileList)
         $UninstallCommand = $UninstallCommand.Split('/')
         $FinalCmd = ($UninstallCommand.Split('/'))[0]
         & $FinalCmd /uninstall /quiet
-        #$FinalCmd = ($UninstallCommand -split '"')[1]
-        #Start-Process -FilePath "$FinalCmd" -ArgumentList "--uninstall -s"
-        #$FinalCmd
-        #Write-Output "I will work only when Mr.Vlad debugs me.."
-        #$FinalCmd = ($UninstallCommand.Split('/'))[0] -replace '"', ''
-        #& $FinalCmd /uninstall /quiet
-
+      
     }
     #####################################################################
  

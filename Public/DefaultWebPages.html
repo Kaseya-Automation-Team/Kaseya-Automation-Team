@@ -1,0 +1,20 @@
+<html>
+<script>
+function openLinks(){
+links = document.getElementsByTagName('a');
+
+ for (i = 0; i < links.length;i++){ 
+   window.open(links[i].getAttribute('href'),'_blank');
+   window.focus();
+ }
+}
+</script>
+
+<body onload="openLinks()">
+<a href="https://www.kaseya.com">Kaseya's Website</a>
+<a href="https://automationexchange.kaseya.com">Automation Exchange</a>
+<a href="https://helpdesk.kaseya.com">Kaseya Support</a>
+<a href="https://www.cnet.com/topics/tech-industry/">cnet Tech Industry news/a>
+
+</body>
+</html>

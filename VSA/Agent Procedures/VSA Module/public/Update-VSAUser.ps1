@@ -228,7 +228,7 @@ function Update-VSAUser
         }
     }# Begin
     Process {
-    $URISuffix = $URISuffix -f $DepartmentId
+    $URISuffix = $URISuffix -f $UserId
     $URISuffix | Write-Debug
     
     [hashtable]$BodyHT = @{ UserId = $UserId }
@@ -248,7 +248,6 @@ function Update-VSAUser
 
     $Body | Out-String | Write-Debug
 
-    $URISuffix = $URISuffix -f $UserId
     $URISuffix | Write-Debug
 
     [hashtable]$Params = @{

@@ -20,6 +20,8 @@ function Add-VSAUser
         Specifies user's first name.
     .PARAMETER LastName
         Specifies user's last name.
+    .PARAMETER AdminName
+        Specifies user's account name.
     .PARAMETER Email
         Specifies user's e-mail.
     .PARAMETER AdminRoleIds

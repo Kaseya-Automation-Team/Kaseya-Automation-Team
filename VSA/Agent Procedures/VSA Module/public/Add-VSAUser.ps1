@@ -225,7 +225,6 @@ function Add-VSAUser
         }
     }# Begin
     Process {
-    $URISuffix = $URISuffix -f $DepartmentId
     $URISuffix | Write-Debug
     
     [hashtable]$BodyHT = @{

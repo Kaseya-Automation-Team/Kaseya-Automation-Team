@@ -62,7 +62,7 @@ function Update-VSAUser
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
         [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = 'api/v1.0/system/users{0}',
+        [string] $URISuffix = 'api/v1.0/system/users/{0}',
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,

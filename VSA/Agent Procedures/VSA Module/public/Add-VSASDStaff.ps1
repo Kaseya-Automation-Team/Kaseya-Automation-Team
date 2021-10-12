@@ -13,7 +13,7 @@ function Add-VSASDStaff
     .PARAMETER ServiceDeskTicketId
         Specifies id of service desk ticket
     .PARAMETER CustomFieldId
-        Specifies id of customer field
+        Specifies id of custom field
     .PARAMETER Value
         Specifies new value of custom field
     .EXAMPLE

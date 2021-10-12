@@ -10,6 +10,10 @@ function Update-VSAUser
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
+    .PARAMETER UserId
+        Specifies a user account Id.
+    .PARAMETER AdminName
+        Specifies a user account name.
     .PARAMETER DefaultStaffDepartmentId
         Specifies the Department Id to which a user is added.
     .PARAMETER DefaultStaffOrgId

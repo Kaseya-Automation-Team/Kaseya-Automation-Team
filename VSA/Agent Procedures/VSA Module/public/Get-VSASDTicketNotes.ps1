@@ -1,15 +1,15 @@
-function Get-VSASDTicketStatus {
+function Get-VSASDTicketNotes {
     <#
     .Synopsis
-       Returns an array of ticket statuses.
+       Returns an array of notes for a specified service desk ticket
     .DESCRIPTION
-       Returns an array of ticket statuses for a specified service desk.
+       Returns an array of notes for a specified service desk ticket.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER ServiceDeskId
+    .PARAMETER ServiceDeskTicketId
         Specifies id of service desk
     .PARAMETER Filter
         Specifies REST API Filter.
@@ -18,13 +18,13 @@ function Get-VSASDTicketStatus {
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSASDTicketStatus -ServiceDeskId 3434343
+       Get-VSASDTicketStatus -ServiceDeskTicketId 3434343
     .EXAMPLE
-       Get-VSASDTicketStatus -VSAConnection $connection -ServiceDeskId 3434343
+       Get-VSASDTicketStatus -VSAConnection $connection -ServiceDeskTicketId 3434343
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       Array of items that represent service desk statuses
+       Array of items that represent ticket notes
     #>
 
     [CmdletBinding()]
@@ -40,12 +40,12 @@ function Get-VSASDTicketStatus {
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = 'api/v1.0/automation/servicedesks/{0}/status',
+        [string] $URISuffix = 'api/v1.0/automation/servicedesktickets/{0}/notes',
         [ValidateNotNullOrEmpty()]
         [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
-        [string] $ServiceDeskId,        
+        [string] $ServiceDeskTicketId,        
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
@@ -74,4 +74,4 @@ function Get-VSASDTicketStatus {
     return Get-VSAItems @Params
 }
 
-Export-ModuleMember -Function Get-VSASDTicketStatus
+Export-ModuleMember -Function Get-VSASDTicketNotes

@@ -2,9 +2,9 @@ function Update-VSAUser
 {
     <#
     .Synopsis
-       Adds a single user account record.
+       Updates a single user account record.
     .DESCRIPTION
-       Adds a single user account record.
+       Updates a single user account record.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.

@@ -88,46 +88,22 @@ function Add-VSAUser
             Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
-        [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric value"
-            }
-            return $true
-        })]
-        [string] $AdminType = '2',
+        [int] $AdminType = 2,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
-        [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric value"
-            }
-            return $true
-        })]
-        [string[]] $AdminRoleIds,
+        [decimal[]] $AdminRoleIds,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
-        [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric value"
-            }
-            return $true
-        })]
-        [string[]] $AdminScopeIds,
+        [decimal[]] $AdminScopeIds,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
-        [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric value"
-            }
-            return $true
-        })]
-        [string] $DefaultStaffOrgId,
+        [decimal] $DefaultStaffOrgId,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
@@ -135,13 +111,7 @@ function Add-VSAUser
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ByName')]
-        [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric value"
-            }
-            return $true
-        })]
-        [string] $DefaultStaffDepartmentId,
+        [decimal] $DefaultStaffDepartmentId,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
@@ -248,7 +218,7 @@ function Add-VSAUser
         if ( 0 -eq $AdminScopeIds.Count ) {
             $AdminScopeIds = $script:Scopes | Where-Object {$_.ScopeName -in $($PSBoundParameters.AdminScopeNames ) } | Select-Object -ExpandProperty ScopeId
         }
-        if ( [string]::IsNullOrEmpty($DefaultStaffOrgId) ) {
+        if ( -not $DefaultStaffOrgId ) {
             $DefaultStaffOrgId = $script:Organizations | Where-Object {$_.OrgName -eq $($PSBoundParameters.DefaultStaffOrgName ) } | Select-Object -ExpandProperty OrgId
         }
     }# Begin
@@ -260,13 +230,13 @@ function Add-VSAUser
             UserId                   = $(Get-Random -Minimum 100 -Maximum 999)
             AdminName                = $AdminName
             AdminPassword            = $AdminPassword
-            Admintype                = [decimal] $AdminType
-            AdminScopeIds            = [decimal[]] $AdminScopeIds
-            AdminRoleIds             = [decimal[]] $AdminRoleIds
+            Admintype                = $AdminType
+            AdminScopeIds            = $AdminScopeIds
+            AdminRoleIds             = $AdminRoleIds
             FirstName                = $FirstName
             LastName                 = $LastName
-            DefaultStaffOrgId        = [decimal] $DefaultStaffOrgId
-            DefaultStaffDepartmentId = [decimal] $DefaultStaffDepartmentId
+            DefaultStaffOrgId        = $DefaultStaffOrgId
+            DefaultStaffDepartmentId = $DefaultStaffDepartmentId
             Email                    = $Email
         }
 

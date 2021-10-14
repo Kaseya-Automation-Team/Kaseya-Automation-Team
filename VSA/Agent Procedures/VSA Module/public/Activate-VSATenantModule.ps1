@@ -50,17 +50,17 @@
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ByName')]
-        [ValidateSet('Agent',  'Agent Procedures',  'Anti-Malware',  'Antivirus',  'AuthAnvil',  'Backup',  'Cloud Backup',  `
-                        'Data Backup',  'Desktop Management: Migration',  'Desktop Management: Policy',  'Discovery',  `
-                        'Kaseya System Patch',  'Mobility',  'Network Monitoring',  'Patch Management',  'Policy',  'Service Billing',  `
-                        'Service Desk',  'Software Deployment',  'Software Management',  'System Backup and Recovery',  'Time Tracking',  `
-                        'vPro Management',  'Web Service API')]
+        [ValidateSet('Agent', 'Agent Procedures', 'Anti-Malware', 'Antivirus', 'AuthAnvil', 'Backup', 'Cloud Backup', `
+                        'Data Backup', 'Desktop Management: Migration', 'Desktop Management: Policy', 'Discovery', `
+                        'Kaseya System Patch', 'Mobility', 'Network Monitoring', 'Patch Management', 'Policy', `
+                        'Service Billing', 'Service Desk', 'Software Deployment', 'Software Management', `
+                        'System Backup and Recovery', 'Time Tracking', 'vPro Management', 'Web Service API')]
         [string[]] $Modules,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
-        [ValidateSet(9,  3,  97,  95,  115,  12,  54,  34,  29,  30,  70,  0,  50,  47,  6,  44,  42,  18,  53,  60,  64,  41,  85,  57)]
+        [ValidateSet(9, 3, 97, 95, 115, 12, 54, 34, 29, 30, 70, 0, 50, 47, 6, 44, 42, 18, 53, 60, 64, 41, 85, 57)]
         [int[]] $ModuleIds
     )
     DynamicParam {

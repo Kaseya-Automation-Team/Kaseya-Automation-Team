@@ -56,8 +56,8 @@
         [Parameter(Mandatory = $true,
         ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
-            if( $_.Length -lt 16 ) {
-                throw "Password length must be at least 16 symbols"
+            if( $_ -notmatch  "(?=(.*[0-9]))(?=.*[\!@#$%^&*()\\[\]{}\-_+=~`|:;`"'<>,./?])(?=.*[a-z])(?=(.*[A-Z]))(?=(.*)).{16,}" ) {
+                throw "The password must contain both upper and lower case letters, numeric & non-alphaNumeric character. Its length must be at least 16 symbols"
             }
             return $true
         })]

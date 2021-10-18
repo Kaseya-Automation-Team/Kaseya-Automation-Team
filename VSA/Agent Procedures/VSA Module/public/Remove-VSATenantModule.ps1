@@ -141,8 +141,6 @@
     Process {
         $URISuffix = $URISuffix -f $TenantId, $ModuleId
 
-        $Body | Out-String | Write-Debug
-
         [hashtable]$Params =@{
             URISuffix = $URISuffix
             Method    = 'DELETE'

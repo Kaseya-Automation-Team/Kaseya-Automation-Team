@@ -1,7 +1,7 @@
 function Get-VSAStorageContents {
     <#
     .Synopsis
-       Returns remote control recorded session.
+       Downloads remote control recorded sessions.
     .DESCRIPTION
        Returns the file contents of a remote control recording in the body of the response.
        The {fileId} is specified using the GUID in the AgentFileId column of the Storage.Agent table.
@@ -12,20 +12,18 @@ function Get-VSAStorageContents {
         Specifies URI suffix if it differs from the default.
     .PARAMETER FileId
         Specifies AgentFileId from the SQL table.
-    .PARAMETER Filter
-        Specifies REST API Filter.
-    .PARAMETER Paging
-        Specifies REST API Paging.
-    .PARAMETER Sort
-        Specifies REST API Sorting.
+    .PARAMETER DownloadsFolder
+        Specifies folder to dowload the file. By default, current profiles' default Downloads folder.
     .EXAMPLE
        Get-VSAStorageContent -FileId 233434543543543
+    .EXAMPLE
+       Get-VSAStorageContent -FileId 233434543543543 -FileName "test.webm" -DownloadsFolder "c:\temp"
     .EXAMPLE
        Get-VSAStorageContent -VSAConnection $connection -FileId 233434543543543
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       File to download.
+       File to downloads folder
     #>
 
     [CmdletBinding()]
@@ -46,32 +44,69 @@ function Get-VSAStorageContents {
         [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $FileId,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+        [parameter(ParameterSetName = 'Persistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
+        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
-        [string] $Filter,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
-        [string] $Paging,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
-        [string] $Sort
+        [string] $FileName,
+        [Parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
+        [string] $DownloadsFolder
     )
+
+    if ( [string]::IsNullOrEmpty($DownloadsFolder) ) {
+        $DownloadsFolder = (New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    }
+
+    if ( [string]::IsNullOrEmpty($FileName) ) {
+        $FileName = "$FileId.webm"
+    }
+
+    $OutFile = "$DownloadsFolder\$FileName"
 
     $URISuffix = $URISuffix -f $FileId
 
-    [hashtable]$Params =@{
-        URISuffix = $URISuffix
+    if ([VSAConnection]::IsPersistent)
+    {
+        $URI = "$([VSAConnection]::GetPersistentURI())/$URISuffix"
+        $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
+    }
+    else
+    {
+        $ConnectionStatus = $VSAConnection.GetStatus()
+
+        if ( 'Open' -eq $ConnectionStatus )
+        {
+            $URI = "$($VSAConnection.URI)/$URISuffix"
+            $UsersToken = "Bearer $($VSAConnection.GetToken())"
+        }
+        else
+        {
+            throw "Connection status: $ConnectionStatus"
+        }
     }
 
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-    if($Filter)        {$Params.Add('Filter', $Filter)}
-    if($Paging)        {$Params.Add('Paging', $Paging)}
-    if($Sort)          {$Params.Add('Sort', $Sort)}
+    $authHeader = @{
+        Authorization = $UsersToken
+    }
 
-    return Get-VSAItems @Params
+    $requestParameters = @{
+        Uri = $URI
+        Method = 'GET'
+        Headers = $authHeader
+        OutFile = $OutFile
+    }
+
+    $requestParameters | Out-String | Write-Debug
+    $requestParameters | Out-String | Write-Output
+    
+    try {
+        Invoke-RestMethod @requestParameters -ErrorAction Stop
+    }
+    catch [System.Net.WebException] {
+        Write-Error( "Executing call GET failed for $URI.`nMessage : $($_.Exception.Message)" )
+        throw $_
+    }
+
 }
 
 Export-ModuleMember -Function Get-VSAStorageContents

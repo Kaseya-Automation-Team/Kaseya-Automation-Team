@@ -64,7 +64,9 @@ function Add-VSATenantRoleType
         [ValidateSet("Y", "N")]
         [string] $HasUserData
     )
-    [int] $Zzvalsid  = try {(Get-VSATenantRoletypesFunclists | Select-Object -ExpandProperty Zzvalsid | Measure-Object -Maximum | Select-Object -ExpandProperty Maximum) + 1} catch {throw $_}
+    [hashtable] $AuxParameters = @{}
+    if($VSAConnection) {$AuxParameters.Add('VSAConnection', $VSAConnection)}
+    [int] $Zzvalsid  = try {(Get-VSATenantRoletypesFunclists @AuxParameters | Select-Object -ExpandProperty Zzvalsid | Measure-Object -Maximum | Select-Object -ExpandProperty Maximum) + 1} catch {throw $_}
     [string] $Zzvals = "zzvals$Zzvalsid"
 
     $BodyHT = [ordered] @{

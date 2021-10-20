@@ -16,7 +16,7 @@ function Get-VSACBServers {
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       Returns true or false, based on whether the specified module ID is activated.
+       Returns the backup status of each physical server installed with Cloud Backup.
     #>
 
     [CmdletBinding()]

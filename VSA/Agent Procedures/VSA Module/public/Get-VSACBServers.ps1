@@ -54,7 +54,7 @@ function Get-VSACBServers {
     $authHeader = @{
         Authorization = $UsersToken
     }
-    $AuthString
+
     $requestParameters = @{
         Uri = $CombinedURL
         Method = 'GET'

@@ -68,10 +68,13 @@
 
     [bool]$result = $false #by default
 
-    if ( [VSAConnection]::GetPersistent() )
+    if ( $null -eq $VSAConnection )
     {
-        $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$URISuffix"
-        $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
+        if ( [VSAConnection]::GetPersistent() )
+        {
+            $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$URISuffix"
+            $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
+        }
     }
     else
     {
@@ -80,7 +83,7 @@
         if ( 'Open' -eq $ConnectionStatus )
         {
             $CombinedURL = "$($VSAConnection.URI)/$URISuffix"
-            $UsersToken = "Bearer $($VSAConnection.GetToken())"
+            $UsersToken = "Bearer $( $VSAConnection.GetToken() )"
         }
         else
         {

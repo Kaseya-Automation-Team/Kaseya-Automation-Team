@@ -40,8 +40,8 @@ public class VSAConnection
     public string UserName = string.Empty;
     public DateTime SessionExpiration;
 
-    private bool IsPersistent;
     private ConnectionState Status = ConnectionState.Open;
+    static private bool IsPersistent = false; //if true: all instances of VSAConnection class share the same environment variable to store the connection information.
 
     public VSAConnection()
     {
@@ -103,7 +103,7 @@ public class VSAConnection
 
     public string GetToken()
     {
-        if (this.IsPersistent)
+        if (IsPersistent)
         {
             this.RestorePersistent();
         }
@@ -112,7 +112,7 @@ public class VSAConnection
 
     public void SetPersistent()
     {
-        this.IsPersistent = true;
+        IsPersistent = true;
         string Serial = String.Format("{0}\t{1}\t{2}\t{3}", this.URI, this.Token, this.UserName, this.SessionExpiration);
         string Encoded = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Serial));
         Environment.SetEnvironmentVariable("VSAConnection", Encoded);
@@ -120,8 +120,8 @@ public class VSAConnection
 
     public void SetPersistent( bool Persistent )
     {
-        this.IsPersistent = Persistent;
-        if(this.IsPersistent)
+        IsPersistent = Persistent;
+        if(IsPersistent)
         {
             string Serial = String.Format("{0}\t{1}\t{2}\t{3}", this.URI, this.Token, this.UserName, this.SessionExpiration);
             string Encoded = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Serial));
@@ -132,9 +132,35 @@ public class VSAConnection
             Environment.SetEnvironmentVariable("VSAConnection", null);
         }
     }
-    public bool GetPersistent()
+    public static bool GetPersistent()
     {
-        return this.IsPersistent;
+        return IsPersistent;
+    }
+
+    public static string GetPersistentURI()
+    {
+        string TheURI = string.Empty;
+        if( IsPersistent )
+        {
+            string Encoded = Environment.GetEnvironmentVariable("VSAConnection");
+            string Serial = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(Encoded));
+            string[] SeparateValues = Serial.Split('\t'); 
+            TheURI = SeparateValues[0];
+        }
+        return TheURI;
+    }
+
+    public static string GetPersistentToken()
+    {
+        string TheToken = string.Empty;
+        if( IsPersistent )
+        {
+            string Encoded = Environment.GetEnvironmentVariable("VSAConnection");
+            string Serial = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(Encoded));
+            string[] SeparateValues = Serial.Split('\t'); 
+            TheToken = SeparateValues[1];
+        }
+        return TheToken;
     }
 }
 '@

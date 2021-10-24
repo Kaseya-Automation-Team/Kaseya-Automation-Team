@@ -68,7 +68,7 @@
 
     [bool]$result = $false #by default
 
-    if ([VSAConnection]::IsPersistent)
+    if ( [VSAConnection]::GetPersistent() )
     {
         $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$URISuffix"
         $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
@@ -107,7 +107,7 @@
         }
     }
 
-    $requestParameters | Out-String | Write-Debug
+    $requestParameters | ConvertTo-Json -Depth 3 | Out-String | Write-Debug
 
     #$result = Get-RequestData -URI $CombinedURL -AuthString $UsersToken
     "Calling Get-RequestData" | Write-Verbose

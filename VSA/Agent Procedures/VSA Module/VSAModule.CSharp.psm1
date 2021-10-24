@@ -35,7 +35,7 @@ public class VSAConnection
         Expired
     }
 
-    public string  URI = string.Empty;
+    public string URI = string.Empty;
     public string Token = string.Empty;
     public string UserName = string.Empty;
     public DateTime SessionExpiration;
@@ -103,10 +103,6 @@ public class VSAConnection
 
     public string GetToken()
     {
-        if (IsPersistent)
-        {
-            this.RestorePersistent();
-        }
         return this.Token;
     }
 

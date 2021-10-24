@@ -311,8 +311,8 @@ Add-Type @'
         Log-Event -Msg "Successfully authenticated. Token expiration date: $($result.SessionExpiration  -replace "T"," ") (UTC)." -Id 2000 -Type "Information" | Out-Null
         [System.Reflection.Assembly]::LoadWithPartialName("System.Web.Extensions") | Out-Null
         $serializer = New-Object System.Web.Script.Serialization.JavaScriptSerializer
-        $result = $result | Select-Object @{Name = 'URI'; Expression = {$URI}}, Token, UserName, @{Name = 'SessionExpiration'; Expression = {$($_.SessionExpiration  -replace "T"," ")}}
-        $conn =  $serializer.Deserialize($($result | ConvertTo-Json), [VSAConnection])
+        $result = $result | Select-Object @{Name = 'URI'; Expression = {$VSAServer}}, Token, UserName, @{Name = 'SessionExpiration'; Expression = {$($_.SessionExpiration  -replace "T"," ")}}
+        $conn = $serializer.Deserialize($($result | ConvertTo-Json), [VSAConnection])
         [datetime]$ExpiresAsUTC = $conn.SessionExpiration
         if ($MakePersistent) { $conn.SetPersistent( $true ) }
     }

@@ -58,11 +58,13 @@
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
-
-    if ( [VSAConnection]::GetPersistent() )
+    if ( $null -eq $VSAConnection )
     {
-        $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$URISuffix"
-        $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
+        if ( [VSAConnection]::GetPersistent() )
+        {
+            $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$URISuffix"
+            $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
+        }
     }
     else
     {

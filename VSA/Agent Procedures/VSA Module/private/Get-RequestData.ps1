@@ -88,7 +88,7 @@ function Get-RequestData
     }
     
     $requestParameters | Out-String | Write-Verbose
-    $requestParameters | Out-String | Write-Debug
+    $requestParameters  | ConvertTo-Json -Depth 3 | Out-String | Write-Debug
 
     Log-Event -Msg "Executing call $Method : $URI" -Id 1000 -Type "Information"
    

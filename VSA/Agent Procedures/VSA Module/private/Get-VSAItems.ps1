@@ -59,7 +59,7 @@
         [string] $Sort
     )
 
-    if ([VSAConnection]::IsPersistent)
+    if ( [VSAConnection]::GetPersistent() )
     {
         $CombinedURL = "$([VSAConnection]::GetPersistentURI())/$URISuffix"
         $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
@@ -71,7 +71,7 @@
         if ( 'Open' -eq $ConnectionStatus )
         {
             $CombinedURL = "$($VSAConnection.URI)/$URISuffix"
-            $UsersToken = "Bearer $($VSAConnection.GetToken())"
+            $UsersToken = "Bearer $( $VSAConnection.GetToken() )"
         }
         else
         {
@@ -101,8 +101,9 @@
         Method = 'GET'
         AuthString = $UsersToken
     }
+    
     "Request" | Write-Debug 
-    $requestParameters  | Out-String | Write-Debug
+    $requestParameters | ConvertTo-Json -Depth 3 | Out-String | Write-Debug
     "Calling Get-RequestData" | Write-Verbose
     "Calling Get-RequestData" | Write-Debug
     $response = Get-RequestData @requestParameters

@@ -1,10 +1,10 @@
 ﻿<#
 POC
    Module VSA
-   Version 0.5
+   Version 0.7
    Author: Vladislav Semko
    Modified: Aliaksandr Serzhankou
-   Modification date: 09-10-21
+   Modification date: 24-10-21
 #>
 
 #Import additional functions from Private and Public folders
@@ -23,168 +23,167 @@ Foreach($import in @($Public + $Private))
 			Continue
         }
     }
+Add-Type @'
+using System;
 
-Enum ConnectionState
+public class VSAConnection
 {
-    Closed = 0
-    Open = 1
-    Expired = 2
-}
-#region Class VSAConnection
-Class VSAConnection
-{
-    <#
-        Encapsulates connection information such as:
-        - VSA Server address
-        - user's name
-        - user's token
-        - connection status
-        - if the connection is persistent ( i.e. stored in the session's environment variable)
-    #>
-    [string] $URI
-    [datetime] $SessionExpiration
-    hidden [ConnectionState] $Status
-    hidden [string] $Token
-    hidden [string] $UserName
-    static hidden [bool] $IsPersistent #if true: all instances of VSAConnection class share the same environment variable to store the connection information.
-
-    hidden [void] CopyObject( $InputObject )
+    enum ConnectionState
     {
-        if( $($InputObject.URI) )
+        Closed,
+        Open,
+        Expired
+    }
+
+    public string URI = string.Empty;
+    public string Token = string.Empty;
+    public string UserName = string.Empty;
+    public DateTime SessionExpiration;
+
+    private ConnectionState Status = ConnectionState.Open;
+    static private bool IsPersistent = false; //if true: all instances of VSAConnection class share the same environment variable to store the connection information.
+
+    public VSAConnection()
+    {
+    }
+    private void RestorePersistent()
+    {
+        string Encoded = Environment.GetEnvironmentVariable("VSAConnection");
+        string Serial = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(Encoded));
+        string[] SeparateValues = Serial.Split('\t'); 
+        this.URI = SeparateValues[0];
+        this.Token = SeparateValues[1];
+        this.UserName = SeparateValues[2];
+        this.SessionExpiration = DateTime.Parse(SeparateValues[3]);
+    }
+
+    private void CopyObject( VSAConnection InputObject )
+    {
+        if ( string.IsNullOrEmpty(InputObject.URI))
         {
-            $this.URI = $InputObject.URI
-            $this.Token = $InputObject.Token
-            $this.UserName = $InputObject.UserName
-            $this.UserName = $InputObject.UserName
-            $this.SessionExpiration = $( $InputObject.SessionExpiration -replace "T"," " )
+            throw new ArgumentNullException("The Input Object Does Not Contain URI");
         }
         else
         {
-            throw "The Input Obect Does Not Contain URI"
+            this.URI = InputObject.URI;
+            this.Token = InputObject.Token;
+            this.UserName = InputObject.UserName;
+            this.SessionExpiration = InputObject.SessionExpiration;
         }
-        if ( $($InputObject.Status) ) {
-            $this.Status = $InputObject.Status
-        } else {
-            $this.Status = [ConnectionState]::Open
-        }
-    }
 
-#region constructors
-
-    VSAConnection( 
-        [PSObject] $InputObject # Existing connection object.
-    )
-    {
-        $this.CopyObject( $InputObject )        
-    }
-
-    VSAConnection( 
-        [PSCustomObject] $InputObject, # Response from the authorization interface doen't contain the VSA server address
-        [string] $URI                  # the VSA server address 
-    )
-    {
-        $this.Status = [ConnectionState]::Open
-        if( -not $($InputObject.URI) )
+        if ( string.IsNullOrEmpty(InputObject.Status.ToString()) )
         {
-            $InputObject | Add-Member -NotePropertyName 'URI' -NotePropertyValue $URI
+            this.Status = ConnectionState.Open;
         }
-        $this.CopyObject( $InputObject )
-    }
-
-#endregion constructors    
-
-    hidden [void] RestorePersistent ( )
-    {
-        if ( [VSAConnection]::IsPersistent -and -not( [string]::IsNullOrEmpty( $env:VSAConnection) ) )
+        else
         {
-            $InputObject = [Management.Automation.PSSerializer]::Deserialize([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:VSAConnection)))
-            $this.CopyObject( $InputObject )
+            this.Status = InputObject.Status;            
         }
     }
 
-    [string] GetStatus()
+    public string GetStatus()
     {
-        switch ($this.Status)
+        switch(Status) 
         {
-            Open
+        case ConnectionState.Open:
+            if (DateTime.Compare(DateTime.Now, SessionExpiration) > 0)
             {
-                if ( $((Get-Date).ToUniversalTime()) -gt $this.SessionExpiration )
-                {
-                    $this.Status = [ConnectionState]::Expired
-                }
+                this.Status = ConnectionState.Expired;
             }
-            default
+            break;
+        default:
+            if ( string.IsNullOrEmpty(Token) )
             {
-                if( [string]::IsNullOrEmpty($this.Token) )
-                {
-                    $this.Status = [ConnectionState]::Closed
-                }
-                # If connection is not Open The $env:VSAConnection should not store the object
-                $env:VSAConnection = $null
-                [VSAConnection]::IsPersistent = $false
+                this.Status = ConnectionState.Closed;
             }
+            break;
         }
-        return $this.Status 
+        return this.Status.ToString();
     }
 
-    [string] GetUserName()
+    public string GetToken()
     {
-        return $this.UserName
+        return this.Token;
     }
 
-    [string] GetToken()
+    public void SetPersistent()
     {
-        if( [VSAConnection]::IsPersistent )
+        IsPersistent = true;
+        string Serial = String.Format("{0}\t{1}\t{2}\t{3}", this.URI, this.Token, this.UserName, this.SessionExpiration);
+        string Encoded = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Serial));
+        Environment.SetEnvironmentVariable("VSAConnection", Encoded);
+    }
+
+    public void SetPersistent( bool Persistent )
+    {
+        IsPersistent = Persistent;
+        if(IsPersistent)
         {
-            $this.RestorePersistent()
+            string Serial = String.Format("{0}\t{1}\t{2}\t{3}", this.URI, this.Token, this.UserName, this.SessionExpiration);
+            string Encoded = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Serial));
+            Environment.SetEnvironmentVariable("VSAConnection", Encoded);
         }
-        return $this.Token
-    }
-
-    [void] SetPersistent( [bool] $IsPersistent )
-    {
-        [VSAConnection]::IsPersistent = $IsPersistent
-
-        if( [VSAConnection]::IsPersistent ) {
-            $env:VSAConnection = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes([Management.Automation.PSSerializer]::Serialize($this)))
-        } else {
-            $env:VSAConnection = $null
-        }
-    }
-
-    [void] SetPersistent()
-    {
-        $this.SetPersistent( $true )
-    }
-
-    [bool] GetPersistent()
-    {
-        return [VSAConnection]::IsPersistent
-    }
-
-    static [string] GetPersistentToken()
-    {
-        [string]$TheToken = $null
-        if([VSAConnection]::IsPersistent)
+        else
         {
-            $InputObject = [Management.Automation.PSSerializer]::Deserialize([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:VSAConnection)))    
-            $TheToken = $InputObject.Token     
+            Environment.SetEnvironmentVariable("VSAConnection", null);
         }
-        return $TheToken
+    }
+    public static bool GetPersistent()
+    {
+        return IsPersistent;
     }
 
-    static [string] GetPersistentURI()
+    public static string GetPersistentURI()
     {
-        [string]$TheURI = $null
-        if([VSAConnection]::IsPersistent)
+        string TheURI = string.Empty;
+        if( IsPersistent )
         {
-            $InputObject = [Management.Automation.PSSerializer]::Deserialize([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($env:VSAConnection)))    
-            $TheURI = $InputObject.URI    
+            string Encoded = Environment.GetEnvironmentVariable("VSAConnection");
+            string Serial = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(Encoded));
+            string[] SeparateValues = Serial.Split('\t'); 
+            TheURI = SeparateValues[0];
         }
-        return $TheURI
+        return TheURI;
+    }
+
+    public static string GetPersistentToken()
+    {
+        string TheToken = string.Empty;
+        if( IsPersistent )
+        {
+            string Encoded = Environment.GetEnvironmentVariable("VSAConnection");
+            string Serial = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(Encoded));
+            string[] SeparateValues = Serial.Split('\t'); 
+            TheToken = SeparateValues[1];
+        }
+        return TheToken;
     }
 }
+'@
 #endregion Class VSAConnection
+
+#--------------------------------------------------------------------------------------------
+#region function Get-StringHash 
+function Get-StringHash {
+    [cmdletbinding()]
+    [OutputType([String])]
+    param(
+        [parameter(ValueFromPipeline, Mandatory = $true, Position = 0)]
+        [ValidateNotNullOrEmpty()]
+        [String]$InputString,
+        [parameter(ValueFromPipelineByPropertyName, Mandatory = $false, Position = 1)]
+        [ValidateSet("MD5", "RIPEMD160", "SHA1", "SHA256", "SHA384", "SHA512")]
+        [String]$HashName = "SHA256"
+    )
+    $HashStringBuilder = New-Object System.Text.StringBuilder
+    [System.Security.Cryptography.HashAlgorithm]::Create($HashName).ComputeHash([System.Text.Encoding]::UTF8.GetBytes($InputString)) | `
+        Foreach-Object  {
+            [Void]$HashStringBuilder.Append($_.ToString("x2"))
+        }
+    $HashStringBuilder.ToString()
+}
+
+#--------------------------------------------------------------------------------------------
 
 #============================================================================================
 
@@ -225,11 +224,19 @@ function New-VSAConnection {
             else {Throw "$_ is an invalid. Enter a valid address that begins with https://"}}
             )]
         [String]$VSAServer,
+
         [parameter(ValueFromPipeline,
             Mandatory = $false,
             Position = 1)]
         [ValidateNotNullOrEmpty()]
         [String] $UserName,
+
+        [parameter(ValueFromPipeline,
+            Mandatory = $false,
+            Position = 1)]
+        [ValidateNotNullOrEmpty()]
+        [String] $Password,
+
         #[parameter(ValueFromPipeline,
         #    Mandatory = $true,
         #    Position = 2)]
@@ -242,7 +249,9 @@ function New-VSAConnection {
         [parameter(Mandatory=$false)]
         [switch] $MakePersistent,
         [parameter(Mandatory=$false)] 
-        [switch] $NonInteractive
+        [switch] $NonInteractive,
+        [parameter(Mandatory=$false)] 
+        [switch] $OldAuthMethod
     )
     
     #region set to ignore self-signed SSL certificate
@@ -261,53 +270,80 @@ Add-Type @'
 '@
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
     #endregion set to ignore self-signed SSL certificate
-    if ($NonInteractive) {
-        Log-Event -Msg "Running in non-interactive mode" -Id 0000 -Type "Information"
-
-    if ($Username) {
-        Write-Host "Username is NOT required parameter in non-interactive mode and will be ignored"
-    }
-        $file = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($(Get-Content -Path "$PSScriptRoot\private\pat.txt")))
-        $creds = $file -split ":"
-
-        $username = $creds[0]
-
-        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($($creds[1] | ConvertTo-SecureString))
-
-    } else {
-
-        $creds = Get-Credential -Message "Please provide username and Personal Authentication Token"
-        $username = $creds.username
-
-      $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($creds.password)
-    }
-
-    
-    $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$username`:$([System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR))"))
 
     $URI = "$VSAServer/$AuthSuffix"
+
+    [string] $Encoded
+
+    if ($OldAuthMethod) {  #OldAuthMethod
+        [string]$Random = (Get-Random).ToString()
+
+        [string]$RawSHA256Hash = Get-StringHash $Password
+        [string]$CoveredSHA256HashTemp = Get-StringHash ($Password+$Username)
+        [string]$CoveredSHA256Hash = Get-StringHash ($CoveredSHA256HashTemp+$Random) 
+        [string]$RawSHA1Hash = Get-StringHash $Password "SHA1"
+        [string]$CoveredSHA1HashTemp = Get-StringHash ($Password+$Username) "SHA1"
+        [string]$CoveredSHA1Hash = Get-StringHash ($CoveredSHA1HashTemp+$Random) "SHA1"
+
+        [string[]]$Format = @(
+            $Username
+            $CoveredSHA256Hash
+            $CoveredSHA1Hash
+            $RawSHA256Hash
+            $RawSHA1Hash
+            $Random
+            )
+
+        $Encoded = [Convert]::ToBase64String( [Text.Encoding]::UTF8.GetBytes( $("user={0},pass2={1},pass1={2},rpass2={3},rpass1={4},rand2={5}" -f $Format) ) )
+    } #OldAuthMethod
+    else #NewAuthMethod
+    {
+        if ($NonInteractive) {
+            Log-Event -Msg "Running in non-interactive mode" -Id 0000 -Type "Information"
+
+        if ($Username) {
+            Write-Host "Username is NOT required parameter in non-interactive mode and will be ignored"
+        }
+            $file = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($(Get-Content -Path "$PSScriptRoot\private\pat.txt")))
+            $creds = $file -split ":"
+
+            $username = $creds[0]
+
+            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($($creds[1] | ConvertTo-SecureString))
+
+        } else {
+
+            $creds = Get-Credential -Message "Please provide username and Personal Authentication Token"
+            $username = $creds.username
+
+          $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($creds.password)
+        }
+
+            $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$username`:$([System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR))"))
+    }#NewAuthMethod
+
     $AuthString  = "Basic $Encoded"
 
     Log-Event -Msg "Attempting to authenticate with $VSAServer" -Id 0000 -Type "Information"
-    $result = Get-RequestData -URI $URI -authString $AuthString  | Select-Object -ExpandProperty Result
+
+    $result = Get-RequestData -URI $URI -authString $AuthString | Select-Object -ExpandProperty Result
     
     if ($result)
     {
-        [VSAConnection]$conn = [VSAConnection]::new( $result, $VSAServer )
-
-        [datetime]$ExpiresAsUTC = $result.SessionExpiration -replace "T"," "
-        Log-Event -Msg "Successfully authenticated. Token expiration date: $ExpiresAsUTC (UTC)." -Id 2000 -Type "Information"
-
+        Log-Event -Msg "Successfully authenticated. Token expiration date: $($result.SessionExpiration  -replace "T"," ") (UTC)." -Id 2000 -Type "Information" | Out-Null
+        [System.Reflection.Assembly]::LoadWithPartialName("System.Web.Extensions") | Out-Null
+        $serializer = New-Object System.Web.Script.Serialization.JavaScriptSerializer
+        $result = $result | Select-Object @{Name = 'URI'; Expression = {$VSAServer}}, Token, UserName, @{Name = 'SessionExpiration'; Expression = {$($_.SessionExpiration  -replace "T"," ")}}
+        $conn = $serializer.Deserialize($($result | ConvertTo-Json), [VSAConnection])
+        [datetime]$ExpiresAsUTC = $conn.SessionExpiration
         if ($MakePersistent) { $conn.SetPersistent( $true ) }
     }
     else
     {
-        Log-Event -Msg "Could not get authentication response" -Id 4001 -Type "Error"
+        Log-Event -Msg "Could not get authentication response" -Id 4001 -Type "Error" | Out-Null
 		throw "Could not get authentication response"
-		
     }
-
-    return $conn    
+    return $conn
 }
 #endregion function New-VSAConnection
 

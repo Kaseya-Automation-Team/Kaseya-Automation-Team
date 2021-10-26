@@ -273,7 +273,7 @@ Add-Type @'
 
     $URI = "$VSAServer/$AuthSuffix"
 
-    [string] $Encoded
+    [string] $Encoded = ''
 
     if ($OldAuthMethod) {  #OldAuthMethod
         [string]$Random = (Get-Random).ToString()
@@ -299,7 +299,7 @@ Add-Type @'
     else #NewAuthMethod
     {
         if ($NonInteractive) {
-            Log-Event -Msg "Running in non-interactive mode" -Id 0000 -Type "Information"
+            Log-Event -Msg "Running in non-interactive mode" -Id 0000 -Type "Information" | Out-Null
 
         if ($Username) {
             Write-Host "Username is NOT required parameter in non-interactive mode and will be ignored"
@@ -315,35 +315,40 @@ Add-Type @'
 
             $creds = Get-Credential -Message "Please provide username and Personal Authentication Token"
             $username = $creds.username
-
-          $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($creds.password)
+            
+            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($creds.password)
         }
 
-            $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$username`:$([System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR))"))
+        $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$username`:$([System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR))"))
     }#NewAuthMethod
 
-    $AuthString  = "Basic $Encoded"
+    [string] $AuthString  = "Basic $Encoded"
 
-    Log-Event -Msg "Attempting to authenticate with $VSAServer" -Id 0000 -Type "Information"
-
+    Log-Event -Msg "Attempting to authenticate with $VSAServer" -Id 0000 -Type "Information" | Out-Null
+    Write-Verbose "Performing REST API request"
+    Write-Debug "Performing REST API request"
     $result = Get-RequestData -URI $URI -authString $AuthString | Select-Object -ExpandProperty Result
     
     if ($result)
     {
-        Log-Event -Msg "Successfully authenticated. Token expiration date: $($result.SessionExpiration  -replace "T"," ") (UTC)." -Id 2000 -Type "Information" | Out-Null
-        [System.Reflection.Assembly]::LoadWithPartialName("System.Web.Extensions") | Out-Null
-        $serializer = New-Object System.Web.Script.Serialization.JavaScriptSerializer
-        $result = $result | Select-Object @{Name = 'URI'; Expression = {$VSAServer}}, Token, UserName, @{Name = 'SessionExpiration'; Expression = {$($_.SessionExpiration  -replace "T"," ")}}
-        $conn = $serializer.Deserialize($($result | ConvertTo-Json), [VSAConnection])
-        [datetime]$ExpiresAsUTC = $conn.SessionExpiration
-        if ($MakePersistent) { $conn.SetPersistent( $true ) }
+        [string] $SessionExpiration = $($result.SessionExpiration  -replace "T"," ")
+
+        Log-Event -Msg "Successfully authenticated. Token expiration date: $SessionExpiration (UTC)." -Id 2000 -Type "Information" | Out-Null
+        $result | ConvertTo-Json | Write-Debug
+        $connectionObject = [VSAConnection] @{
+                                                URI               = $VSAServer
+                                                Token             = $result.Token
+                                                UserName          = $result.UserName
+                                                SessionExpiration = $SessionExpiration
+                                            }
+        if ($MakePersistent) { $connectionObject.SetPersistent( $true ) }
     }
     else
     {
         Log-Event -Msg "Could not get authentication response" -Id 4001 -Type "Error" | Out-Null
 		throw "Could not get authentication response"
     }
-    return $conn
+    return $connectionObject
 }
 #endregion function New-VSAConnection
 

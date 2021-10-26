@@ -41,9 +41,13 @@ function Get-VSAAgent2FA {
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/assetmgmt/agent/{0}/twofasettings',
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $true, ValueFromPipelineByPropertyName=$true)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [Parameter(Mandatory = $true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $AgentId,
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]

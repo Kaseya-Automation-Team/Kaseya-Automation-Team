@@ -40,9 +40,13 @@ function Remove-VSAAgent
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/assetmgmt/agents/{0}/{1}",
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [Parameter(Mandatory = $true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $AgentId,
         [parameter(ParameterSetName = 'Persistent', Mandatory=$false)]
         [parameter(ParameterSetName = 'NonPersistent', Mandatory=$false)]

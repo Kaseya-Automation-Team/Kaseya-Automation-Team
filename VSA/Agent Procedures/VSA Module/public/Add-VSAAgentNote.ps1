@@ -34,8 +34,12 @@
         [string] $URISuffix = 'api/v1.0/assetmgmt/agent/{0}/note',
 
         [Parameter(Mandatory = $true)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
-        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $AgentId,
 
         [Parameter(Mandatory = $true)]

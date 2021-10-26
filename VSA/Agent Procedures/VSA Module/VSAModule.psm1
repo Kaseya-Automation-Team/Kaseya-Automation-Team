@@ -231,12 +231,6 @@ function New-VSAConnection {
         [ValidateNotNullOrEmpty()]
         [String] $UserName,
 
-        [parameter(ValueFromPipeline,
-            Mandatory = $false,
-            Position = 1)]
-        [ValidateNotNullOrEmpty()]
-        [String] $Password,
-
         #[parameter(ValueFromPipeline,
         #    Mandatory = $true,
         #    Position = 2)]
@@ -276,6 +270,11 @@ Add-Type @'
     [string] $Encoded = ''
 
     if ($OldAuthMethod) {  #OldAuthMethod
+        $creds = Get-Credential -Message "Please provide UserName and Password"
+        $username = $creds.UserName
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($creds.Password )
+        $Password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+
         [string]$Random = (Get-Random).ToString()
 
         [string]$RawSHA256Hash = Get-StringHash $Password

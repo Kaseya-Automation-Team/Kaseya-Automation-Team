@@ -37,7 +37,12 @@
         [string] $URISuffix = 'api/v1.0/assetmgmt/customextensions/{0}/file/{1}',
 
         [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $AgentId,
 
         [Parameter(Mandatory = $true)]

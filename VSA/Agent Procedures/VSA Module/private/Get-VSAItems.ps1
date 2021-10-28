@@ -77,7 +77,7 @@
         }
         else
         {
-            throw "Connection status: $ConnectionStatus"
+            throw "Connection status: $ConnectionStatus`n"
         }
     }
     #region Filterin, Sorting, Paging

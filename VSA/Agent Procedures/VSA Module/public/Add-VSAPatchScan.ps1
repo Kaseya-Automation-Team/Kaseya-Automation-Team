@@ -242,8 +242,6 @@ function Add-VSAPatchScan
 
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-        Write-Host $Body
-        
         return Update-VSAItems @Params
     }
 

@@ -270,8 +270,13 @@ Add-Type @'
     [string] $Encoded = ''
 
     if ($OldAuthMethod) {  #OldAuthMethod
-        $creds = Get-Credential -Message "Please provide UserName and Password"
+        $creds = Get-Credential -Message "Old Authentication method. Please provide UserName and Password"
         $username = $creds.UserName
+        if ( [string]::IsNullOrEmpty($username) )
+        {
+            Write-Error "No UserName provided.`nQuit"
+            return $null
+        }
         $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($creds.Password )
         $Password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
 

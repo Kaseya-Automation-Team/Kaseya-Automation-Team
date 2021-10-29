@@ -11,9 +11,9 @@ function Update-VSAWarrantyExpiration
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .EXAMPLE
-       Start-VSAPurchaseWarrantyExpirationDatesUpdate -AgentID 10001
+       Update-VSAWarrantyExpiration -AgentID 10001
     .EXAMPLE
-       Start-VSAPurchaseWarrantyExpirationDatesUpdate -AgentID 10001 -VSAConnection $connection
+       Update-VSAWarrantyExpiration -AgentID 10001 -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

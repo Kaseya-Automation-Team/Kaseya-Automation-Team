@@ -10,14 +10,20 @@ function Update-VSAWarrantyExpiration
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
+    .PARAMETER AgentId
+        Specifies id of the agent machine.
+    .PARAMETER PurchaseDate
+        Specifies date of the purchase.
+    .PARAMETER WarrantyExpireDate
+        Specifies warranty expiration date.
     .EXAMPLE
-       Update-VSAWarrantyExpiration -AgentID 10001
+        Update-VSAWarrantyExpiration -AgentID 3324234234 -PurchaseDate "2021-10-21T10:00:00.000Z" -WarrantyExpireDate "2022-10-21T10:00:00.000Z"
     .EXAMPLE
-       Update-VSAWarrantyExpiration -AgentID 10001 -VSAConnection $connection
+       Update-VSAWarrantyExpiration -VSAConnection $connection -AgentID 3324234234 -PurchaseDate "2021-10-21T10:00:00.000Z" -WarrantyExpireDate "2022-10-21T10:00:00.000Z"
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       True if start of baseline audit was successful.
+       Success or failure.
     #>
     [CmdletBinding()]
     param ( 
@@ -38,15 +44,26 @@ function Update-VSAWarrantyExpiration
             }
             return $true
         })]
-        [string] $AgentID
+        [string] $AgentID,
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $PurchaseDate,
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $WarrantyExpireDate
     )
     
     $URISuffix = $URISuffix -f $AgentID
 
     [hashtable]$Params = @{
         URISuffix = $($URISuffix -f $AgentID)
+     
         Method = 'PUT'
     }
+
+    $Body = ConvertTo-Json @{"PurchaseDate"="$PurchaseDate"; "WarrantyExpireDate"="$WarrantyExpireDate";}
+
+    $Params.Add('Body', $Body)
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 

@@ -9,9 +9,9 @@
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER OrganizationName
+    .PARAMETER OrgName
         Specifies full organization name.
-    .PARAMETER OrganizationId
+    .PARAMETER OrgRef
         Specifies string to reference the organization. Must be unique. Usually shorten name or acronim.
     .PARAMETER DefaultDepartmentName
         Specifies Default Department Name. root by default.
@@ -22,7 +22,7 @@
     .PARAMETER ParentOrgId
         Specifies Numeric Id of existing organization that is set as the parent for the new one.
     .EXAMPLE
-       Add-VSAOrganization -OrganizationName 'My Organization' -OrganizationId 'myorg'
+       Add-VSAOrganization -OrgName 'My Organization' -OrgRef 'myorg'
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -39,16 +39,28 @@
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/orgs',
 
-        [parameter(Mandatory=$true,
+        [parameter(DontShow,
+            Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric value"
+            }
+            return $true
+        })]
+        [string] $OrgId,
+
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
+            HelpMessage = "Specify the organization name.")]
         [ValidateNotNullOrEmpty()]
-        [string] $OrganizationName,
+        [string] $OrgName,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             HelpMessage = "Unique string to reference the organization. Usually shorten name or acronim.")]
         [ValidateNotNullOrEmpty()]
-        [string] $OrganizationId,
+        [string] $OrgRef,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
@@ -88,7 +100,8 @@
             }
             return $true
         })]
-        [string] $NumberOfEmployees,
+        [Alias('NumberOfEmployees')]
+        [string] $NoOfEmployees,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
@@ -99,6 +112,12 @@
             return $true
         })]
         [string] $AnnualRevenue,
+
+        [parameter(DontShow,
+            Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $ContactInfo,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
@@ -158,14 +177,25 @@
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
-        [string] $FieldValue
+        [string] $FieldValue,
+
+        [parameter(DontShow,
+            Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [array] $CustomFields = @(),
+
+        [parameter(DontShow,
+            Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Attributes
         )
 
     [string]$OrgIdNumber = $((100..999) | Get-Random).ToString()
 
     [hashtable]$BodyHT = @{
-            OrgName                 = $OrganizationName
-            OrgRef                  = $OrganizationId
+            OrgName                 = $OrgName
+            OrgRef                  = $OrgRef
             OrgId                   = $OrgIdNumber
             DefaultDepartmentName   = $DefaultDepartmentName
             DefaultMachineGroupName = $DefaultMachineGroupName
@@ -174,10 +204,15 @@
     if ($OrgType)           { $BodyHT.Add('OrgType', $OrgType) }
     if ($ParentOrgId)       { $BodyHT.Add('ParentOrgId', $ParentOrgId) }
     if ($Website)           { $BodyHT.Add('Website', $Website) }
-    if ($NumberOfEmployees) { $BodyHT.Add('NoOfEmployees', $NumberOfEmployees) }
+    if ($NoOfEmployees)     { $BodyHT.Add('NoOfEmployees', $NoOfEmployees) }
     if ($AnnualRevenue)     { $BodyHT.Add('AnnualRevenue', $AnnualRevenue) }
+    
+    if ( -not [string]::IsNullOrEmpty($ContactInfo) ) {
+        [hashtable] $ContactInfoHT = ConvertFrom-StringData -StringData $ContactInfo
+    } else {
+        [hashtable] $ContactInfoHT = @{}
+    }
 
-    [hashtable]$ContactInfoHT = @{}
     if ($PreferredContactMethod)  { $ContactInfoHT.Add('PreferredContactMethod', $PreferredContactMethod)}
     if ($PrimaryPhone)            { $ContactInfoHT.Add('PrimaryPhone', $PrimaryPhone)}
     if ($PrimaryFax)              { $ContactInfoHT.Add('PrimaryFax', $PrimaryFax)}
@@ -194,9 +229,18 @@
         $BodyHT.Add('ContactInfo', $ContactInfoHT )
     }
 
+    if ( 0 -lt $CustomFields.Count )
+    {
+        $BodyHT.Add('CustomFields', $CustomFields )
+    }
     if (  ( -not [string]::IsNullOrWhiteSpace($FieldName)) -and ( -not [string]::IsNullOrWhiteSpace($FieldValue)) )
     {
         $BodyHT.Add('CustomFields', @(@{ FieldName  = $FieldName; FieldValue = $FieldValue }) )
+    }
+
+    if ( -not [string]::IsNullOrEmpty($Attributes) ) {
+        [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
+        $BodyHT.Add('Attributes', $AttributesHT )
     }
    
     $Body = $BodyHT | ConvertTo-Json

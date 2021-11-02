@@ -191,12 +191,15 @@
         [string] $Attributes
         )
 
-    [string]$OrgIdNumber = $((100..999) | Get-Random).ToString()
+    if ([string]::IsNullOrEmpty($OrgId))
+    {
+        [string]$OrgId = $((100..999) | Get-Random).ToString()
+    }
 
     [hashtable]$BodyHT = @{
             OrgName                 = $OrgName
             OrgRef                  = $OrgRef
-            OrgId                   = $OrgIdNumber
+            OrgId                   = [decimal]$OrgId
             DefaultDepartmentName   = $DefaultDepartmentName
             DefaultMachineGroupName = $DefaultMachineGroupName
         }
@@ -208,7 +211,9 @@
     if ($AnnualRevenue)     { $BodyHT.Add('AnnualRevenue', $AnnualRevenue) }
     
     if ( -not [string]::IsNullOrEmpty($ContactInfo) ) {
-        [hashtable] $ContactInfoHT = ConvertFrom-StringData -StringData $ContactInfo
+        #convert string literal to hashtable
+        $ContactInfo -match '{(.*?)\}'
+        [hashtable] $ContactInfoHT = ConvertFrom-StringData -StringData $($Matches[1] -replace ' ','' -Split ';' -join "`n")
     } else {
         [hashtable] $ContactInfoHT = @{}
     }

@@ -1,4 +1,4 @@
-function Update-VSAAgent
+function Update-VSAAgentName
 {
     <#
     .Synopsis
@@ -15,9 +15,9 @@ function Update-VSAAgent
     .PARAMETER Name
         Specifies new name of agent
     .EXAMPLE
-       Update-VSAAgent -AgentId 581411914 -Name "newname"
+       Update-VSAAgentName -AgentId 581411914 -Name "newname"
     .EXAMPLE
-       Update-VSAAgent -VSAConnection $connection -AgentId 581411914 -Name "newname"
+       Update-VSAAgentName -VSAConnection $connection -AgentId 581411914 -Name "newname"
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -63,4 +63,4 @@ function Update-VSAAgent
     return Update-VSAItems @Params
 }
 
-Export-ModuleMember -Function Update-VSAAgent
+Export-ModuleMember -Function Update-VSAAgentName

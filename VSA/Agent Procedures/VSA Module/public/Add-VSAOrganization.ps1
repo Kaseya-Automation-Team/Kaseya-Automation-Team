@@ -179,7 +179,7 @@
         [parameter(DontShow,
             Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [array] $CustomFields = @(),
+        [string[]] $CustomFields = @(),
 
         [parameter(DontShow,
             Mandatory=$false,
@@ -193,7 +193,7 @@
         [string]$OrgId = $((100..999) | Get-Random).ToString()
     }
 
-    [hashtable]$BodyHT = @{
+    $BodyHT = [ordered]@{
             OrgName                 = $OrgName
             OrgRef                  = $OrgRef
             OrgId                   = [decimal]$OrgId
@@ -218,7 +218,7 @@
     if ( -not [string]::IsNullOrEmpty($ContactInfo) ) {
         #convert string literal to hashtable
         $ContactInfo -match '{(.*?)\}'
-        [hashtable] $ContactInfoHT = ConvertFrom-StringData -StringData $($Matches[1] -replace '= ','=' -split ';' -join "`n")
+        [hashtable] $ContactInfoHT = ConvertFrom-StringData -StringData $($Matches[1] -replace '= ','=' -replace '; ',';' -split ';' -join "`n")
     } else {
         [hashtable] $ContactInfoHT = @{}
     }
@@ -241,7 +241,13 @@
 
     if ( 0 -lt $CustomFields.Count )
     {
-        $BodyHT.Add('CustomFields', $CustomFields )
+        [array]$CustomFieldArray = @()
+        Foreach ( $CustomField in $CustomFields )
+        {
+            $CustomField -match '{(.*?)\}'
+            $CustomFieldArray += $( ConvertFrom-StringData -StringData $($Matches[1] -replace '= ','=' -replace '; ',';' -split ';' -join "`n") )
+        }
+        $BodyHT.Add('CustomFields', $CustomFieldArray )
     }
     if (  ( -not [string]::IsNullOrWhiteSpace($FieldName)) -and ( -not [string]::IsNullOrWhiteSpace($FieldValue)) )
     {
@@ -256,6 +262,7 @@
     $Body = $BodyHT | ConvertTo-Json
 
     $Body | Out-String | Write-Debug
+    $Body | Out-String | Write-Verbose
 
     [hashtable]$Params = @{}
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}

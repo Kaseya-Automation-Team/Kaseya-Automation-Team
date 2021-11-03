@@ -37,7 +37,7 @@ function Update-VSAUser
     .PARAMETER AdminType
         Specifies Id of user's admin type.
     .EXAMPLE
-       Update-VSAUser -AdminName 'Login' -AdminPassword 'P@$$w0rd' -AdminRoleIds 1, 2 -AdminScopeIds 3, 4 -DefaultStaffOrgId 5 -DefaultStaffDepartmentId 6 -FirstName 'John' -LastName 'Doe' -Email 'JohnDoe@example.mail'
+       Update-VSAUser -UserId 10001 -AdminName 'Login' -AdminPassword 'P@$$w0rd' -AdminRoleIds 1, 2 -AdminScopeIds 3, 4 -DefaultStaffOrgId 5 -DefaultStaffDepartmentId 6 -FirstName 'John' -LastName 'Doe' -Email 'JohnDoe@example.mail'
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

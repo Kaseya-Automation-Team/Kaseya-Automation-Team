@@ -15,7 +15,9 @@ function Disable-VSAUser
     .PARAMETER AdminName
         Specifies a user account name.
     .EXAMPLE
-       Disable-VSAUser UserId 10001
+       Disable-VSAUser -UserId 10001
+    .EXAMPLE
+       Disable-VSAUser -VSAConnect $connection -UserId 10001
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

@@ -15,7 +15,9 @@ function Remove-VSAUser
     .PARAMETER AdminName
         Specifies a user account name.
     .EXAMPLE
-       Remove-VSAUser UserId 10001
+       Remove-VSAUser -UserId 10001
+    .EXAMPLE
+       Remove-VSAUser -VSAConnection $connection -UserId 10001
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

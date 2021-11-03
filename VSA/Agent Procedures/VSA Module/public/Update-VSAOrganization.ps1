@@ -11,7 +11,7 @@
         Specifies URI suffix if it differs from the default.
     .PARAMETER OrganizationName
         Specifies full organization name.
-    .PARAMETER OrganizationId
+    .PARAMETER OrgRef
         Specifies string to reference the organization.
     .PARAMETER DefaultDepartmentName
         Specifies Default Department Name. 
@@ -22,7 +22,7 @@
     .PARAMETER ParentOrgId
         Specifies Numeric Id of existing organization that is set as the parent for the modofied one.
     .EXAMPLE
-       Update-VSAOrganization -OrganizationIdNumber 10001 -NumberOfEmployees 12
+       Update-VSAOrganization -OrgId 10001 -NumberOfEmployees 12
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -42,43 +42,38 @@
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric Id"
             }
             return $true
         })]
-        [string] $OrganizationIdNumber,
+        [string] $OrgId,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $OrganizationName,
         
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             HelpMessage = "Unique string to reference the organization. Usually shorten name or acronim.")]
-        [ValidateNotNullOrEmpty()]
-        [string] $OrganizationId,
+        [string] $OrgRef,
         
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $DefaultDepartmentName,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $DefaultMachineGroupName,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $OrgType,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric Id"
             }
             return $true
@@ -87,24 +82,24 @@
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $Website,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric value"
             }
             return $true
         })]
-        [string] $NumberOfEmployees,
+        [Alias('NumberOfEmployees')]
+        [string] $NoOfEmployees,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric value"
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
+                throw "Non-numeric value: $_"
             }
             return $true
         })]
@@ -112,17 +107,14 @@
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $PreferredContactMethod,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $PrimaryPhone,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $PrimaryFax,
 
         [parameter(Mandatory=$false,
@@ -132,7 +124,6 @@
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $Country,
 
         [parameter(Mandatory=$false,
@@ -142,7 +133,6 @@
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $City,
 
         [parameter(Mandatory=$false,
@@ -152,12 +142,10 @@
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $ZipCode,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $PrimaryTextMessagePhone,
 
         [parameter(Mandatory=$false,
@@ -168,49 +156,66 @@
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
-        [string] $FieldValue
+        [string] $FieldValue,
+
+        [parameter(DontShow,
+            Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [string[]] $CustomFields = @(),
+
+        [parameter(DontShow,
+            Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Attributes
         )
 
-    $URISuffix = $URISuffix -f $OrganizationIdNumber
+    $URISuffix = $URISuffix -f $OrgId
     $URISuffix | Write-Verbose
     $URISuffix | Write-Debug
 
     [hashtable]$BodyHT = @{}
-    if ($OrganizationName)        { $BodyHT.Add('OrgName', $OrganizationName) }
-    if ($OrganizationId)          { $BodyHT.Add('OrgRef', $OrganizationId) }
-    if ($DefaultDepartmentName)   { $BodyHT.Add('DefaultDepartmentName', $DefaultDepartmentName) }
-    if ($DefaultMachineGroupName) { $BodyHT.Add('DefaultMachineGroupName', $DefaultMachineGroupName) }
-    if ($OrgType)                 { $BodyHT.Add('OrgType', $OrgType) }
-    if ($ParentOrgId)             { $BodyHT.Add('ParentOrgId', $ParentOrgId) }
-    if ($Website)                 { $BodyHT.Add('Website', $Website) }
-    if ($NumberOfEmployees)       { $BodyHT.Add('NoOfEmployees', $NumberOfEmployees) }
-    if ($AnnualRevenue)           { $BodyHT.Add('AnnualRevenue', $AnnualRevenue) }
+    if ( -not [string]::IsNullOrEmpty($OrganizationName) )        { $BodyHT.Add('OrgName', $OrganizationName) }
+    if ( -not [string]::IsNullOrEmpty($OrgRef) )                  { $BodyHT.Add('OrgRef', $OrgRef) }
+    if ( -not [string]::IsNullOrEmpty($DefaultDepartmentName) )   { $BodyHT.Add('DefaultDepartmentName', $DefaultDepartmentName) }
+    if ( -not [string]::IsNullOrEmpty($DefaultMachineGroupName) ) { $BodyHT.Add('DefaultMachineGroupName', $DefaultMachineGroupName) }
+    if ( -not [string]::IsNullOrEmpty($OrgType) )                 { $BodyHT.Add('OrgType', $OrgType) }
+    if ( -not [string]::IsNullOrEmpty($ParentOrgId) )             { $BodyHT.Add('ParentOrgId', [decimal]$ParentOrgId) }
+    if ( -not [string]::IsNullOrEmpty($Website) )                 { $BodyHT.Add('Website', $Website) }
+    if ( -not [string]::IsNullOrEmpty($NoOfEmployees) )           { $BodyHT.Add('NoOfEmployees', [decimal]$NoOfEmployees) }
+    if ( -not [string]::IsNullOrEmpty($AnnualRevenue) )           { $BodyHT.Add('AnnualRevenue', [decimal]$AnnualRevenue) }
 
     [hashtable]$ContactInfoHT = @{}
-    if ($PreferredContactMethod)  { $ContactInfoHT.Add('PreferredContactMethod', $PreferredContactMethod)}
-    if ($PrimaryPhone)            { $ContactInfoHT.Add('PrimaryPhone', $PrimaryPhone)}
-    if ($PrimaryFax)              { $ContactInfoHT.Add('PrimaryFax', $PrimaryFax)}
-    if ($PrimaryEmail)            { $ContactInfoHT.Add('PrimaryEmail', $PrimaryEmail)}
-    if ($Country)                 { $ContactInfoHT.Add('Country', $Country)}
-    if ($Street)                  { $ContactInfoHT.Add('Street', $Street)}
-    if ($City)                    { $ContactInfoHT.Add('City', $City)}
-    if ($State)                   { $ContactInfoHT.Add('State', $State)}
-    if ($ZipCode)                 { $ContactInfoHT.Add('ZipCode', $ZipCode)}
-    if ($PrimaryTextMessagePhone) { $ContactInfoHT.Add('PrimaryTextMessagePhone', $PrimaryTextMessagePhone)}
+    if ( -not [string]::IsNullOrEmpty($PreferredContactMethod) )  { $ContactInfoHT.Add('PreferredContactMethod', $PreferredContactMethod)}
+    if ( -not [string]::IsNullOrEmpty($PrimaryPhone) )            { $ContactInfoHT.Add('PrimaryPhone', $PrimaryPhone)}
+    if ( -not [string]::IsNullOrEmpty($PrimaryFax) )              { $ContactInfoHT.Add('PrimaryFax', $PrimaryFax)}
+    if ( -not [string]::IsNullOrEmpty($PrimaryEmail) )            { $ContactInfoHT.Add('PrimaryEmail', $PrimaryEmail)}
+    if ( -not [string]::IsNullOrEmpty($Country) )                 { $ContactInfoHT.Add('Country', $Country)}
+    if ( -not [string]::IsNullOrEmpty($Street) )                  { $ContactInfoHT.Add('Street', $Street)}
+    if ( -not [string]::IsNullOrEmpty($City) )                    { $ContactInfoHT.Add('City', $City)}
+    if ( -not [string]::IsNullOrEmpty($State) )                   { $ContactInfoHT.Add('State', $State)}
+    if ( -not [string]::IsNullOrEmpty($ZipCode) )                 { $ContactInfoHT.Add('ZipCode', $ZipCode)}
+    if ( -not [string]::IsNullOrEmpty($PrimaryTextMessagePhone) ) { $ContactInfoHT.Add('PrimaryTextMessagePhone', $PrimaryTextMessagePhone)}
     
     if ( 0 -lt $ContactInfoHT.Count)
     {
         $BodyHT.Add('ContactInfo', $ContactInfoHT )
     }
 
-    if (  ( -not [string]::IsNullOrWhiteSpace($FieldName)) -and ( -not [string]::IsNullOrWhiteSpace($FieldValue)) )
+    if ( ( -not [string]::IsNullOrWhiteSpace($FieldName)) -and ( -not [string]::IsNullOrWhiteSpace($FieldValue)) )
     {
         $BodyHT.Add('CustomFields', @(@{ FieldName  = $FieldName; FieldValue = $FieldValue }) )
+    }
+
+    if ( -not [string]::IsNullOrEmpty($Attributes) ) {
+        [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
+        $BodyHT.Add('Attributes', $AttributesHT )
     }
    
     $Body = $BodyHT | ConvertTo-Json
 
     $Body | Out-String | Write-Debug
+    $Body | Out-String | Write-Verbose
 
     [hashtable]$Params = @{}
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}

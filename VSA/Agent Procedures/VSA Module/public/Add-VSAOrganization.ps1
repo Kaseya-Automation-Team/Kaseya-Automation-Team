@@ -43,7 +43,7 @@
             Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric value"
             }
             return $true
@@ -52,7 +52,7 @@
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
-            HelpMessage = "Specify the organization name.")]
+            HelpMessage = "Specify name of the organization.")]
         [ValidateNotNullOrEmpty()]
         [string] $OrgName,
 
@@ -64,12 +64,10 @@
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $DefaultDepartmentName = 'root',
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $DefaultMachineGroupName = 'root',
 
         [parameter(Mandatory=$false,
@@ -80,7 +78,7 @@
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric Id"
             }
             return $true
@@ -89,13 +87,12 @@
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $Website,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric value"
             }
             return $true
@@ -106,7 +103,7 @@
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric value"
             }
             return $true
@@ -200,20 +197,28 @@
             OrgName                 = $OrgName
             OrgRef                  = $OrgRef
             OrgId                   = [decimal]$OrgId
-            DefaultDepartmentName   = $DefaultDepartmentName
-            DefaultMachineGroupName = $DefaultMachineGroupName
         }
 
-    if ($OrgType)           { $BodyHT.Add('OrgType', $OrgType) }
-    if ($ParentOrgId)       { $BodyHT.Add('ParentOrgId', $ParentOrgId) }
-    if ($Website)           { $BodyHT.Add('Website', $Website) }
-    if ($NoOfEmployees)     { $BodyHT.Add('NoOfEmployees', $NoOfEmployees) }
-    if ($AnnualRevenue)     { $BodyHT.Add('AnnualRevenue', $AnnualRevenue) }
+    if ( -not [string]::IsNullOrEmpty($DefaultDepartmentName) )   { 
+        $BodyHT.Add('DefaultDepartmentName', $DefaultDepartmentName) 
+        } else {
+            $BodyHT.Add('DefaultDepartmentName', 'root') 
+        }
+    if ( -not [string]::IsNullOrEmpty($DefaultMachineGroupName) ) {
+        $BodyHT.Add('DefaultMachineGroupName', $DefaultMachineGroupName) 
+        } else {
+            $BodyHT.Add('DefaultMachineGroupName', 'root') 
+        }
+    if ( -not [string]::IsNullOrEmpty($OrgType) )                 { $BodyHT.Add('OrgType', $OrgType) }
+    if ( -not [string]::IsNullOrEmpty($ParentOrgId) )             { $BodyHT.Add('ParentOrgId', [decimal]$ParentOrgId) }
+    if ( -not [string]::IsNullOrEmpty($Website) )                 { $BodyHT.Add('Website', $Website) }
+    if ( -not [string]::IsNullOrEmpty($NoOfEmployees) )           { $BodyHT.Add('NoOfEmployees', $NoOfEmployees) }
+    if ( -not [string]::IsNullOrEmpty($AnnualRevenue) )           { $BodyHT.Add('AnnualRevenue', [decimal]$AnnualRevenue) }
     
     if ( -not [string]::IsNullOrEmpty($ContactInfo) ) {
         #convert string literal to hashtable
         $ContactInfo -match '{(.*?)\}'
-        [hashtable] $ContactInfoHT = ConvertFrom-StringData -StringData $($Matches[1] -replace ' ','' -Split ';' -join "`n")
+        [hashtable] $ContactInfoHT = ConvertFrom-StringData -StringData $($Matches[1] -replace '= ','=' -split ';' -join "`n")
     } else {
         [hashtable] $ContactInfoHT = @{}
     }

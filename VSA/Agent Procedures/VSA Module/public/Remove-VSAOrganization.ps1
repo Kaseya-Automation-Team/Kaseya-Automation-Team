@@ -9,12 +9,12 @@
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER OrgIdNumber
+    .PARAMETER OrgId
         Id of the organization to remove.
     .EXAMPLE
-       Remove-VSAOrganization -OrgIdNumber 10001
+       Remove-VSAOrganization -OrgId 10001
     .EXAMPLE
-       Remove-VSAOrganization -OrgIdNumber 10001 -VSAConnection $connection
+       Remove-VSAOrganization -OrgId 10001 -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection
     .OUTPUTS
@@ -32,6 +32,7 @@
         [string] $URISuffix = 'api/v1.0/system/orgs/{0}',
 
         [Parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName=$true,
             HelpMessage = "Numeric ID of Organization to be removed.")]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -39,10 +40,10 @@
             }
             return $true
         })]
-        [string] $OrgIdNumber
+        [string] $OrgId
         )
 
-    $URISuffix = $URISuffix -f $OrgIdNumber
+    $URISuffix = $URISuffix -f $OrgId
 
     [bool]$result = $false
 

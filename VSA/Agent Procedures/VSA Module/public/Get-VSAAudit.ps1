@@ -52,9 +52,9 @@ function Get-VSAAudit
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSAAudit
+       Get-VSAAudit -AuditOf DiskVolumes -AgentID 757824222824211
     .EXAMPLE
-       Get-VSAAudit -VSAConnection $connection
+       Get-VSAAudit -VSAConnection $connection -AuditOf DiskVolumes -AgentID 757824222824211
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

@@ -184,7 +184,6 @@
         [parameter(DontShow,
             Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $Attributes
         )
 
@@ -262,7 +261,6 @@
     $Body = $BodyHT | ConvertTo-Json
 
     $Body | Out-String | Write-Debug
-    $Body | Out-String | Write-Verbose
 
     [hashtable]$Params = @{}
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}

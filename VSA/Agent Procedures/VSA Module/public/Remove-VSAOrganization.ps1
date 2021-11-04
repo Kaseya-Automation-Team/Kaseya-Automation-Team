@@ -20,7 +20,7 @@
     .OUTPUTS
        True if removing was successful.
     #>
-    [CmdletBinding()]
+   [CmdletBinding(SupportsShouldProcess)]
     param (
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -53,6 +53,9 @@
     $Params.Add('URISuffix', $URISuffix)
     $Params.Add('Method', 'DELETE')
 
-    return Update-VSAItems @Params
+    if($PSCmdlet.ShouldProcess($OrgId)){
+        return Update-VSAItems @Params
+    }
+    
 }
 Export-ModuleMember -Function Remove-VSAOrganization

@@ -225,11 +225,8 @@ function New-VSAConnection {
             )]
         [String]$VSAServer,
 
-        [parameter(ValueFromPipeline,
-            Mandatory = $false,
-            Position = 1)]
-        [ValidateNotNullOrEmpty()]
-        [String] $UserName,
+        [parameter(Mandatory = $false)]
+        [PSCredential] $Credential,
 
         #[parameter(ValueFromPipeline,
         #    Mandatory = $true,
@@ -240,10 +237,13 @@ function New-VSAConnection {
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [string] $AuthSuffix = 'API/v1.0/Auth',
+
         [parameter(Mandatory=$false)]
         [switch] $MakePersistent,
+
         [parameter(Mandatory=$false)] 
         [switch] $NonInteractive,
+
         [parameter(Mandatory=$false)] 
         [switch] $OldAuthMethod
     )
@@ -270,14 +270,17 @@ Add-Type @'
     [string] $Encoded = ''
 
     if ($OldAuthMethod) {  #OldAuthMethod
-        $creds = Get-Credential -Message "Old Authentication method. Please provide UserName and Password"
-        $username = $creds.UserName
+        if ( $null -eq $Credential)
+        {
+            $Credential = Get-Credential -Message "Old Authentication method. Please provide UserName and Password"
+        }
+        $username = $Credential.UserName
         if ( [string]::IsNullOrEmpty($username) )
         {
             Write-Error "No UserName provided.`nQuit"
             return $null
         }
-        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($creds.Password )
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Credential.Password )
         $Password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
 
         [string]$Random = (Get-Random).ToString()
@@ -304,23 +307,23 @@ Add-Type @'
     {
         if ($NonInteractive) {
             Log-Event -Msg "Running in non-interactive mode" -Id 0000 -Type "Information" | Out-Null
-
-        if ($Username) {
-            Write-Host "Username is NOT required parameter in non-interactive mode and will be ignored"
-        }
+            
             $file = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($(Get-Content -Path "$PSScriptRoot\private\pat.txt")))
-            $creds = $file -split ":"
+            $StoredCredential = $file -split ":"
 
-            $username = $creds[0]
+            $username = $StoredCredential[0]
 
-            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($($creds[1] | ConvertTo-SecureString))
+            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($($StoredCredential[1] | ConvertTo-SecureString))
 
         } else {
-
-            $creds = Get-Credential -Message "Please provide username and Personal Authentication Token"
-            $username = $creds.username
+            if ( $null -eq $Credential)
+            {
+                $Credential = Get-Credential -Message "Please provide username and Personal Authentication Token"
+            }
             
-            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($creds.password)
+            $username = $Credential.username
+            
+            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Credential.password)
         }
 
         $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$username`:$([System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR))"))

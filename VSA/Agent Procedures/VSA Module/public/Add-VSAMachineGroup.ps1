@@ -30,30 +30,50 @@ function Add-VSAMachineGroup
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
+
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/system/orgs/{0}/machinegroups",
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
+                throw "Non-numeric value"
+            }
+            return $true
+        })]
         [string] $OrgId,
-		[parameter(ParameterSetName = 'Persistent', Mandatory=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true)]
-        [ValidateNotNullOrEmpty()] 
+
+		[parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -match "\.") ) {
+                throw "MachineGroupName cannot contain the following special characters: ."
+            }
+            return $true
+        })]
         [string] $MachineGroupName,
-		[parameter(ParameterSetName = 'Persistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
-        [string] $ParentMachineGroupId
+
+		[parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
+                throw "Non-numeric value"
+            }
+            return $true
+        })]
+        [string] $ParentMachineGroupId,
+
+        [parameter(DontShow,
+            Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [string] $Attributes
 )
 	$URISuffix = $URISuffix -f $OrgId
      
@@ -62,11 +82,15 @@ function Add-VSAMachineGroup
         Method = 'POST'
     }
 
-	if ($ParentMachineGroupId) {
-		$Body = ConvertTo-Json @{"MachineGroupName"="$MachineGroupName";"ParentMachineGroupId"="$ParentMachineGroupId" }
-	} else {
-		$Body = ConvertTo-Json @{"MachineGroupName"="$MachineGroupName" }
-	}
+    [hashtable]$BodyHT = @{"MachineGroupName"="$MachineGroupName" }
+    if ( -not [string]::IsNullOrEmpty($ParentMachineGroupId) ) { $BodyHT.Add('ParentMachineGroupId', $ParentMachineGroupId) }
+    if ( -not [string]::IsNullOrEmpty($Attributes) ) {
+        [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
+        $BodyHT.Add('Attributes', $AttributesHT )
+    }
+   
+    $Body = $BodyHT | ConvertTo-Json
+    $Body | Out-String | Write-Debug
 	
     $Params.Add('Body', $Body)
 

@@ -28,7 +28,7 @@
     .OUTPUTS
        True if creation was successful
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]

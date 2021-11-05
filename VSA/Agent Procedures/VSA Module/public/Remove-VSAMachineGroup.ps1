@@ -22,7 +22,7 @@ function Remove-VSAMachineGroup
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $true, 
             ValueFromPipelineByPropertyName = $true,
@@ -49,8 +49,10 @@ function Remove-VSAMachineGroup
     }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-
-    return Update-VSAItems @Params
+    
+    if($PSCmdlet.ShouldProcess($MachineGroupId)){
+        return Update-VSAItems @Params
+    }
 }
 
 Export-ModuleMember -Function Remove-VSAMachineGroup

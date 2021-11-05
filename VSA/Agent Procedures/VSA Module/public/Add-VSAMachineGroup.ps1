@@ -38,16 +38,16 @@ function Add-VSAMachineGroup
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/system/orgs/{0}/machinegroups",
-
+        
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
             if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
-                throw "Non-numeric value"
+                throw "Non-numeric Id"
             }
             return $true
         })]
-        [string] $OrgId,
+        [string] $OrgId,        
 
 		[parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
@@ -74,29 +74,30 @@ function Add-VSAMachineGroup
             Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [string] $Attributes
-)
-	$URISuffix = $URISuffix -f $OrgId
+    )
+
+        $URISuffix = $URISuffix -f $OrgId
      
-    [hashtable]$Params =@{
-        URISuffix = $URISuffix
-        Method = 'POST'
-    }
+        [hashtable]$Params =@{
+            URISuffix = $URISuffix
+            Method = 'POST'
+        }
 
-    [hashtable]$BodyHT = @{"MachineGroupName"="$MachineGroupName" }
-    if ( -not [string]::IsNullOrEmpty($ParentMachineGroupId) ) { $BodyHT.Add('ParentMachineGroupId', $ParentMachineGroupId) }
-    if ( -not [string]::IsNullOrEmpty($Attributes) ) {
-        [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
-        $BodyHT.Add('Attributes', $AttributesHT )
-    }
+        [hashtable]$BodyHT = @{"MachineGroupName"="$MachineGroupName" }
+        if ( -not [string]::IsNullOrEmpty($ParentMachineGroupId) ) { $BodyHT.Add('ParentMachineGroupId', $ParentMachineGroupId) }
+        if ( -not [string]::IsNullOrEmpty($Attributes) ) {
+            [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
+            $BodyHT.Add('Attributes', $AttributesHT )
+        }
    
-    $Body = $BodyHT | ConvertTo-Json
-    $Body | Out-String | Write-Debug
+        $Body = $BodyHT | ConvertTo-Json
+        $Body | Out-String | Write-Debug
+        $Body | Out-String | Write-Verbose
 	
-    $Params.Add('Body', $Body)
+        $Params.Add('Body', $Body)
 
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+        if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+        return Update-VSAItems @Params
 }
-
 Export-ModuleMember -Function Add-VSAMachineGroup

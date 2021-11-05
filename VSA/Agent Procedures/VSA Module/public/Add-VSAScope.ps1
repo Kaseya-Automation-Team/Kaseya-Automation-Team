@@ -33,7 +33,8 @@ function Add-VSAScope
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/system/scopes',
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [string] $ScopeName
     )

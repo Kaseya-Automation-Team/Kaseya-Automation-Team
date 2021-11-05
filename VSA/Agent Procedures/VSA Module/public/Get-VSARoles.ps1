@@ -2,32 +2,36 @@ function Get-VSARoles
 {
     <#
     .Synopsis
-       Returns VSA roles.
+       Returns info about all VSA roles or single role.
     .DESCRIPTION
-       Returns existing VSA roles.
+       Returns info about all VSA roles or single role.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
+    .PARAMETER RoleId
+        If specified, returns details about single role.
+    .PARAMETER ResolveIDs
+        Return Role Types as well as their IDs.
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging
         Specifies REST API Paging.
     .PARAMETER Sort
         Specifies REST API Sorting.
-    .PARAMETER ResolveIDs
-        Return Role Types as well as their IDs.
     .EXAMPLE
        Get-VSARoles
 	.EXAMPLE
 	   Get-VSARoles -ResolveIDs
     .EXAMPLE
+       Get-VSARoles -RoleId 2
+    .EXAMPLE
        Get-VSARoles -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       Array of objects that represent existing VSA user roles
+       Array of objects that represent existing VSA user roles or single role
     #>
     [CmdletBinding()]
     param ( 
@@ -43,6 +47,10 @@ function Get-VSARoles
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/system/roles',
+        [parameter(ParameterSetName = 'Persistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
+        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()] 
+        [string] $RoleId,
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
@@ -60,6 +68,10 @@ function Get-VSARoles
         [switch] $ResolveIDs
 
     )
+
+    if ($RoleId) {
+        $URISuffix = "api/v1.0/system/roles/$RoleId"
+    }
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix

@@ -10,6 +10,8 @@ function Get-VSARoleType
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
+    .PARAMETER RoleTypeId
+        Specifies id of the role type.
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging
@@ -17,9 +19,9 @@ function Get-VSARoleType
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSARoleType
+       Get-VSARoleType -RoleTypeId 32422324
     .EXAMPLE
-       Get-VSARoleType -VSAConnection $connection
+       Get-VSARoleType -VSAConnection $connection -RoleTypeId 32422324
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -43,7 +45,7 @@ function Get-VSARoleType
         [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
-        [string] $RoleId,
+        [string] $RoleTypeId,
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [string] $Filter,
@@ -58,7 +60,7 @@ function Get-VSARoleType
 
     )
 
-    $URISuffix = $URISuffix -f $RoleId
+    $URISuffix = $URISuffix -f $RoleTypeId
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix

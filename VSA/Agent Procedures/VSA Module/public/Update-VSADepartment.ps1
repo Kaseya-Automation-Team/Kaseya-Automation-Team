@@ -17,9 +17,9 @@ function Update-VSADepartment
     .PARAMETER ManagerId
         Specifies the Manager Id.
     .EXAMPLE
-       Update-VSADepartment -OrganizationId 10001 -DepartmentName 'A New Department Name'
+       Update-VSADepartment -ParentDepartmentId 10001 -DepartmentName 'A New Department Name'
     .EXAMPLE
-       Update-VSADepartment -OrganizationId 10001 -DepartmentName 'A New Department Name' -VSAConnection $connection
+       Update-VSADepartment -ParentDepartmentId 10001 -DepartmentName 'A New Department Name' -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

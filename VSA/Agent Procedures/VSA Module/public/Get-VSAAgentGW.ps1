@@ -11,9 +11,9 @@ function Get-VSAAgentGW
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .EXAMPLE
-       Get-Get-VSAAgentGW
+       Get-VSAAgentGW
     .EXAMPLE
-       Get-Get-VSAAgentGW -VSAConnection $connection
+       Get-VSAAgentGW -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

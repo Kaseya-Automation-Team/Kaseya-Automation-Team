@@ -27,37 +27,56 @@ function Add-VSARole
     [CmdletBinding()]
     param ( 
         [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
+
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/system/roles",
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $RoleName,
-		[parameter(ParameterSetName = 'Persistent', Mandatory=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true)]
-        [ValidateNotNullOrEmpty()] 
-        [string[]] $RoleTypeIds=@()
+
+		[parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( 0 -ge $_.Count ) {
+                throw "No value provided"
+            }
+            return $true
+        })]
+        [string[]] $RoleTypeIds,
+
+        [parameter(DontShow,
+            Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [string] $Attributes
 )
     
+    [hashtable]$BodyHT = @{  RoleName = $RoleName }
+
+    $BodyHT.Add('RoleTypeIds', $RoleTypeIds )
+
+    if ( -not [string]::IsNullOrEmpty($Attributes) ) {
+        [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
+        $BodyHT.Add('Attributes', $AttributesHT )
+    }
+
+    $Body = $BodyHT | ConvertTo-Json
+    $Body | Write-Debug
+
     [hashtable]$Params =@{
         URISuffix = $URISuffix
         Method = 'POST'
+        Body = $Body
     }
 
-	$Body = ConvertTo-Json @{"RoleName"=$RoleName; "RoleTypeIds"=$RoleTypeIds}
-	
-    $Params.Add('Body', $Body)
-
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+
+    $Params | Out-String | Write-Debug
 
     return Update-VSAItems @Params
 }

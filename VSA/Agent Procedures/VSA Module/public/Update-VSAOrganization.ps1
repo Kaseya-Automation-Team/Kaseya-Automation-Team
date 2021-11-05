@@ -28,7 +28,7 @@
     .OUTPUTS
        True if creation was successful
     #>
-    [CmdletBinding()]
+   [CmdletBinding(SupportsShouldProcess)]
     param (
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -226,6 +226,8 @@
 
     $Params | Out-String | Write-Debug
 
-    return Update-VSAItems @Params
+    if($PSCmdlet.ShouldProcess($OrgId)){
+        return Update-VSAItems @Params
+    }
 }
 Export-ModuleMember -Function Update-VSAOrganization

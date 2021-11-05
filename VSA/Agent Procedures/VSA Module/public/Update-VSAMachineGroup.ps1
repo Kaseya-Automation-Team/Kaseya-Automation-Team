@@ -24,7 +24,7 @@ function Update-VSAMachineGroup
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $true, 
             ValueFromPipelineByPropertyName = $true,

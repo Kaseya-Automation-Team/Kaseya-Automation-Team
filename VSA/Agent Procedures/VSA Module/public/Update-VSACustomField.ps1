@@ -25,7 +25,7 @@
     .OUTPUTS
        True if update was successful
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true,
@@ -77,20 +77,24 @@
         [string] $URISuffix = "api/v1.0/assetmgmt/assets/{1}/customfields/{0}"
         )
 
-    [string]  $Body
     [string[]]$Values = @($FieldName) # Array of values to actualize URI suffix.  The first element of array is the field name. 
 
     if ( [string]::IsNullOrEmpty($AgentID) ) { # AgentID is not set. Field renaming
         
         $Values += '' # The second element of array to actualize URI suffix is an empty string if agent ID is not provided.
-        $Body = ConvertTo-Json @(@{"key"="NewFieldName";"value"=$NewFieldName})
+        $BodyHT = @(@{"key"="NewFieldName";"value"=$NewFieldName})
 
     } else {                                  # Field value updating
-        $Values += '$AgentID'
-        $Body = ConvertTo-Json @(@{"key"="FieldValue";"value"=$FieldValue })
+        $Values += $AgentID
+        $BodyHT = @(@{"key"="FieldValue";"value"=$FieldValue })
     }
+    $Values | Out-String | Write-Debug    
     $Values | Out-String | Write-Verbose
-    $Body | Write-Verbose
+
+    $Body = ConvertTo-Json $BodyHT
+
+    $Body | Out-String | Write-Debug
+    $Body | Out-String | Write-Verbose
     
     $URISuffix = $($URISuffix -f $Values) -replace '//', '/' # URI suffix actualization
     $URISuffix | Write-Verbose
@@ -100,22 +104,8 @@
     Method = 'PUT'
     Body = $Body
     }
-
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    [string[]]$ExistingFields = Get-VSACustomFields | Select-Object -ExpandProperty FieldName
-
-    If ( $FieldName -notin $ExistingFields ) {
-        $Message = "The custom field `'$FieldName`' does not exist"
-        Log-Event -Msg $Message -Id 4000 -Type "Error"
-        throw $Message
-    }
-
-    if ( $NewFieldName -in $ExistingFields ) {
-        $Message = "Cannot rename `'$FieldName`' to `'$NewFieldName`'. The custom field name `'$NewFieldName`' already exists"
-        Log-Event -Msg $Message -Id 4000 -Type "Error"
-        throw $Message
-    }
 
     return Update-VSAItems @Params
         

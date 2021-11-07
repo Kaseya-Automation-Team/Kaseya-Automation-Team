@@ -27,28 +27,24 @@ function Get-VSACustomFields
 #>
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
+
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/assetmgmt/assets/customfields',
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )

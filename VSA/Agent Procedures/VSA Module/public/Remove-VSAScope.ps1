@@ -21,7 +21,7 @@ function Remove-VSAScope
     .OUTPUTS
        True if removing was successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -33,7 +33,8 @@ function Remove-VSAScope
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/system/scopes/{0}',
 
-        [Parameter(Mandatory = $true,
+        [Parameter(Mandatory = $true, 
+            ValueFromPipelineByPropertyName = $true,
             HelpMessage = "Numeric ID of Scope to be removed.")]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {

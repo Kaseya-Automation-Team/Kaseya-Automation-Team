@@ -60,7 +60,7 @@ function Get-VSASDTicketNotes {
         [string] $Sort
     )
 
-    $URISuffix = $URISuffix -f $ServiceDeskId
+    $URISuffix = $URISuffix -f $ServiceDeskTicketId
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix

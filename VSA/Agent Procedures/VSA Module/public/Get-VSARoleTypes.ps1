@@ -39,6 +39,11 @@ function Get-VSARoleTypes
             ParameterSetName = 'Persistent')]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/system/roletypes',
+        [ValidateNotNullOrEmpty()]
+        [parameter(ParameterSetName = 'Persistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
+        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()] 
+        [string] $RoleTypeId,
         [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
         [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
@@ -53,6 +58,12 @@ function Get-VSARoleTypes
         [string] $Sort
 
     )
+
+
+
+    if ($RoleTypeId) {
+        $URISuffix = "api/v1.0/system/roletypes/$RoleTypeId"
+    }
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix

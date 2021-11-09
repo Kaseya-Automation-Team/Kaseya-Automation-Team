@@ -87,17 +87,19 @@ function Get-RequestData
         $requestParameters.Add('ContentType', $ContentType)
     }
     
-    $requestParameters | Out-String | Write-Verbose
-    $requestParameters  | ConvertTo-Json -Depth 3 | Out-String | Write-Debug
+    [string]$LogMessage = "Executing call $Method : $URI"
+    Log-Event -Msg "$LogMessage" -Id 1000 -Type "Information"
 
-    Log-Event -Msg "Executing call $Method : $URI" -Id 1000 -Type "Information"
+    [string]$Json = $requestParameters  | ConvertTo-Json -Depth 3 | Out-String
+
+    "$($MyInvocation.MyCommand). `n$LogMessage" | Write-Verbose
+    "$($MyInvocation.MyCommand). `n$LogMessage `n$Json"| Write-Debug    
    
     try {
             $response = Invoke-RestMethod @requestParameters -ErrorAction Stop
             if ($response) {
-                Write-Debug "Response"
-                $response | Out-String | Write-Debug
-                if ( ($response.ResponseCode -in @(0, 200, 201, 202, 204)) -or ('OK' -eq $response.Status) ) {
+                "$($MyInvocation.MyCommand). Response:`n$response" | Out-String | Write-Debug
+                if ( ($response.ResponseCode -match "(^0$)|(^20\d$)" ) -or ('OK' -eq $response.Status) ) {
                     return $response
                 } else {
                     Write-Error "$response.Result"
@@ -105,8 +107,8 @@ function Get-RequestData
                     throw $($response.Error)
                 }
             } else {
-                "No response returned" | Write-Debug
-                "No response returned" | Write-Verbose
+                "$($MyInvocation.MyCommand). No response returned" | Write-Debug
+                "$($MyInvocation.MyCommand). No response returned" | Write-Verbose
             }
             
     }

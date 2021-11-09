@@ -18,9 +18,9 @@ function Get-VSAAgentPkgPage {
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSAAgentPkgPage
+       Get-VSAAgentPkgPage -PartitionId 2
     .EXAMPLE
-       Get-VSAAgentPkgPage -VSAConnection $connection
+       Get-VSAAgentPkgPage -VSAConnection $connection -PartitionId 2
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS

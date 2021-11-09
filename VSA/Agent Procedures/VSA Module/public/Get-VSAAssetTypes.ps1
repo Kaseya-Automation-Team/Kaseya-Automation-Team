@@ -17,9 +17,9 @@ function Get-VSAAssetTypes
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSAAsset
+       Get-VSAAssetTypes
     .EXAMPLE
-       Get-VSAAsset -VSAConnection $connection
+       Get-VSAAssetTypes -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -35,10 +35,6 @@ function Get-VSAAssetTypes
         [parameter(Mandatory=$false)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/assetmgmt/assettypes',
-
-        [Parameter(Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
-        [string] $AssetId,
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 

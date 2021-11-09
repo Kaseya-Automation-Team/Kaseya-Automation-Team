@@ -184,7 +184,11 @@
         [parameter(DontShow,
             Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [string] $Attributes
+        [string] $Attributes,
+
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
+        [switch] $ExtendedOutput
         )
 
     if ([string]::IsNullOrEmpty($OrgId))
@@ -271,6 +275,9 @@
 
     $Params | Out-String | Write-Debug
 
-    return Update-VSAItems @Params
+    $Result = Update-VSAItems @Params
+    if ($ExtendedOutput) { $Result = $Result | Select-Object -ExpandProperty Result}
+
+    return $Result
 }
 Export-ModuleMember -Function Add-VSAOrganization

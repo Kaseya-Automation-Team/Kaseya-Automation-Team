@@ -21,7 +21,11 @@ function Get-VSAUser
     .PARAMETER ResolveIDs
         Return Roles & Scopes as well as their respective IDs.
     .EXAMPLE
-       Get-VSAUser
+       Get-VSAUser 
+    .EXAMPLE
+       Get-VSAUser -UserId 34243232324
+    .EXAMPLE
+       Get-VSAUser -CurrentUser
     .EXAMPLE
        Get-VSAUser -VSAConnection $connection
     .INPUTS

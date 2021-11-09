@@ -69,18 +69,19 @@
 
         $NameToCreate = ($SplitName.split('.'))[-1]
     
-        if( 0 -eq $CheckDestination.Count) #No such MG in the destination
+        if( 0 -eq $CheckDestination.Count) #No MG with this name in the destination
         {
             $AddMGParams = $CommonParams.Clone()
+
             $AddMGParams.Add('ExtendedOutput',       $true)
             $AddMGParams.Add('MachineGroupName',     $NameToCreate)
             $AddMGParams.Add('ParentMachineGroupId', $ParentMachineGroupId)
 
             $AddMGParams | Out-String | Write-Debug
+            #Create a new MG
             $GroupId = Add-VSAMachineGroup @AddMGParams
-
         }
-        else # The MG already exists in the destination
+        else # An MG with this name already exists in the destination
         { 
             $GroupId  = $CheckDestination.MachineGroupId
         }
@@ -95,13 +96,17 @@
         $Info | Write-Debug
         $Info | Write-Verbose
         $DirectChildren | Select-Object -ExpandProperty MachineGroupName | Out-String | Write-Debug
+
         if ( 0 -lt $DirectChildren.Count)
         {
 
             [hashtable]$CreateMGParams = $CommonParams.Clone()
-            $CreateMGParams.Add('SourceMGs', $DirectChildren)
+
+            $CreateMGParams.Add('SourceMGs',            $DirectChildren)
             $CreateMGParams.Add('ParentMachineGroupId', $GroupId)
+
             $CreateMGParams | Out-String | Write-Debug
+
             Create-MachineGroup @CreateMGParams
         }
 

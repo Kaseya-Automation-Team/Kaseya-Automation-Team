@@ -73,7 +73,11 @@ function Add-VSAMachineGroup
         [parameter(DontShow,
             Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [string] $Attributes
+        [string] $Attributes,
+
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
+        [switch] $ExtendedOutput
     )
 
         $URISuffix = $URISuffix -f $OrgId
@@ -81,6 +85,7 @@ function Add-VSAMachineGroup
         [hashtable]$Params =@{
             URISuffix = $URISuffix
             Method = 'POST'
+            ExtendedOutput = $ExtendedOutput
         }
 
         [hashtable]$BodyHT = @{"MachineGroupName"="$MachineGroupName" }
@@ -98,6 +103,9 @@ function Add-VSAMachineGroup
 
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-        return Update-VSAItems @Params
+        $Result = Update-VSAItems @Params
+        if ($ExtendedOutput) { $Result = $Result | Select-Object -ExpandProperty Result}
+
+        return $Result
 }
 Export-ModuleMember -Function Add-VSAMachineGroup

@@ -12,9 +12,9 @@
         Specifies URI suffix if it differs from the default.
     .PARAMETER MachineGroupID
         Specifies MachineGroup ID to get. All Machine Groups are returned if no MachineGroupID specified.
-    .PARAMETER OrganizationID
+    .PARAMETER OrgID
         Specifies Organization ID to return machine groups that belong to.
-        Please use {0} as a placeholder for OrganizationID in case a custom URISuffix provided.
+        Please use {0} as a placeholder for OrgID in case a custom URISuffix provided.
     .PARAMETER Filter.
         Specifies REST API Filter.
     .PARAMETER Paging
@@ -26,7 +26,7 @@
     .EXAMPLE
        Get-VSAMachineGroup
     .EXAMPLE
-       Get-VSAMachineGroup -OrganizationID '10001'
+       Get-VSAMachineGroup -OrgID '10001'
     .EXAMPLE
        Get-VSAMachineGroup -MachineGroupID '10001' -VSAConnection $connection
     .INPUTS
@@ -48,14 +48,14 @@
         [parameter(Mandatory=$true, 
             ValueFromPipelineByPropertyName=$true, 
             ParameterSetName = 'Organization',
-            HelpMessage = "Please  use {0} as a placeholder for OrganizationID in case a custom URISuffix provided.")]
+            HelpMessage = "Please  use {0} as a placeholder for OrgID in case a custom URISuffix provided.")]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
                 throw "Non-numeric Id"
             }
             return $true
         })]
-        [string] $OrganizationID, 
+        [string] $OrgID, 
  
         [parameter(Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
@@ -74,7 +74,7 @@
         [parameter(Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Organization',
-            HelpMessage = "Please  use {0} as a placeholder for OrganizationID in case a custom URISuffix provided.")]
+            HelpMessage = "Please  use {0} as a placeholder for OrgID in case a custom URISuffix provided.")]
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix,
  
@@ -115,10 +115,10 @@
         )
 
         
-        if ( $OrganizationID ) { 
+        if ( $OrgID ) { 
             #Machine groups for specific organization
             if( [string]::IsNullOrEmpty($URISuffix) ) { $URISuffix = "api/v1.0/system/orgs/{0}/machinegroups" }
-            $URISuffix = $URISuffix -f $OrganizationID
+            $URISuffix = $URISuffix -f $OrgID
         } else { 
             #Machine groups for all organizations
             if( [string]::IsNullOrEmpty($URISuffix) ) { $URISuffix= "api/v1.0/system/machinegroups" }

@@ -220,7 +220,7 @@
     
     if ( -not [string]::IsNullOrEmpty($ContactInfo) ) {
         #convert string literal to hashtable
-        $ContactInfo -match '{(.*?)\}'
+        $ContactInfo -match '{(.*?)\}' | Out-Null
         [hashtable] $ContactInfoHT = ConvertFrom-StringData -StringData $($Matches[1] -replace '= ','=' -replace '; ',';' -split ';' -join "`n")
     } else {
         [hashtable] $ContactInfoHT = @{}
@@ -247,7 +247,7 @@
         [array]$CustomFieldArray = @()
         Foreach ( $CustomField in $CustomFields )
         {
-            $CustomField -match '{(.*?)\}'
+            $CustomField -match '{(.*?)\}' | Out-Null
             $CustomFieldArray += $( ConvertFrom-StringData -StringData $($Matches[1] -replace '= ','=' -replace '; ',';' -split ';' -join "`n") )
         }
         $BodyHT.Add('CustomFields', $CustomFieldArray )
@@ -261,23 +261,27 @@
         [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
         $BodyHT.Add('Attributes', $AttributesHT )
     }
-   
+ 
     $Body = $BodyHT | ConvertTo-Json
 
     $Body | Out-String | Write-Debug
 
-    [hashtable]$Params = @{}
+    [hashtable]$Params =@{
+                            URISuffix      = $URISuffix
+                            Method         = 'POST'
+                            Body           = $Body
+                            ExtendedOutput = $ExtendedOutput
+                        }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params.Add('URISuffix', $URISuffix)
-    $Params.Add('Method', 'POST')
-    $Params.Add('Body', $Body)
 
     $Params | Out-String | Write-Debug
 
     $Result = Update-VSAItems @Params
-    if ($ExtendedOutput) { $Result = $Result | Select-Object -ExpandProperty Result}
+    $Result | Out-String | Write-Verbose
+    $Result | Out-String | Write-Debug
 
+    if ($ExtendedOutput) { $Result = $Result | Select-Object -ExpandProperty Result }
     return $Result
 }
 Export-ModuleMember -Function Add-VSAOrganization

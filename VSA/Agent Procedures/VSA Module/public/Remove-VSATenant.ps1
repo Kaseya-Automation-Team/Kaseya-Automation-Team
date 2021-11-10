@@ -23,7 +23,10 @@ function Remove-VSATenant
     .OUTPUTS
        True if successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(
+        SupportsShouldProcess,
+        ConfirmImpact = 'High'
+    )]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true,
@@ -84,19 +87,21 @@ function Remove-VSATenant
         }
     }# Begin
     Process {
-    $URISuffix = $URISuffix -f $TenantId
-    $URISuffix | Write-Debug
+        $URISuffix = $URISuffix -f $TenantId
+        $URISuffix | Write-Debug
     
 
-    [hashtable]$Params = @{
+                    [hashtable]$Params = @{
                             'URISuffix' = $URISuffix
                             'Method'    = 'DELETE'
     }
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+        if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params | Out-String | Write-Debug
+        $Params | Out-String | Write-Debug
 
-    return Update-VSAItems @Params
+        if( $PSCmdlet.ShouldProcess( $TenantId ) ) {
+            return Update-VSAItems @Params
+        }
     }
 }
 Export-ModuleMember -Function Remove-VSATenant

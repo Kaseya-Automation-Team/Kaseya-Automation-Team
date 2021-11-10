@@ -107,7 +107,7 @@
 
             $CreateMGParams | Out-String | Write-Debug
 
-            Create-MachineGroup @CreateMGParams
+            Copy-VSAMachineGroupStructure @CreateMGParams
         }
 
     } # Foreach ($MachineGroup in $SourceMGs)

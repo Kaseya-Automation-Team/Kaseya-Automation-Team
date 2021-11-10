@@ -20,7 +20,10 @@
     .OUTPUTS
        True if removing was successful.
     #>
-   [CmdletBinding(SupportsShouldProcess)]
+    [CmdletBinding(
+        SupportsShouldProcess,
+        ConfirmImpact = 'High'
+    )]
     param (
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -53,7 +56,7 @@
     $Params.Add('URISuffix', $URISuffix)
     $Params.Add('Method', 'DELETE')
 
-    if($PSCmdlet.ShouldProcess($OrgId)){
+    if( $PSCmdlet.ShouldProcess( $OrgId ) ) {
         return Update-VSAItems @Params
     }
     

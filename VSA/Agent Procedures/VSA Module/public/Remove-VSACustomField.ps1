@@ -15,12 +15,17 @@
         Remove-VSACustomField -FieldName 'FieldToDelete'
     .EXAMPLE
         Remove-VSACustomField -VSAConnection connection -FieldName 'FieldToDelete'
+    .EXAMPLE
+        Remove-VSACustomField -FieldName 'DeleteWithoutConfirmation' -Confirm:$false
     .INPUTS
         Accepts piped non-persistent VSAConnection 
     .OUTPUTS
         True if removing was successful
     #>
-    [CmdletBinding()]
+    [CmdletBinding(
+        SupportsShouldProcess,
+        ConfirmImpact = 'High'
+    )]
     param (
         [parameter(Mandatory = $true, 
             ValueFromPipelineByPropertyName = $true,
@@ -51,23 +56,15 @@
     
     $URISuffix = $URISuffix -f $FieldName
 
-    [hashtable]$Params =@{}
+    [hashtable]$Params =@{
+                            'URISuffix' = $URISuffix
+                            'Method'    = 'DELETE'
+                        }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    #[string[]]$ExistingFields = Get-VSACustomFields -Filter "FieldName eq `'$FieldName`'"
-    [string[]]$ExistingFields = Get-VSACustomFields @Params | Select-Object -ExpandProperty FieldName 
-
-    If ( $FieldName -in $ExistingFields ) {
-
-        $Params.Add('URISuffix', $URISuffix)
-        $Params.Add('Method', 'DELETE')
-        $result = Update-VSAItems @Params
-    } else {
-        $Message = "The custom field `'$FieldName`' does not exist"
-        Log-Event -Msg $Message -Id 4000 -Type "Error"
-        throw $Message
+    if( $PSCmdlet.ShouldProcess( $FieldName ) ) {
+        return Update-VSAItems @Params
     }
-    return $result
 }
 Export-ModuleMember -Function Remove-VSACustomField

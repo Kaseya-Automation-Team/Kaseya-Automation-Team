@@ -10,6 +10,8 @@ function Get-VSACustomFields
     Specifies existing non-persistent VSAConnection.
 .PARAMETER URISuffix
     Specifies URI suffix if it differs from the default.
+.PARAMETER AgentId
+    Specifies AgentId to get custom fields.
 .PARAMETER Filter
     Specifies REST API Filter.
 .PARAMETER Paging
@@ -34,7 +36,17 @@ function Get-VSACustomFields
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = 'api/v1.0/assetmgmt/assets/customfields',
+        [string] $URISuffix = 'api/v1.0/assetmgmt/assets/{0}/customfields',
+
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
+        [string] $AgentId,
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
@@ -48,6 +60,9 @@ function Get-VSACustomFields
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
+
+    $URISuffix = $URISuffix -f $AgentId
+    $URISuffix = $URISuffix.Replace( '//', '/' )
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix

@@ -61,8 +61,7 @@ function Get-VSACustomFields
         [string] $Sort
     )
 
-    $URISuffix = $URISuffix -f $AgentId
-    $URISuffix = $URISuffix.Replace( '//', '/' )
+    $URISuffix = $($URISuffix -f $AgentId) -replace '//', '/' # URI suffix actualization
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix

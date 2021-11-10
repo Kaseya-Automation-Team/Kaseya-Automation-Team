@@ -64,7 +64,12 @@
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'UpdateValue')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateScript({
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $AgentID,
 
         [parameter(Mandatory = $false, 

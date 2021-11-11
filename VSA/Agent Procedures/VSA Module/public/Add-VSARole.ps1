@@ -78,7 +78,7 @@ function Add-VSARole
 
     $Params | Out-String | Write-Debug
 
-    if( $PSCmdlet.ShouldProcess( $OrgId ) ) {
+    if( $PSCmdlet.ShouldProcess( $RoleName ) ) {
 
         $Result = Update-VSAItems @Params
 

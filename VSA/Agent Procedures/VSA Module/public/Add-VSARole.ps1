@@ -72,7 +72,6 @@ function Add-VSARole
         URISuffix      = $URISuffix
         Method         = 'POST'
         Body           = $Body
-        ExtendedOutput = $ExtendedOutput
     }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 

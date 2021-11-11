@@ -24,7 +24,7 @@ function Remove-VSARole
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 

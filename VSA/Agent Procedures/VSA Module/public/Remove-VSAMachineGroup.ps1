@@ -13,16 +13,19 @@ function Remove-VSAMachineGroup
     .PARAMETER MachineGroupId
         Specifies numeric id of machine group
     .EXAMPLE
-       Remove-VSAMachineGroup -MachineGroupId "34543554343"
+       Remove-VSAMachineGroup -MachineGroupId 10001 -Confirm:$false
     .EXAMPLE
-       Remove-VSAMachineGroup -VSAConnection $connection -MachineGroupId "34543554343"
+       Remove-VSAMachineGroup -VSAConnection $connection -MachineGroupId 10001
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
        No output
     #>
 
-    [CmdletBinding(SupportsShouldProcess)]
+    [CmdletBinding(
+        SupportsShouldProcess,
+        ConfirmImpact = 'High'
+    )]
     param ( 
         [parameter(Mandatory = $true, 
             ValueFromPipelineByPropertyName = $true,

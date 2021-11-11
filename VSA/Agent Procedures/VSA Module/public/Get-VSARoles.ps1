@@ -35,36 +35,42 @@ function Get-VSARoles
     #>
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
+
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/system/roles',
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $RoleId,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [switch] $ResolveIDs
 
     )

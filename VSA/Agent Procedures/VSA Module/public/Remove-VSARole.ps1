@@ -13,16 +13,19 @@ function Remove-VSARole
     .PARAMETER RoleId
         Specifies numeric id of machine group
     .EXAMPLE
-       Remove-VSARole -RoleId 581411914
+       Remove-VSARole -RoleId 10001 -Confirm:$false
     .EXAMPLE
-       Remove-VSARole -VSAConnection $connection -RoleId 581411914
+       Remove-VSARole -VSAConnection $connection -RoleId 10001
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(
+        SupportsShouldProcess,
+        ConfirmImpact = 'High'
+    )]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -47,7 +50,9 @@ function Remove-VSARole
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+    if( $PSCmdlet.ShouldProcess( $RoleId ) ) {
+        return Update-VSAItems @Params
+    }
 }
 
 Export-ModuleMember -Function Remove-VSARole

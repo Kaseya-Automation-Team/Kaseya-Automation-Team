@@ -21,7 +21,7 @@ function Add-VSAScope
     .OUTPUTS
        True if creation was successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -41,13 +41,22 @@ function Add-VSAScope
 
     $Body = @{'ScopeName'= $ScopeName } | ConvertTo-Json
 
-    [hashtable]$Params = @{}
+    [hashtable]$Params =@{
+        URISuffix      = $URISuffix
+        Method         = 'POST'
+        Body           = $Body
+    }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params.Add('URISuffix', $URISuffix)
-    $Params.Add('Method', 'POST')
-    $Params.Add('Body', $Body)
+    $Params | Out-String | Write-Debug
 
-    return Update-VSAItems @Params
+    if( $PSCmdlet.ShouldProcess( $ScopeName ) ) {
+
+        $Result = Update-VSAItems @Params
+
+        $Result | Out-String | Write-Verbose
+        $Result | Out-String | Write-Debug
+    }
+    return $Result
 }
 Export-ModuleMember -Function Add-VSAScope

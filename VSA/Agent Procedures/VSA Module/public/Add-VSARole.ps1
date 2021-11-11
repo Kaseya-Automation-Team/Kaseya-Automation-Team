@@ -26,7 +26,7 @@ function Add-VSARole
 
     [CmdletBinding(SupportsShouldProcess)]
     param ( 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $true, 
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
@@ -69,16 +69,22 @@ function Add-VSARole
     $Body | Write-Debug
 
     [hashtable]$Params =@{
-        URISuffix = $URISuffix
-        Method = 'POST'
-        Body = $Body
+        URISuffix      = $URISuffix
+        Method         = 'POST'
+        Body           = $Body
+        ExtendedOutput = $ExtendedOutput
     }
-
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
     $Params | Out-String | Write-Debug
 
-    return Update-VSAItems @Params
-}
+    if( $PSCmdlet.ShouldProcess( $OrgId ) ) {
 
+        $Result = Update-VSAItems @Params
+
+        $Result | Out-String | Write-Verbose
+        $Result | Out-String | Write-Debug
+    }
+    return $Result
+}
 Export-ModuleMember -Function Add-VSARole

@@ -10,7 +10,7 @@ function Add-VSATenantRoleType
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER RoleName
+    .PARAMETER Name
         Specifies the Role Name.
     .PARAMETER Description
         Specifies the Role Description.
@@ -19,9 +19,9 @@ function Add-VSATenantRoleType
     .PARAMETER HasUserData
         Specifies if Has User Data.
     .EXAMPLE
-       Add-VSATenantRoleType -RoleName 'A New Role'
+       Add-VSATenantRoleType -Name 'A New Role'
     .EXAMPLE
-       Add-VSATenantRoleType -RoleName 'A New Role' -VSAConnection $connection
+       Add-VSATenantRoleType -Name 'A New Role' -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -42,7 +42,17 @@ function Add-VSATenantRoleType
         [Parameter(Mandatory = $true,
         ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $RoleName,
+        [string] $Name,
+
+        [Parameter(Mandatory = $false,
+        ValueFromPipelineByPropertyName = $true)]
+        [ValidateScript({
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
+                throw "Non-numeric value"
+            }
+            return $true
+        })]
+        [string] $Status,
 
         [Parameter(Mandatory = $false,
         ValueFromPipelineByPropertyName = $true)]
@@ -52,7 +62,7 @@ function Add-VSATenantRoleType
         [Parameter(Mandatory = $false,
         ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric Id"
             }
             return $true
@@ -70,22 +80,23 @@ function Add-VSATenantRoleType
     [string] $Zzvals = "zzvals$Zzvalsid"
 
     $BodyHT = [ordered] @{
-                    Name     = $RoleName
+                    Name     = $Name
                     Zzvalsid = $Zzvalsid
                     Zzvals   = $Zzvals
                 }
+    if ( -not [string]::IsNullOrEmpty($Status))         {$BodyHT.Add('Status', $Status) }
     if ( -not [string]::IsNullOrEmpty($Description))    {$BodyHT.Add('Description', $Description) }
     if ( -not [string]::IsNullOrEmpty($AdminGroupType)) {$BodyHT.Add('AdminGroupType', $AdminGroupType) }
     if ( -not [string]::IsNullOrEmpty($HasUserData))    {$BodyHT.Add('HasUserData', $HasUserData) }
     
     [string]$Body = $BodyHT| ConvertTo-Json
 
-    [hashtable]$Params = @{}
+    [hashtable]$Params =@{
+        URISuffix      = $URISuffix
+        Method         = 'POST'
+        Body           = $Body
+    }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-
-    $Params.Add('URISuffix', $URISuffix)
-    $Params.Add('Method', 'POST')
-    $Params.Add('Body', $Body)
 
     return Update-VSAItems @Params
 }

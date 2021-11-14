@@ -42,7 +42,7 @@ function Get-VSATenantRoletypesFunclists {
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric Id"
             }
             return $true

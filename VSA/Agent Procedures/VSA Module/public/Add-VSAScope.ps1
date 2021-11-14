@@ -36,10 +36,21 @@ function Add-VSAScope
         [Parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
-        [string] $ScopeName
+        [string] $ScopeName,
+
+        [parameter(DontShow,
+            Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [string] $Attributes
     )
 
-    $Body = @{'ScopeName'= $ScopeName } | ConvertTo-Json
+    [hashtable]$BodyHT = @{'ScopeName'= $ScopeName }
+
+    if ( -not [string]::IsNullOrEmpty($Attributes) ) {
+        [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
+        $BodyHT.Add('Attributes', $AttributesHT )
+    }
+    $Body = $BodyHT | ConvertTo-Json
 
     [hashtable]$Params =@{
         URISuffix      = $URISuffix
@@ -56,7 +67,8 @@ function Add-VSAScope
 
         $Result | Out-String | Write-Verbose
         $Result | Out-String | Write-Debug
+
+        return $Result
     }
-    return $Result
 }
 Export-ModuleMember -Function Add-VSAScope

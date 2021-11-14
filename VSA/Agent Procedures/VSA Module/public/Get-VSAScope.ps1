@@ -41,7 +41,7 @@ function Get-VSAScope
 
         [Parameter(Mandatory = $false)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric Id"
             }
             return $true

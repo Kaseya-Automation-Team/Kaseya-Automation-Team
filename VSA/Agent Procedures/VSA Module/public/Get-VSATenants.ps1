@@ -32,7 +32,7 @@ function Get-VSATenants {
 
         [parameter(Mandatory=$false)]
         [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = 'api/v1.0/tenantmanagement/tenants',
+        [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant',
 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -41,7 +41,10 @@ function Get-VSATenants {
 
     if( 0 -ne $TenantId ) {
         $URISuffix += "/$TenantId"
+    } else { 
+        $URISuffix ="$($URISuffix)s"
     }
+
     [hashtable]$Params =@{
         URISuffix = $URISuffix
     }

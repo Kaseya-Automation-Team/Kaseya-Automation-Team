@@ -26,7 +26,7 @@ function Add-VSARole
 
     [CmdletBinding(SupportsShouldProcess)]
     param ( 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 

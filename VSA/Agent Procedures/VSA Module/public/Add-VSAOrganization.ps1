@@ -103,7 +103,7 @@
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
-            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d*\.?\d*$") ) {
                 throw "Non-numeric value"
             }
             return $true

@@ -47,12 +47,15 @@ function Remove-VSAScope
 
     $URISuffix = $URISuffix -f $ScopeId
 
-    [hashtable]$Params = @{}
+    [hashtable]$Params =@{
+        URISuffix = $URISuffix
+        Method = 'DELETE'
+    }
+
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params.Add('URISuffix', $URISuffix)
-    $Params.Add('Method', 'DELETE')
-
-    return Update-VSAItems @Params
+    if( $PSCmdlet.ShouldProcess( $ScopeId ) ) {
+        return Update-VSAItems @Params
+    }
 }
 Export-ModuleMember -Function Remove-VSAScope

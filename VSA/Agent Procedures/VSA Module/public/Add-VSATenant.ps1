@@ -10,7 +10,7 @@
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER TenantName
+    .PARAMETER Ref
         Specifies the Tenant Name.
     .PARAMETER UserName
         Specifies the User Name.
@@ -25,7 +25,7 @@
     .PARAMETER NamedRoleTypeLimits
         Array of Role Type Limits. See help.kaseya.com/webhelp/EN/RESTAPI/9050000/index.asp#37656.htm.
     .EXAMPLE
-       Add-VSATenant -TenantName 'NewTenantName' -Username 'NewTenantUser' -EMail 'NewTenantUser@domain.mail' -Password 'YourLongPasswordHere'
+       Add-VSATenant -Ref 'NewTenantName' -Username 'NewTenantUser' -EMail 'NewTenantUser@domain.mail' -Password 'YourLongPasswordHere'
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -46,7 +46,7 @@
         [Parameter(Mandatory = $true,
         ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $TenantName,
+        [string] $Ref,
 
         [Parameter(Mandatory = $true,
         ValueFromPipelineByPropertyName = $true)]
@@ -57,7 +57,7 @@
         ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch  "(?=(.*[0-9]))(?=.*[\!@#$%^&*()\\[\]{}\-_+=~`|:;`"'<>,./?])(?=.*[a-z])(?=(.*[A-Z]))(?=(.*)).{16,}" ) {
-                throw "The password must contain both upper and lower case letters, numeric & non-alphaNumeric character. Its length must be at least 16 symbols"
+                throw "The password must be at least 16 symbols long and contain both upper and lower case letters, numeric & non-alphaNumeric character."
             }
             return $true
         })]
@@ -82,7 +82,7 @@
         [array] $ModuleIds = @(),
 
         [Parameter(Mandatory = $false)]
-        [array] $LicenseValues = @(),
+        [string[]] $LicenseValues = @(),
 
         [Parameter(Mandatory = $false)]
         [array] $NamedRoleTypeLimits = @(), 
@@ -95,7 +95,7 @@
         [Parameter(Mandatory = $false,
         ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric value"
             }
             return $true
@@ -127,15 +127,47 @@
     $BodyHT = [ordered]@{
         TenantUser = $TenantUser
         ModuleIds = $ModuleIds
-        LicenseValues = $LicenseValues
-        Ref = $TenantName
     }
+    if ( 0 -lt $LicenseValues.Count )
+    {
+        [hashtable[]]$LicenseValuesArray = @()
+        [string[]] $LicenseFields = @("DataType", "Name", "StringValue", "DateValue", "zzValId", "LicenseType", "Limit", "zzVal")
+        Foreach ( $LicenseValue in $LicenseValues )
+        {
+            $LicenseValue -match '{(.*?)\}' | Out-Null
+            [hashtable] $items = $( ConvertFrom-StringData -StringData $($Matches[1] -replace '= ','=' -replace '; ',';' -split ';' -join "`n") )
+
+            # Copy keys to an array to avoid enumerating them directly on the hashtable
+            $keys = @($items.Keys)
+            # Remove elements not matching the expected pattern
+            $keys | ForEach-Object {
+                if ($_ -notin $LicenseFields) {
+                    $items.Remove($_)
+                }
+            }
+
+            $LicenseValuesArray += $items
+        }
+        $BodyHT.Add('LicenseValues', $LicenseValuesArray )
+    }
+    $BodyHT.Add('Ref', $Ref )
     if ( -not [string]::IsNullOrEmpty($TimeZoneOffset) ) { $BodyHT.Add('TimeZoneOffset', [int]$TimeZoneOffset) }
     if ( -not [string]::IsNullOrEmpty($Type) ) { $BodyHT.Add('Type', $Type) }
     if ( -not [string]::IsNullOrEmpty($ForcePasswordChange) ) { $BodyHT.Add('ForcePasswordChange', [int]$ForcePasswordChange) }
+
+    
+
+    if ( -not [string]::IsNullOrEmpty($Attributes) ) {
+        [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
+        $BodyHT.Add('Attributes', $AttributesHT )
+    }
+
     if ( 0 -lt $NamedRoleTypeLimits.Count ) { $BodyHT.Add('NamedRoleTypeLimits', $NamedRoleTypeLimits) }
 
-    if ($Attributes) { $BodyHT.Add('Attributes', $Attributes) }
+    if ( -not [string]::IsNullOrEmpty($Attributes) ) {
+        [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
+        $BodyHT.Add('Attributes', $AttributesHT )
+    }
 
     [string] $Body = ConvertTo-Json $BodyHT
 
@@ -148,9 +180,10 @@
     }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-
+    
     $Params | Out-String | Write-Debug
 
     return Update-VSAItems @Params
+    
 }
 Export-ModuleMember -Function Add-VSATenant

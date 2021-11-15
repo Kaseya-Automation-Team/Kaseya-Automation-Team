@@ -56,7 +56,7 @@ function Add-VSARole
         [string] $Attributes
 )
     
-    [hashtable]$BodyHT = @{  RoleName = $RoleName }
+    [hashtable]$BodyHT = @{ RoleName = $RoleName }
 
     $BodyHT.Add('RoleTypeIds', $RoleTypeIds )
 

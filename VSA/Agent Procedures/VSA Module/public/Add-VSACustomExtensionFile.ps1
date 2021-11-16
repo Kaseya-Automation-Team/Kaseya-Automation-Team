@@ -15,11 +15,11 @@
     .PARAMETER $DestinationFolder
         Specifies agent's custom extension folder to upload the file.
     .EXAMPLE
-       Add-VSACustomExtensionFile -AgentId '10001' -SourceFilePath 'File.txt'
+       Add-VSACustomExtensionFile -AgentId 10001 -SourceFilePath 'File.txt'
     .EXAMPLE
-       Add-VSACustomExtensionFile -AgentId '10001' -SourceFilePath 'File.txt' -DestinationFolder 'ExistingFolder'
+       Add-VSACustomExtensionFile -AgentId 10001 -SourceFilePath 'File.txt' -DestinationFolder 'ExistingFolder'
     .EXAMPLE
-       Add-VSACustomExtensionFile -AgentId '10001' -SourceFilePath 'File.txt' -VSAConnection $connection
+       Add-VSACustomExtensionFile -AgentId 10001 -SourceFilePath 'File.txt' -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -60,10 +60,15 @@
     )
 
     [string]$FileName  = $($SourceFilePath.Name)
-    $DestinationFolder = $DestinationFolder -replace '\\', '/'
+    if (-not [string]::IsNullOrEmpty($DestinationFolder) ) {
+        $DestinationFolder = $DestinationFolder -replace '\\', '/'
+    }
     $URISuffix         = $URISuffix -f $AgentId, $DestinationFolder
 
-    [hashtable]$Params = @{}
+    [hashtable]$Params = @{
+                            'URISuffix' = $URISuffix
+                            'Method'    = 'PUT'
+                          }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
     
@@ -80,27 +85,11 @@
         "--$Boundary--$LF" 
     ) -join $LF
 
-    If ( $AgentId -in $(Get-VSAAgent @Params | Select-Object -ExpandProperty AgentID) ) {
+    $Params.Add('ContentType', "multipart/form-data; boundary=`"$Boundary`"")
+    $Params.Add('Body', $BodyLines)
 
-        $Params.Add('URISuffix', $URISuffix)
-        $Params.Add('Method', 'PUT')
-        $Params.Add('ContentType', "multipart/form-data; boundary=`"$Boundary`"")
-        $Params.Add('Body', $BodyLines)
+    $Params | Out-String | Write-Debug
 
-        $Params | Out-String | Write-Verbose
-        $Params | Out-String | Write-Debug
-
-        $result = Update-VSAItems @Params
-    } else {
-        $Message = "The asset with Agent ID `'$AgentId`' does not exist"
-        Log-Event -Msg $Message -Id 4000 -Type "Error"
-        throw $Message
-    }
-    
-    if ($result) {
-        Log-Event -Msg "`"$SourceFilePath uploaded`" to `"$DestinationFolder`"" -Id 1000 -Type "Infomation"
-    }
-
-    return $result
+    return Update-VSAItems @Params
 }
 Export-ModuleMember -Function Add-VSACustomExtensionFile

@@ -14,8 +14,6 @@ function Add-VSAUser
         Specifies the Department Id to which a user is added.
     .PARAMETER DefaultStaffOrgId
         Specifies the Organization Id to which a user is added.
-    .PARAMETER DefaultStaffOrgName
-        Specifies the Organization Name to which a user is added.
     .PARAMETER FirstName
         Specifies user's first name.
     .PARAMETER LastName
@@ -25,19 +23,15 @@ function Add-VSAUser
     .PARAMETER Email
         Specifies user's e-mail.
     .PARAMETER AdminRoleIds
-        Specifies Ids of user's admin roles.
-    .PARAMETER AdminRoleNames
-        Specifies user's admin roles.
+        Specifies an Id of user's admin role.
     .PARAMETER AdminScopeIds
-        Specifies Ids of user's admin scopes.
-    .PARAMETER AdminScopeNames
-        Specifies user's admin scopes.
+        Specifies an Id of user's admin scope.
     .PARAMETER AdminType
         Specifies Id of user's admin type.
     .PARAMETER DisableUntil
         Specifies time until user's account is disabled.
     .EXAMPLE
-       Add-VSAUser -AdminName 'Login' -AdminPassword 'P@$$w0rd' -AdminRoleIds 1, 2 -AdminScopeIds 3, 4 -DefaultStaffOrgId 5 -DefaultStaffDepartmentId 6 -FirstName 'John' -LastName 'Doe' -Email 'JohnDoe@example.mail'
+       Add-VSAUser -AdminName 'Login' -AdminPassword 'P@$$w0rd' -AdminRoleIds 2 -AdminScopeIds 2 -DefaultStaffOrgId 5 -DefaultStaffDepartmentId 10001 -FirstName 'John' -LastName 'Doe' -Email 'JohnDoe@example.mail'
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -47,201 +41,113 @@ function Add-VSAUser
     #[CmdletBinding()]
     param ( 
         [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ById')]
-        [ValidateNotNull()]
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()] 
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/users',
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [string] $AdminName,
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [string] $AdminPassword,
 
         [parameter(DontShow,
             Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
-        [parameter(DontShow,
-            Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [int] $AdminType = 2,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
+                throw "Non-numeric value"
+            }
+            return $true
+        })]
+        [string] $AdminType = 2,
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [decimal[]] $AdminRoleIds,
+            ValueFromPipelineByPropertyName=$true)]
+        [decimal] $AdminRoleIds,
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [decimal[]] $AdminScopeIds,
+            ValueFromPipelineByPropertyName=$true)]
+        [decimal] $AdminScopeIds,
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [decimal] $DefaultStaffOrgId,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric value"
+            }
+            return $true
+        })]
+        [string] $DefaultStaffOrgId,
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
-        [decimal] $DefaultStaffDepartmentId,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric value"
+            }
+            return $true
+        })]
+        [string] $DefaultStaffDepartmentId,
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [string] $FirstName,
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [string] $LastName,
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [string] $Email,
 
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [string] $DisableUntil,
 
         [parameter(DontShow,
             Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [parameter(DontShow,
-            Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
-        [hashtable] $Attributes
+        [string] $Attributes,
+
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
+        [switch] $ExtendedOutput
     )
-
-    DynamicParam {
-
-            $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
-            
-            [hashtable] $AuxParameters = @{}
-            if($VSAConnection) {$AuxParameters.Add('VSAConnection', $VSAConnection)}
-
-            [array] $script:Roles = Get-VSARoles @AuxParameters | Select-Object RoleId, RoleName
-            [array] $script:Scopes = Get-VSAScope @AuxParameters | Select-Object ScopeId, ScopeName
-            [array] $script:Organizations = Get-VSAOrganization @AuxParameters | Select-Object OrgId, OrgName
-
-            $ParameterName = 'AdminRoleNames' 
-            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $true
-            $ParameterAttribute.ParameterSetName = 'ByName'
-            $AttributesCollection.Add($ParameterAttribute)
-            [string[]] $ValidateSet = $script:Roles | Select-Object -ExpandProperty RoleName
-            $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-            $AttributesCollection.Add($ValidateSetAttribute)
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string[]], $AttributesCollection)
-            $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
-            
-            $ParameterName = 'AdminScopeNames' 
-            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $true
-            $ParameterAttribute.ParameterSetName = 'ByName'
-            $AttributesCollection.Add($ParameterAttribute)
-            [string[]] $ValidateSet = $script:Scopes | Select-Object -ExpandProperty ScopeName
-            $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-            $AttributesCollection.Add($ValidateSetAttribute)
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string[]], $AttributesCollection)
-            $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
-
-            $ParameterName = 'DefaultStaffOrgName' 
-            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $true
-            $ParameterAttribute.ParameterSetName = 'ByName'
-            $AttributesCollection.Add($ParameterAttribute)
-            [string[]] $ValidateSet = $script:Organizations | Select-Object -ExpandProperty OrgName
-            $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-            $AttributesCollection.Add($ValidateSetAttribute)
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string[]], $AttributesCollection)
-            $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
-
-            return $RuntimeParameterDictionary
-        #}
-    }# DynamicParam
-    Begin {
-        if ( 0 -eq $AdminRoleIds.Count ) {
-            $AdminRoleIds = $script:Roles  | Where-Object {$_.RoleName -in $($PSBoundParameters.AdminRoleNames ) } | Select-Object -ExpandProperty RoleId
-        }
-        if ( 0 -eq $AdminScopeIds.Count ) {
-            $AdminScopeIds = $script:Scopes | Where-Object {$_.ScopeName -in $($PSBoundParameters.AdminScopeNames ) } | Select-Object -ExpandProperty ScopeId
-        }
-        if ( -not $DefaultStaffOrgId ) {
-            $DefaultStaffOrgId = $script:Organizations | Where-Object {$_.OrgName -eq $($PSBoundParameters.DefaultStaffOrgName ) } | Select-Object -ExpandProperty OrgId
-        }
-    }# Begin
-    Process {
-    $URISuffix | Write-Debug
     
     [hashtable]$BodyHT = @{
             UserId                   = $(Get-Random -Minimum 100 -Maximum 999)
             AdminName                = $AdminName
             AdminPassword            = $AdminPassword
-            Admintype                = $AdminType
+            Admintype                = [int]$AdminType
             AdminScopeIds            = $AdminScopeIds
             AdminRoleIds             = $AdminRoleIds
             FirstName                = $FirstName
             LastName                 = $LastName
-            DefaultStaffOrgId        = $DefaultStaffOrgId
-            DefaultStaffDepartmentId = $DefaultStaffDepartmentId
+            DefaultStaffOrgId        = [decimal]$DefaultStaffOrgId
+            DefaultStaffDepartmentId = [decimal]$DefaultStaffDepartmentId
             Email                    = $Email
         }
 
-    if ($Attributes) { $BodyHT.Add('Attributes', $Attributes) }
+    if ( -not [string]::IsNullOrEmpty($Attributes) ) {
+        [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
+        $BodyHT.Add('Attributes', $AttributesHT )
+    }
+
     if ( -not [string]::IsNullOrEmpty($DisableUntil) ) { $BodyHT.Add('DisableUntil', $DisableUntil) }
 
     $Body = ConvertTo-Json $BodyHT
@@ -257,7 +163,11 @@ function Add-VSAUser
 
     $Params | Out-String | Write-Debug
 
-    return Update-VSAItems @Params
-    }
+    $Result = Update-VSAItems @Params
+    $Result | Out-String | Write-Verbose
+    $Result | Out-String | Write-Debug
+
+    if ($ExtendedOutput) { $Result = $Result | Select-Object -ExpandProperty Result }
+    return $Result
 }
 Export-ModuleMember -Function Add-VSAUser

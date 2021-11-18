@@ -72,11 +72,11 @@ function Add-VSAUser
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [decimal] $AdminRoleIds,
+        [decimal[]] $AdminRoleIds,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [decimal] $AdminScopeIds,
+        [decimal[]] $AdminScopeIds,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
@@ -121,7 +121,6 @@ function Add-VSAUser
         [parameter(DontShow,
             Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $Attributes,
 
         [parameter(Mandatory = $false, 

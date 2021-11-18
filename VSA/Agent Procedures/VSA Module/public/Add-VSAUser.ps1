@@ -29,7 +29,7 @@ function Add-VSAUser
     .PARAMETER AdminType
         Specifies Id of user's admin type.
     .PARAMETER DisableUntil
-        Specifies time until user's account is disabled.
+        Specifies ISO8601 formatted DateTime until which user's account is disabled.
     .EXAMPLE
        Add-VSAUser -AdminName 'Login' -AdminPassword 'P@$$w0rd' -AdminRoleIds 2 -AdminScopeIds 2 -DefaultStaffOrgId 5 -DefaultStaffDepartmentId 10001 -FirstName 'John' -LastName 'Doe' -Email 'JohnDoe@example.mail'
     .INPUTS
@@ -37,8 +37,8 @@ function Add-VSAUser
     .OUTPUTS
        True if addition was successful.
     #>
-    [CmdletBinding(DefaultParameterSetName = 'ById')]
-    #[CmdletBinding()]
+    #[CmdletBinding(DefaultParameterSetName = 'ById')]
+    [CmdletBinding()]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -115,7 +115,12 @@ function Add-VSAUser
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$") ) {
+                throw "Invalid ISO8601 DateTime format"
+            }
+            return $true
+        })]
         [string] $DisableUntil,
 
         [parameter(DontShow,

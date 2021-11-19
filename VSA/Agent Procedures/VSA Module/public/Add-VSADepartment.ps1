@@ -26,6 +26,7 @@ function Add-VSADepartment
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
        True if creation was successful.
+       ID of new Department if the ExtendedOutput switch specified.
     #>
     [CmdletBinding()]
     param ( 
@@ -85,6 +86,11 @@ function Add-VSADepartment
     [hashtable]$BodyHT =    @{ DepartmentName = $DepartmentName}
     if ($ParentDepartmentId) { $BodyHT.Add('ParentDepartmentId', $ParentDepartmentId) }
     if ($ManagerId)          { $BodyHT.Add('ManagerId', $ManagerId) }
+
+    if ( -not [string]::IsNullOrEmpty($Attributes) ) {
+        [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
+        $BodyHT.Add('Attributes', $AttributesHT )
+    }
 
     $Body = $BodyHT | ConvertTo-Json
     $Body | Out-String | Write-Debug

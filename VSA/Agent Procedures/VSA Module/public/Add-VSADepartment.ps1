@@ -69,7 +69,16 @@ function Add-VSADepartment
             }
             return $true
         })]
-        [string] $ManagerId
+        [string] $ManagerId,
+
+        [parameter(DontShow,
+            Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [string] $Attributes,
+
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
+        [switch] $ExtendedOutput
     )
     $URISuffix = $URISuffix -f $OrganizationId
 
@@ -78,14 +87,21 @@ function Add-VSADepartment
     if ($ManagerId)          { $BodyHT.Add('ManagerId', $ManagerId) }
 
     $Body = $BodyHT | ConvertTo-Json
+    $Body | Out-String | Write-Debug
 
-    [hashtable]$Params = @{}
+    [hashtable]$Params =@{
+                            URISuffix      = $URISuffix
+                            Method         = 'POST'
+                            Body           = $Body
+                            ExtendedOutput = $ExtendedOutput
+                        }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params.Add('URISuffix', $URISuffix)
-    $Params.Add('Method', 'POST')
-    $Params.Add('Body', $Body)
+    $Result = Update-VSAItems @Params
+    $Result | Out-String | Write-Verbose
+    $Result | Out-String | Write-Debug
 
-    return Update-VSAItems @Params
+    if ($ExtendedOutput) { $Result = $Result | Select-Object -ExpandProperty Result }
+    return $Result
 }
 Export-ModuleMember -Function Add-VSADepartment

@@ -26,7 +26,8 @@
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       True if creation was successful
+       True if creation was successful.
+       ID of new Organization if the ExtendedOutput switch specified.
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param (

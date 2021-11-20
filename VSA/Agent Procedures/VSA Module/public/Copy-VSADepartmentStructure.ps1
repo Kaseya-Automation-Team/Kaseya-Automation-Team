@@ -110,18 +110,12 @@
             $Info | Write-Debug
             $Info | Write-Verbose
 
-            $Info | Write-Host
-
             [array]$DirectChildren = $SourceDepartments | Where-Object {$_.ParentDepartmentId -eq $Department.DepartmentId }
 
             $Info = "DirectChildren for <$DepartmentRefToCreate> $($DirectChildren.Count)"
             $Info | Write-Debug
             $Info | Write-Verbose
-
-            $Info | Write-Host
             $DirectChildren | Select-Object -ExpandProperty DepartmentName | Out-String | Write-Debug
-
-            $DirectChildren | Write-Host
 
             if ( 0 -lt $DirectChildren.Count)
             {

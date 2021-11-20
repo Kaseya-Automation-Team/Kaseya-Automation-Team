@@ -3,7 +3,7 @@
     .Synopsis
        Creates machine group structure.
     .DESCRIPTION
-       Creates machine group structure in an organization based on given array ov Machine groups.
+       Creates machine group structure in an organization based on given array of Machine groups.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
@@ -14,9 +14,9 @@
     .PARAMETER ParentMachineGroupId
         Optional parameter, specifies numeric id of parent machine group
     .EXAMPLE
-        Create-MachineGroup -SourceMGs $SourceMGs -OrgId $DestinationOrgId
+        Copy-VSAMachineGroupStructure -SourceMGs $SourceMGs -OrgId $DestinationOrgId
     .EXAMPLE
-        Create-MachineGroup -SourceMGs $SourceMGs -OrgId $DestinationOrgId -VSAConnection $connection
+        Copy-VSAMachineGroupStructure -SourceMGs $SourceMGs -OrgId $DestinationOrgId -VSAConnection $connection
     .INPUTS
        Accepts piped parameters 
     .OUTPUTS

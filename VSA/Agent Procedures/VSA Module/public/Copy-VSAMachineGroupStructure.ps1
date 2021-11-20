@@ -52,7 +52,8 @@
         })]
         [string] $ParentMachineGroupId
     )
-     
+    $SourceMGs = $SourceMGs | Where-Object { -not [string]::IsNullOrEmpty($_.MachineGroupId) }
+
     Foreach ($MachineGroup in $($SourceMGs | Sort-Object -Property MachineGroupName, ParentMachineGroupId) )
     {
         [hashtable]$CommonParams = @{ 'OrgId' = $OrgId }        

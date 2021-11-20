@@ -10,12 +10,12 @@
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER OrganizationID
+    .PARAMETER OrgID
         Specifies Organization ID.
         Not Compatible with -DepartmentId parameter.
     .PARAMETER DepartmentId
         Specifies Department Id.
-        Not Compatible with -OrganizationID parameter.
+        Not Compatible with -OrgID parameter.
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging
@@ -23,7 +23,7 @@
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSADepartment -OrganizationID 10001
+       Get-VSADepartment -OrgID 10001
     .EXAMPLE
        Get-VSADepartment -DepartmentId 10001 -VSAConnection $connection
     .INPUTS
@@ -61,7 +61,7 @@
             }
             return $true
         })]
-        [string] $OrganizationId,
+        [string] $OrgID,
 
         [Parameter(Mandatory = $true, 
             ValueFromPipelineByPropertyName = $true, 
@@ -104,9 +104,9 @@
 
     [string] $ItemId
 
-    if( -not [string]::IsNullOrEmpty($OrganizationID)) {
+    if( -not [string]::IsNullOrEmpty($OrgID)) {
         $URISuffix = "$URISuffix/orgs/{0}/departments"
-        $ItemId = $OrganizationID
+        $ItemId = $OrgID
         "Look for departments in the organization" | Write-Verbose
     }
 

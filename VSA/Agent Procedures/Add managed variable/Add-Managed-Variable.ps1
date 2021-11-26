@@ -47,7 +47,7 @@ INSERT INTO @tempdb (guid)
 SELECT id FROM [ksubscribers].[kasadmin].[org]
 
 DECLARE @Counter INT, @MaxId INT, @row NUMERIC(26);
---Prepate for INSERT cycle - count amount of organizations
+--Prepare for INSERT cycle, but before that count amount of organizations
 SELECT @Counter = min(id) , @MaxId = max(id)
 FROM @tempdb
 

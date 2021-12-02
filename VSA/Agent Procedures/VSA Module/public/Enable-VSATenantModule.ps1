@@ -11,16 +11,14 @@
         Specifies URI suffix if it differs from the default.
     .PARAMETER TenantId
         Specifies a tenant partition.
-    .PARAMETER TenantName
-        Specifies a tenant partition.
-    .PARAMETER Modules
+    .PARAMETER ModuleName
         Array of modules by name to be activated.
-    .PARAMETER ModuleIds
+    .PARAMETER ModuleId
         Array of modules by Id to be activated.
     .EXAMPLE
-       Enable-VSATenantModule -TenantName 'YourTenant' -Modules 'Agent', 'Kaseya System Patch'
+       Enable-VSATenantModule -TenantId 10001 -ModuleName 'Agent', 'Kaseya System Patch'
     .EXAMPLE
-       Enable-VSATenantModule -TenantId 1001 -ModuleIds 0, 95
+       Enable-VSATenantModule -TenantId 10001 -ModuleId 0, 95
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -55,60 +53,31 @@
                         'Kaseya System Patch', 'Mobility', 'Network Monitoring', 'Patch Management', 'Policy', `
                         'Service Billing', 'Service Desk', 'Software Deployment', 'Software Management', `
                         'System Backup and Recovery', 'Time Tracking', 'vPro Management', 'Web Service API')]
-        [string[]] $Modules,
+        [string[]] $ModuleName,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
         [ValidateSet(9, 3, 97, 95, 115, 12, 54, 34, 29, 30, 70, 0, 50, 47, 6, 44, 42, 18, 53, 60, 64, 41, 85, 57)]
-        [int[]] $ModuleIds
+        [int[]] $ModuleId,
+
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'ById')]
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
+            ParameterSetName = 'ByName')]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
+        [string] $TenantId
     )
-    DynamicParam {
-
-        $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
-            
-        [hashtable] $AuxParameters = @{}
-        if($VSAConnection) {$AuxParameters.Add('VSAConnection', $VSAConnection)}
-
-        [array] $script:Tenants = try {Get-VSATenants @AuxParameters -ErrorAction Stop | Select-Object Id, Ref } catch { Write-Error $_ }
-
-        $ParameterName = 'TenantName' 
-        $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-        $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-        $ParameterAttribute.Mandatory = $true
-        $ParameterAttribute.ParameterSetName = 'ByName'
-        $AttributesCollection.Add($ParameterAttribute)
-        [string[]] $ValidateSet = $script:Tenants | Select-Object -ExpandProperty Ref # | ForEach-Object {Write-Output "'$_'"}
-        $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-        $AttributesCollection.Add($ValidateSetAttribute)
-        $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributesCollection)
-        $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
-
-        $ParameterName = 'TenantId' 
-        $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-        $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-        $ParameterAttribute.Mandatory = $true
-        $ParameterAttribute.ParameterSetName = 'ById'
-        $AttributesCollection.Add($ParameterAttribute)
-        [string[]] $ValidateSet = $script:Tenants | Select-Object -ExpandProperty Id
-        $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-        $AttributesCollection.Add($ValidateSetAttribute)
-        $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributesCollection)
-        $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
-
-        return $RuntimeParameterDictionary
-    }# DynamicParam
     Begin {
-        if ( [string]::IsNullOrEmpty($TenantId)  ) {
-            $TenantId = $script:Tenants | Where-Object { $_.Ref -eq $PSBoundParameters.TenantName } | Select-Object -ExpandProperty Id
-            $TenantName = $PSBoundParameters.TenantName
-        }
-        if ( [string]::IsNullOrEmpty($TenantName)  ) {
-            $TenantName = $script:Tenants | Where-Object { $_.Id -eq $PSBoundParameters.TenantId } | Select-Object -ExpandProperty Ref
-            $TenantId = $PSBoundParameters.TenantId
-        }
-        if ( 0 -eq $ModuleIds.Count) {
-                [hashtable] $TenantModues = @{
+        if ( 0 -eq $ModuleId.Count) {
+                [hashtable] $TenantModules = @{
                 'Agent'							= 9
                 'Agent Procedures'				= 3
                 'Anti-Malware'					= 97
@@ -135,9 +104,9 @@
                 'Web Service API'				= 57
             }
     
-            $Body = ConvertTo-Json $TenantModues[$Modules]
+            $Body = ConvertTo-Json $TenantModules[$ModuleName]
         } else {
-            $Body = ConvertTo-Json $ModuleIds
+            $Body = ConvertTo-Json $ModuleId
         }
     }# Begin
     Process {

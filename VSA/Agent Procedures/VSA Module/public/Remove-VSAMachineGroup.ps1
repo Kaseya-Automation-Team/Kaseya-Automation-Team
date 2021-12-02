@@ -36,6 +36,7 @@ function Remove-VSAMachineGroup
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/system/machinegroups/{0}",
 
+        [Alias("Id")]
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({

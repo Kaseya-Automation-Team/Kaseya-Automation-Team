@@ -35,6 +35,7 @@
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/assetmgmt/documents/{0}/file/{1}',
 
+        [Alias("Id")]
         [Parameter(Mandatory = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -44,6 +45,7 @@
         })]
         [string] $AgentId,
 
+        [Alias("Src")]
         [Parameter(Mandatory = $true)]
         [ValidateScript({
             if( -Not ($_ | Test-Path -PathType leaf ) ){
@@ -53,6 +55,7 @@
         })]
         [System.IO.FileInfo]$SourceFilePath,
 
+        [Alias("Dest")]
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string] $DestinationFolder

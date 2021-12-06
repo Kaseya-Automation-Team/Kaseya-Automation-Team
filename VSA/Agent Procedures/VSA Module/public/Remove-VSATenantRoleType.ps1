@@ -15,8 +15,6 @@ function Remove-VSATenantRoleType
     .PARAMETER RoleTypeId
         Specifies the Role Type Id.
     .EXAMPLE
-       Remove-VSATenantRoleType -RoleTypeName 'An Existing Role'
-    .EXAMPLE
        Remove-VSATenantRoleType -RoleTypeId 10001 -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
@@ -26,26 +24,17 @@ function Remove-VSATenantRoleType
     [CmdletBinding()]
     param ( 
         [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ById')]
+            ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ById')]
+            ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/tenantmanagement/roletypes/{0}',
 
         [Parameter(Mandatory = $true,
-        ValueFromPipelineByPropertyName = $true,
-        ParameterSetName = 'ById')]
+        ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
                 throw "Non-numeric Id"
@@ -54,36 +43,6 @@ function Remove-VSATenantRoleType
         })]
         [string] $RoleTypeId
     )
-     DynamicParam {
-
-            $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
-            
-            [hashtable] $AuxParameters = @{}
-            if($VSAConnection) {$AuxParameters.Add('VSAConnection', $VSAConnection)}
-
-            [array] $script:RoleTypes = Get-VSARoleTypes @AuxParameters | Select RoleTypeId, RoleTypeName
-
-            $ParameterName = 'RoleTypeName' 
-            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $true
-            $ParameterAttribute.ParameterSetName = 'ByName'
-            $AttributesCollection.Add($ParameterAttribute)
-            [string[]] $ValidateSet = $script:RoleTypes | Select-Object -ExpandProperty RoleTypeName
-            $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-            $AttributesCollection.Add($ValidateSetAttribute)
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string[]], $AttributesCollection)
-            $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
-
-            return $RuntimeParameterDictionary
-        #}
-    }# DynamicParam
-    Begin {
-        if ( -not $RoleTypeId ) {
-            $RoleTypeId = $script:RoleTypes | Where-Object {$_.RoleTypeName -eq $($PSBoundParameters.RoleTypeName ) } | Select-Object -ExpandProperty RoleTypeId
-        }
-    }# Begin
-    Process {
     $URISuffix = $URISuffix -f $RoleTypeId
     $URISuffix | Write-Debug
     
@@ -91,12 +50,11 @@ function Remove-VSATenantRoleType
     [hashtable]$Params = @{
                             'URISuffix' = $URISuffix
                             'Method'    = 'DELETE'
-    }
+                            }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
     $Params | Out-String | Write-Debug
 
     return Update-VSAItems @Params
-    }
 }
 Export-ModuleMember -Function Remove-VSATenantRoleType

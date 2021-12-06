@@ -27,26 +27,17 @@ function Remove-VSATenant
     )]
     param ( 
         [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ById')]
+            ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ById')]
+            ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant?tenantId={0}',
 
         [Parameter(Mandatory = $true,
-        ValueFromPipelineByPropertyName = $true,
-        ParameterSetName = 'ById')]
+            ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
                 throw "Non-numeric Id"

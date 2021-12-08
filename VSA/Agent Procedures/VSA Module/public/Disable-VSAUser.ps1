@@ -27,59 +27,27 @@ function Disable-VSAUser
     #[CmdletBinding()]
     param ( 
         [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ById')]
+            ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/system/users/{0}/disable',
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [decimal] $UserId
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
+        [string] $UserId
     )
 
-    DynamicParam {
-
-            $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
-            
-            [hashtable] $AuxParameters = @{}
-            if($VSAConnection) {$AuxParameters.Add('VSAConnection', $VSAConnection)}
-
-            [array] $script:Users = Get-VSAUser @AuxParameters | Select UserId, AdminName
-
-            $ParameterName = 'AdminName' 
-            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $true
-            $ParameterAttribute.ParameterSetName = 'ByName'
-            $AttributesCollection.Add($ParameterAttribute)
-            [string[]] $ValidateSet = $script:Users | Select-Object -ExpandProperty AdminName
-            $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-            $AttributesCollection.Add($ValidateSetAttribute)
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string[]], $AttributesCollection)
-            $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
-
-            return $RuntimeParameterDictionary
-        #}
-    }# DynamicParam
-    Begin {
-        if ( -not $UserId ) {
-            $UserId = $script:Users | Where-Object {$_.AdminName -eq $($PSBoundParameters.AdminName ) } | Select-Object -ExpandProperty UserId
-        }
-    }# Begin
-    Process {
+    
     $URISuffix = $URISuffix -f $UserId
     $URISuffix | Write-Debug
     
@@ -93,6 +61,5 @@ function Disable-VSAUser
     $Params | Out-String | Write-Debug
 
     return Update-VSAItems @Params
-    }
 }
 Export-ModuleMember -Function Disable-VSAUser

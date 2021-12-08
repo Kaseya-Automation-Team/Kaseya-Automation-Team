@@ -28,20 +28,23 @@ function Remove-VSAMachineGroup
     )]
     param ( 
         [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
+
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/system/machinegroups/{0}",
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+
+        [Alias("Id")]
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $MachineGroupId
 )
     $URISuffix = $URISuffix -f $MachineGroupId

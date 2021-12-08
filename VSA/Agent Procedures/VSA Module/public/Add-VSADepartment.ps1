@@ -10,7 +10,7 @@ function Add-VSADepartment
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER OrganizationId
+    .PARAMETER OrgId
         Specifies the Organization Id.
     .PARAMETER DepartmentName
         Specifies the Department Name.
@@ -19,15 +19,16 @@ function Add-VSADepartment
     .PARAMETER ManagerId
         Specifies the Manager Id.
     .EXAMPLE
-       Add-VSADepartment -OrganizationId 10001 -DepartmentName 'A New Department'
+       Add-VSADepartment -OrgId 10001 -DepartmentName 'A New Department'
     .EXAMPLE
-       Add-VSADepartment -OrganizationId 10001 -DepartmentName 'A New Department' -VSAConnection $connection
+       Add-VSADepartment -OrgId 10001 -DepartmentName 'A New Department' -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
        True if creation was successful.
+       ID of new Department if the ExtendedOutput switch specified.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -42,50 +43,78 @@ function Add-VSADepartment
         [Parameter(Mandatory = $true, 
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric Id"
             }
             return $true
         })]
-        [string] $OrganizationId,
+        [string] $OrgId,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [string] $DepartmentName,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric Id"
             }
             return $true
         })]
         [string] $ParentDepartmentId,
 
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName=$true)]
+        [string] $DepartmentRef,
+
         [Parameter(Mandatory = $false)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
+            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
                 throw "Non-numeric Id"
             }
             return $true
         })]
-        [string] $ManagerId
+        [string] $ManagerId,
+
+        [parameter(DontShow,
+            Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [string] $Attributes,
+
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
+        [switch] $ExtendedOutput
     )
-    $URISuffix = $URISuffix -f $OrganizationId
+    $URISuffix = $URISuffix -f $OrgId
 
     [hashtable]$BodyHT =    @{ DepartmentName = $DepartmentName}
     if ($ParentDepartmentId) { $BodyHT.Add('ParentDepartmentId', $ParentDepartmentId) }
     if ($ManagerId)          { $BodyHT.Add('ManagerId', $ManagerId) }
+    if ($DepartmentRef)      { $BodyHT.Add('DepartmentRef', $DepartmentRef) }
+
+    if ( -not [string]::IsNullOrEmpty($Attributes) ) {
+        [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
+        $BodyHT.Add('Attributes', $AttributesHT )
+    }
 
     $Body = $BodyHT | ConvertTo-Json
+    $Body | Out-String | Write-Debug
 
-    [hashtable]$Params = @{}
+    [hashtable]$Params =@{
+                            URISuffix      = $URISuffix
+                            Method         = 'POST'
+                            Body           = $Body
+                            ExtendedOutput = $ExtendedOutput
+                        }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params.Add('URISuffix', $URISuffix)
-    $Params.Add('Method', 'POST')
-    $Params.Add('Body', $Body)
+    $Result = Update-VSAItems @Params
+    $Result | Out-String | Write-Verbose
+    $Result | Out-String | Write-Debug
 
-    return Update-VSAItems @Params
+    if ($ExtendedOutput) { $Result = $Result | Select-Object -ExpandProperty Result }
+    return $Result
 }
 Export-ModuleMember -Function Add-VSADepartment

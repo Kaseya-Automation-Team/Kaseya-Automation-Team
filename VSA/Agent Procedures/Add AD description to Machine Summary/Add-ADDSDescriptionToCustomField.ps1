@@ -3,7 +3,7 @@
    Add Computer Description From AD
 .DESCRIPTION
    Adds computer description from Active Directory to an Agent's custom field so it is displayed in the Machine Summary.
-   Downloads & installs required VSAMOdule to the user's environment
+   Downloads & installs required VSAModule to the user's environment
     
 .PARAMETERS
     [string] VSAAddress
@@ -111,15 +111,11 @@ function Install-GithubModule
         $ModuleFolder = $([io.path]::GetFileNameWithoutExtension($ArchiveName))
     }
 
-    $moduleToLoad = $ModuleFolder
     $ModuleName = Split-Path $ModuleFolder -leaf
 
     $URL = $URIBase, $ArchiveName -join '/' 
      
     #region check if module exists
-
-    
-
         #region check if module folder already created
     $separator = [IO.Path]::PathSeparator
     $ProfileModulePath = $env:PSModulePath.Split($separator)[0]

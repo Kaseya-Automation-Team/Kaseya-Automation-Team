@@ -5,6 +5,7 @@
        Uploads a file to Documents page.
     .DESCRIPTION
        Uploads a file from your local computer or network to the Audit > Documents page for a specified agent.
+       Uploaded files are situated in C:\Kaseya\UserProfiles\<AgientId>\Docs.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
@@ -34,6 +35,7 @@
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/assetmgmt/documents/{0}/file/{1}',
 
+        [Alias("Id")]
         [Parameter(Mandatory = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -43,6 +45,7 @@
         })]
         [string] $AgentId,
 
+        [Alias("Src")]
         [Parameter(Mandatory = $true)]
         [ValidateScript({
             if( -Not ($_ | Test-Path -PathType leaf ) ){
@@ -52,13 +55,16 @@
         })]
         [System.IO.FileInfo]$SourceFilePath,
 
+        [Alias("Dest")]
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string] $DestinationFolder
     )
 
     [string]$FileName  = $($SourceFilePath.Name)
-    $DestinationFolder = $DestinationFolder -replace '\\', '/'
+    if (-not [string]::IsNullOrEmpty($DestinationFolder) ) {
+        $DestinationFolder = $DestinationFolder -replace '\\', '/'
+    }
     $URISuffix         = $URISuffix -f $AgentId, $DestinationFolder
 
     [hashtable]$Params = @{

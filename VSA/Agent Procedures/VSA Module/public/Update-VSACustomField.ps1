@@ -102,6 +102,7 @@
     $Body | Out-String | Write-Verbose
     
     $URISuffix = $($URISuffix -f $Values) -replace '//', '/' # URI suffix actualization
+    $URISuffix | Write-Debug
     $URISuffix | Write-Verbose
 
     [hashtable]$Params =@{
@@ -111,8 +112,18 @@
     }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-
-    return Update-VSAItems @Params
+    switch ($PsCmdlet.ParameterSetName) {
+        "RenameField" {
+            if( $PSCmdlet.ShouldProcess( $NewFieldName ) ) {
+                return Update-VSAItems @Params
+            }
+        }
+        "UpdateValue" {
+            if( $PSCmdlet.ShouldProcess( $AgentID ) ) {
+                return Update-VSAItems @Params
+            }
+        }
+    }
         
 }
 Export-ModuleMember -Function Update-VSACustomField

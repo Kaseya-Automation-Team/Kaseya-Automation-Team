@@ -33,11 +33,13 @@
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/assets/customfields',
 
+        [Alias("Name")]
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $FieldName,
 
+        [Alias("Type")]
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateSet("string", "number", "datetime", "date", "time")]

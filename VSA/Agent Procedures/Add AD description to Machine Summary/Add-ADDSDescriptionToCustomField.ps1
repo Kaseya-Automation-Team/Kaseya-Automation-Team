@@ -22,7 +22,7 @@
     Version 0.1
     Requires:
         AD membership for the computer where the script is executed.
-        Powershell ActiveDirectory module must be installed on the computer.
+        Powershell ActiveDirectory module must be installed on the computer. Usually a Domain Controller
         Internet connection to download VSAModule from GitHub in case the module was not installed prior.
         Proper permissions to execute the script.
    
@@ -55,6 +55,20 @@ param (
     [parameter(Mandatory=$false)]
     [switch] $LogIt
 )
+
+#region check/start transcript
+[string]$Pref = 'Continue'
+if ( $LogIt )
+{
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    $ScriptName = [io.path]::GetFileNameWithoutExtension( $($MyInvocation.MyCommand.Name) )
+    $ScriptPath = Split-Path $script:MyInvocation.MyCommand.Path
+    $LogFile = "$ScriptPath\$ScriptName.log"
+    Start-Transcript -Path $LogFile
+}
+#endregion check/start transcript
 
 #region Checking & installing VSA Module
 function Get-ModuleToFolder {
@@ -188,9 +202,11 @@ if ( (Get-Module -ListAvailable -Name $ModuleName) -and (Get-Module -ListAvailab
     }
     #region Populate Custom Fields Values
     $SourceAgents = Get-VSAAgent -VSAConnection $VSAConnection
-    Foreach($Agent in $SourceAgents){
+    Foreach( $Agent in $SourceAgents ) {
         $ComputerName = ($Agent.AgentName).split('.')[0]
-        [string] $Description = try { Get-ADComputer $ComputerName -Properties Description  -ErrorAction Stop | Select-Object -ExpandProperty Description } catch { $null }
+        [string] $Info = "Processing Agent $($Agent.AgentID). Computer Name: $ComputerName"
+        Write-Host $Info
+        [string] $Description = try {Get-ADComputer $ComputerName -Properties Description  -ErrorAction Stop | Select-Object -ExpandProperty Description} catch {$null}
         if ( -not [string]::IsNullOrEmpty($Description) ) {
             [hashtable]$Params = @{
                 AgentID       = $Agent.AgentID
@@ -198,6 +214,8 @@ if ( (Get-Module -ListAvailable -Name $ModuleName) -and (Get-Module -ListAvailab
                 FieldValue    = $Description
                 VSAConnection = $VSAConnection
             }
+            Write-Host "$ComputerName. Set description:" -NoNewline
+            Write-Host "`t$Description"  -ForegroundColor Green
             Update-VSACustomField @Params
         }
     }
@@ -216,3 +234,13 @@ else {
         Write-Host "`tis not available" -ForegroundColor Yellow
     }
 }
+#region check/stop transcript
+if ( $LogIt )
+{
+    $Pref = 'SilentlyContinue'
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    Stop-Transcript
+}
+#endregion check/stop transcript

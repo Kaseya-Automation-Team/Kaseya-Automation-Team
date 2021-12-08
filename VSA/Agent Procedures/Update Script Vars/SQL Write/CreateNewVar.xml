@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<queryList>
+    <queryDef label="Create variable" sql="INSERT INTO [ksubscribers].[dbo].[scriptVar] (groupId, varName, varValue, itemGuid, partitionId) VALUES ('obsolete', '#VarName#', '#VarValue#', '#itemGuid#', 1)" />
+</queryList>

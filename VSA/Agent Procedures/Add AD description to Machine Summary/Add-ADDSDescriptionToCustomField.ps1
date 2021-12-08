@@ -15,7 +15,7 @@
     [string] FieldName
         - A Custom Field name to store AD Computer description.
     [string] OrgRef
-        - Specifies string to filter agents by the organization reference. OrgRef uniquely identifies the organization within the VSA. Usually a shorten name or an acronim.
+        - Specifies string to filter VSA agents by the organization reference. OrgRef uniquely identifies the organization within the VSA. Usually a shorten name or an acronim.
     [switch] OverwriteExistingModule
         - Overwrites Existing VSAModule on the computer
     [switch] LogIt

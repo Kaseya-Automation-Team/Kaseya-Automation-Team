@@ -11,7 +11,7 @@
     [string] VSAUserName
         - The VSA User name. The VSA user must have permissions to create/update Agent Custom Fields
     [string] VSAUserPAT
-        - The VSA User access token.
+        - The VSA User access token. (VSA->System->User Security->Users->Access Tokens)
     [string] FieldName
         - A Custom Field name to store AD Computer description.
     [string] OrgRef

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<queryList>
+    <queryDef label="Update Variable" sql="UPDATE [ksubscribers].[dbo].[scriptVar] SET [varValue] = '#VarValue#' WHERE [varName] = '#VarName#' AND itemGuid = '#itemGuid#'" />
+</queryList>

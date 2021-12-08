@@ -1,0 +1,259 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="UpdateScriptVariable" treePres="3">
+    <Procedure name="UpdateScriptVar" treePres="3" id="1868677393" folderId="719355718521101" treeFullPath="UpdateScriptVariable">
+      <Body description="This procedure helps create/update the manage variables/script variables against a machine group or an organization!">
+        <Statement description="UpdateScriptVar - V1.2 - Kaseya Automation Team" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="+++SQLCMD:SELECT machGroupGuid FROM machGroup WHERE partitionId = 1 AND reverseName = (SELECT groupName FROM machNameTab WHERE agentGuid = #vMachine.agentGuid#)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="groupid" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="+++SQLCMD:SELECT orgId FROM vMachine WHERE agentGuid = #vMachine.agentGuid#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="orgId" />
+        </Statement>
+        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="Here is the machinegroupID: #groupid# and here is the orgID: #orgId#" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Is it a public variable? (Type Y or N)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="vartype" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Enter the VSA username that the variable is accessible for?" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="uname" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Enter the name of the variable" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="varName" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Enter Variable Value:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="varValue" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Do you want to update machine group that the procedure is running on OR ONLY the organization? Enter M or O" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="choice" />
+        </Statement>
+        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Comment" value="Here is your Choice: #choice#" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#vartype#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+            <Parameter xsi:type="StringParameter" name="Value" value="Y" />
+          </Condition>
+          <Then>
+            <Statement name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="#varName#.********" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="varName" />
+            </Statement>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="1" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#choice#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                <Parameter xsi:type="StringParameter" name="Value" value="M" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#groupid#" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="itemGuid" />
+                </Statement>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="+++SQLCMD:SELECT COUNT(varName) FROM scriptVar WHERE itemGuid = '#itemGuid#' AND varname = '#varname#'" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="varCnt" />
+                </Statement>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#varCnt#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="NotEquals" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="0" />
+                  </Condition>
+                  <Then>
+                    <Statement name="GetVariable" continueOnFail="false">
+                      <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="msg+++SQLCMD:UPDATE [ksubscribers].[dbo].[scriptVar] SET [varValue] = '#VarValue#' WHERE [varName] = '#VarName#' AND itemGuid = '#itemGuid#'" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="GetVariable" continueOnFail="false">
+                      <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="msg+++SQLCMD:INSERT INTO [ksubscribers].[dbo].[scriptVar] (groupId, varName, varValue, itemGuid, partitionId) VALUES ('obsolete', '#VarName#', '#VarValue#', '#itemGuid#', 1)" />
+                    </Statement>
+                  </Else>
+                </If>
+              </Then>
+            </If>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#choice#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                <Parameter xsi:type="StringParameter" name="Value" value="O" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#orgid#" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="itemGuid" />
+                </Statement>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="+++SQLCMD:SELECT COUNT(varName) FROM scriptVar WHERE itemGuid = '#itemGuid#' AND varname = '#varname#'" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="varCnt" />
+                </Statement>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#varCnt#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="NotEquals" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="0" />
+                  </Condition>
+                  <Then>
+                    <Statement name="GetVariable" continueOnFail="false">
+                      <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="msg+++SQLCMD:UPDATE [ksubscribers].[dbo].[scriptVar] SET [varValue] = '#VarValue#' WHERE [varName] = '#VarName#' AND itemGuid = '#itemGuid#'" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="GetVariable" continueOnFail="false">
+                      <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="msg+++SQLCMD:INSERT INTO [ksubscribers].[dbo].[scriptVar] (groupId, varName, varValue, itemGuid, partitionId) VALUES ('obsolete', '#VarName#', '#VarValue#', '#itemGuid#', 1)" />
+                    </Statement>
+                  </Else>
+                </If>
+              </Then>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="+++SQLCMD:SELECT COUNT(*) FROM adminIdTab WHERE adminName = '#uname#'" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="unameCnt" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#unameCnt#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="NotEquals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="0" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Entered VSA username is valid!" />
+                </Statement>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#varName#.#uname#" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="varName" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#varName#" />
+                </Statement>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#choice#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="M" />
+                  </Condition>
+                  <Then>
+                    <Statement name="GetVariable" continueOnFail="false">
+                      <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="#groupid#" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="itemGuid" />
+                    </Statement>
+                    <Statement name="GetVariable" continueOnFail="false">
+                      <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="+++SQLCMD:SELECT COUNT(varName) FROM scriptVar WHERE itemGuid = '#itemGuid#' AND varname = '#varname#'" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="varCnt" />
+                    </Statement>
+                    <If description="">
+                      <Condition name="CheckVariable">
+                        <Parameter xsi:type="StringParameter" name="VariableName" value="#varCnt#" />
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="NotEquals" />
+                        <Parameter xsi:type="StringParameter" name="Value" value="0" />
+                      </Condition>
+                      <Then>
+                        <Statement name="GetVariable" continueOnFail="false">
+                          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+                          <Parameter xsi:type="StringParameter" name="VariableName" value="msg+++SQLCMD:UPDATE [ksubscribers].[dbo].[scriptVar] SET [varValue] = '#VarValue#' WHERE [varName] = '#VarName#' AND itemGuid = '#itemGuid#'" />
+                        </Statement>
+                      </Then>
+                      <Else>
+                        <Statement name="GetVariable" continueOnFail="false">
+                          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+                          <Parameter xsi:type="StringParameter" name="VariableName" value="msg+++SQLCMD:INSERT INTO [ksubscribers].[dbo].[scriptVar] (groupId, varName, varValue, itemGuid, partitionId) VALUES ('obsolete', '#VarName#', '#VarValue#', '#itemGuid#', 1)" />
+                        </Statement>
+                      </Else>
+                    </If>
+                  </Then>
+                </If>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#choice#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="O" />
+                  </Condition>
+                  <Then>
+                    <Statement name="GetVariable" continueOnFail="false">
+                      <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="#orgid#" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="itemGuid" />
+                    </Statement>
+                    <Statement name="GetVariable" continueOnFail="false">
+                      <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="+++SQLCMD:SELECT COUNT(varName) FROM scriptVar WHERE itemGuid = '#itemGuid#' AND varname = '#varname#'" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="varCnt" />
+                    </Statement>
+                    <If description="">
+                      <Condition name="CheckVariable">
+                        <Parameter xsi:type="StringParameter" name="VariableName" value="#varCnt#" />
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="NotEquals" />
+                        <Parameter xsi:type="StringParameter" name="Value" value="0" />
+                      </Condition>
+                      <Then>
+                        <Statement name="GetVariable" continueOnFail="false">
+                          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+                          <Parameter xsi:type="StringParameter" name="VariableName" value="msg+++SQLCMD:UPDATE [ksubscribers].[dbo].[scriptVar] SET [varValue] = '#VarValue#' WHERE [varName] = '#VarName#' AND itemGuid = '#itemGuid#'" />
+                        </Statement>
+                      </Then>
+                      <Else>
+                        <Statement name="GetVariable" continueOnFail="false">
+                          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                          <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+                          <Parameter xsi:type="StringParameter" name="VariableName" value="msg+++SQLCMD:INSERT INTO [ksubscribers].[dbo].[scriptVar] (groupId, varName, varValue, itemGuid, partitionId) VALUES ('obsolete', '#VarName#', '#VarValue#', '#itemGuid#', 1)" />
+                        </Statement>
+                      </Else>
+                    </If>
+                  </Then>
+                </If>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Entered VSA username is NOT valid!" />
+                </Statement>
+              </Else>
+            </If>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

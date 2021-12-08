@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<queryList>
+    <queryDef label="ReadGroupId" sql="SELECT machGroupGuid FROM machGroup WHERE partitionId = 1 AND reverseName = (SELECT groupName FROM machNameTab WHERE agentGuid = #vMachine.agentGuid#)" />
+</queryList>

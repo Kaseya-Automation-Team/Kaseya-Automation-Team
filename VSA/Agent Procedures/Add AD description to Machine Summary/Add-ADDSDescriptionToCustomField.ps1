@@ -27,7 +27,7 @@
     .NOTES
     Version 0.1.1
     Requires:
-        AD membership for the computer where the script is executed.
+        AD membership for the computer on which the script is executed.
         Powershell ActiveDirectory module must be installed on the computer. Usually a Domain Controller
         Internet connection to download VSAModule from GitHub in case the module was not installed prior.
         Proper permissions to execute the script.

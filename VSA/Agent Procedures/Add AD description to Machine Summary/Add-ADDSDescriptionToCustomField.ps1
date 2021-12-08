@@ -12,6 +12,8 @@
         - The VSA User name. The VSA user must have permissions to create/update Agent Custom Fields
     [string] VSAUserPAT
         - The VSA User access token.
+    [string] FieldName
+        - A Custom Field name to store AD Computer description.
     [switch] OverwriteExistingModule
         - Overwrites Existing VSAModule on the computer
     [switch] LogIt
@@ -47,7 +49,7 @@ param (
     [string] $VSAUserPAT,
 
     [parameter(Mandatory=$false)]
-    [string] [string] $FieldName = "ADDescription",
+    [string] $FieldName = "ADDescription",
 
     [parameter(Mandatory=$false)]
     [switch] $OverwriteExistingModule,

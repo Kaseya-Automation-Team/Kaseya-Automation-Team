@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<queryList>
+    <queryDef label="VarsCnt" sql="SELECT COUNT(varName) FROM scriptVar WHERE itemGuid = '#itemGuid#' AND varname = '#varname#'" />
+</queryList>

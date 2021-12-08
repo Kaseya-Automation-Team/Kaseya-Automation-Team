@@ -7,19 +7,19 @@
     
 .PARAMETERS
     [string] VSAAddress
-        - the address of the VSA server
+        - The address of the VSA server.
     [string] VSAUserName
-        - The VSA User name. The VSA user must have permissions to create/update Agent Custom Fields
+        - The VSA User name. The VSA user must have permissions to create/update Agent Custom Fields.
     [string] VSAUserPAT
         - The VSA User access token. (VSA->System->User Security->Users->Access Tokens)
     [string] FieldName
         - A Custom Field name to store AD Computer description.
     [string] OrgRef
-        - Specifies string to filter VSA agents by the organization reference. OrgRef uniquely identifies the organization within the VSA. Usually a shorten name or an acronim.
+        - Specifies string to filter VSA agents by the organization reference. OrgRef uniquely identifies the organization within the VSA, usually a shorten name or an acronim.
     [switch] OverwriteExistingModule
-        - Overwrites Existing VSAModule on the computer
+        - Overwrites Existing VSAModule on the computer.
     [switch] LogIt
-        - Enables execution transcript		 
+        - Enables execution transcript.
 .EXAMPLE
     .\Add-ADDSDescriptionToCustomField.ps1 -VSAAddress 'https://vsaserver.example' -VSAUserName 'vsa_user' -VSAUserPAT '01e0e010-1010-1010-b101-ca1beec10efc' -OverwriteExistingModule -LogIt
 .EXAMPLE

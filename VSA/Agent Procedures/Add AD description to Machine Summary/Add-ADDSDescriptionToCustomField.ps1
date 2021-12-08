@@ -14,14 +14,18 @@
         - The VSA User access token.
     [string] FieldName
         - A Custom Field name to store AD Computer description.
+    [string] OrgRef
+        - Specifies string to filter agents by the organization reference. OrgRef uniquely identifies the organization within the VSA. Usually a shorten name or an acronim.
     [switch] OverwriteExistingModule
         - Overwrites Existing VSAModule on the computer
     [switch] LogIt
         - Enables execution transcript		 
 .EXAMPLE
     .\Add-ADDSDescriptionToCustomField.ps1 -VSAAddress 'https://vsaserver.example' -VSAUserName 'vsa_user' -VSAUserPAT '01e0e010-1010-1010-b101-ca1beec10efc' -OverwriteExistingModule -LogIt
-.NOTES
-    Version 0.1
+.EXAMPLE
+    .\Add-ADDSDescriptionToCustomField.ps1 -VSAAddress 'https://vsaserver.example' -VSAUserName 'vsa_user' -VSAUserPAT '01e0e010-1010-1010-b101-ca1beec10efc' -OrgRef 'kserver'
+    .NOTES
+    Version 0.1.1
     Requires:
         AD membership for the computer where the script is executed.
         Powershell ActiveDirectory module must be installed on the computer. Usually a Domain Controller
@@ -50,6 +54,9 @@ param (
 
     [parameter(Mandatory=$false)]
     [string] $FieldName = "ADDescription",
+
+    [parameter(Mandatory=$false)]
+    [string] $OrgRef,
 
     [parameter(Mandatory=$false)]
     [switch] $OverwriteExistingModule,
@@ -204,9 +211,13 @@ if ( (Get-Module -ListAvailable -Name $ModuleName) -and (Get-Module -ListAvailab
     }
     #region Populate Custom Fields Values
     $SourceAgents = Get-VSAAgent -VSAConnection $VSAConnection
+    if ( -not [string]::IsNullOrEmpty($OrgRef)) {
+        $SourceAgents = $SourceAgents | Where-Object {$_.AgentName -match $OrgRef}
+    }
     Foreach( $Agent in $SourceAgents ) {
         $ComputerName = ($Agent.AgentName).split('.')[0]
         [string] $Info = "Processing Agent $($Agent.AgentID). Computer Name: $ComputerName"
+        $Agent.AgentName | Write-Debug
         Write-Host $Info
         [string] $Description = try {Get-ADComputer $ComputerName -Properties Description  -ErrorAction Stop | Select-Object -ExpandProperty Description} catch {$null}
         if ( -not [string]::IsNullOrEmpty($Description) ) {

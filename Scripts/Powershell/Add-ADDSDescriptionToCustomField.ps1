@@ -4,7 +4,7 @@
 .DESCRIPTION
     Gets the Description attribute from the AD domain of which the computer running the script is a member.
     Downloads the VSAModule PowerShell module from github and installs it if the module folder is not found in the user's environment Module folder.
-    Creates the Custom Field if it does not exist.
+    Creates a Custom Field if it does not exist.
     Populates the VSA Custom Field with the AD Description for the VSA Assets which names match the AD computer names.    
 .PARAMETER VSAAddress
     The address of the VSA server.
@@ -13,7 +13,7 @@
 .PARAMETER VSAUserPAT
     The VSA User access token. (VSA->System->User Security->Users->Access Tokens)
 .PARAMETER FieldName
-    (Optional) A Custom Field name to store AD Computer description. (Default = ADDescription)
+    (Optional) A VSA Custom Field to be populated with AD Computer description. (Default = ADDescription)
 .PARAMETER OrgRef
     (Optional) Specifies string to filter VSA agents by an organization reference. OrgRef uniquely identifies an organization within the VSA, usually a shorten name or acronim.
 .PARAMETER OverwriteExistingModule

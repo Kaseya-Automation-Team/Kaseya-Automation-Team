@@ -25,7 +25,7 @@
     Populates  the VSA Machine Summary with the Active Directory Computer description. Overwrites existing VSAModule if found. 
 .EXAMPLE
     .\Add-ADDSDescriptionToCustomField.ps1 -VSAAddress 'https://vsaserver.example' -VSAUserName 'vsa_user' -VSAUserPAT '01e0e010-1010-1010-b101-ca1beec10efc' -OrgRef 'kserver' -FieldName 'MyField'
-    Filters VSA Agents by OrgRef. Populates the MyField VSA Custom Field with the Active Directory Computer description.
+    Filters VSA Agents by OrgRef. Populates specified VSA Custom Field with the Active Directory Computer description.
 .NOTES
     Version 0.1.1
     Requires:

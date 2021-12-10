@@ -27,7 +27,7 @@
     .\Add-ADDSDescriptionToCustomField.ps1 -VSAAddress 'https://vsaserver.example' -VSAUserName 'vsa_user' -VSAUserPAT '01e0e010-1010-1010-b101-ca1beec10efc' -OrgRef 'kserver' -FieldName 'MyField'
     Filters VSA Agents by OrgRef. Populates specified VSA Custom Field with the Active Directory Computer description.
 .NOTES
-    Version 0.1.1
+    Version 0.1
     Requires:
         AD membership for the computer running the script.
         The ActiveDirectory PowerShell module installed on the computer running the script (usually a domain controller).

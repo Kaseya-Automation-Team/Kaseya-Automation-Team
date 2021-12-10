@@ -5,7 +5,7 @@
     Gets the Description attribute from the AD domain of which the computer running the script is a member.
     Downloads the VSAModule PowerShell module from github and installs it if the module folder is not found in the user's environment Module folder.
     Creates a Custom Field if it does not exist.
-    Populates the VSA Custom Field with the AD Description for the VSA Assets which names match the AD computer names.    
+    The VSA Сustom Field is populated with AD Description when the VSA Asset names match the AD Computer names.   
 .PARAMETER VSAAddress
     The address of the VSA server.
 .PARAMETER VSAUserName

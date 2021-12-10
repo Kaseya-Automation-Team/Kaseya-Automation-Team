@@ -5,7 +5,7 @@
     Gets the Description attribute from the AD domain of which the computer running the script is a member.
     Downloads the VSAModule PowerShell module from github and installs it if the module folder is not found in the user's environment Module folder.
     Creates the Custom Field if it does not exist.
-    Populates the VSA Custom Field with the AD Description.    
+    Populates the VSA Custom Field with the AD Description for the VSA Assets which names match the AD computer names.    
 .PARAMETER VSAAddress
     The address of the VSA server.
 .PARAMETER VSAUserName
@@ -19,12 +19,13 @@
 .PARAMETER OverwriteExistingModule
     (Optional) If VSAModule folder found in the user's environment Module folder on the computer, the script downloads the module from github and overwrites the existing one.
 .PARAMETER LogIt
-    (Optional) Enables execution transcript.
+    (Optional) Logs execution transcript to a file.
 .EXAMPLE
     .\Add-ADDSDescriptionToCustomField.ps1 -VSAAddress 'https://vsaserver.example' -VSAUserName 'vsa_user' -VSAUserPAT '01e0e010-1010-1010-b101-ca1beec10efc' -OverwriteExistingModule -LogIt
     Populates  the VSA Machine Summary with the Active Directory Computer description. Overwrites existing VSAModule if found. 
 .EXAMPLE
-    .\Add-ADDSDescriptionToCustomField.ps1 -VSAAddress 'https://vsaserver.example' -VSAUserName 'vsa_user' -VSAUserPAT '01e0e010-1010-1010-b101-ca1beec10efc' -OrgRef 'kserver'
+    .\Add-ADDSDescriptionToCustomField.ps1 -VSAAddress 'https://vsaserver.example' -VSAUserName 'vsa_user' -VSAUserPAT '01e0e010-1010-1010-b101-ca1beec10efc' -OrgRef 'kserver' -FieldName 'MyField'
+    Filters VSA Agents by OrgRef. Populates the MyField VSA Custom Field with the Active Directory Computer description.
 .NOTES
     Version 0.1.1
     Requires:

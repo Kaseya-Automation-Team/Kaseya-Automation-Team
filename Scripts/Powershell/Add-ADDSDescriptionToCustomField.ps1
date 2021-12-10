@@ -17,7 +17,7 @@
 .PARAMETER OrgRef
     (Optional) Specifies string to filter VSA agents by an organization reference. OrgRef uniquely identifies an organization within the VSA, usually a shorten name or acronim.
 .PARAMETER OverwriteExistingModule
-    (Optional) If VSAModule folder found in the user's environment Module folder on the computer, the script downloads the module from github and overwrites the existing one.
+    (Optional) Downloads the VSAModule module from github and overwrites the existing one in the user's environment Module folder.
 .PARAMETER LogIt
     (Optional) Logs execution transcript to a file.
 .EXAMPLE

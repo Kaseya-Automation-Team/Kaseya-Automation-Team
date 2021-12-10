@@ -185,7 +185,9 @@ $ModuleName  = "VSAModule"
 $ArchiveName = "$ModuleName.zip"
 
 $InstallModuleParams = @{ ArchiveName = $ArchiveName }
-if($OverwriteExistingModule) {$InstallModuleParams.Add('OverwriteExistingModule', $true)}
+if($OverwriteExistingModule) {
+    $InstallModuleParams.Add('OverwriteExistingModule', $true)
+}
 $ModulePath  = Install-GithubModule @InstallModuleParams
 
 Import-Module "$ModulePath\$ModuleName.psm1" -Force

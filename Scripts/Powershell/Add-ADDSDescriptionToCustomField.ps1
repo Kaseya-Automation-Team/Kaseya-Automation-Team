@@ -1,6 +1,6 @@
 ﻿<#
 .Synopsis
-    Populates the VSA Machine Summary with the Active Directory Computer description.
+    Populates VSA Machine Summary with the Active Directory Computer description.
 .DESCRIPTION
     Gets the Description attribute from the AD domain of which the computer running the script is a member.
     Downloads the VSAModule PowerShell module from github and installs it if the module folder is not found in the user's environment Module folder.

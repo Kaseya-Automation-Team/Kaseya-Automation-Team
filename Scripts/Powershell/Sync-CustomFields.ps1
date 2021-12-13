@@ -5,8 +5,8 @@
     Downloads the VSAModule PowerShell module from github and installs it if the module folder is not found in the user's environment Module folder.
     Compares Custom Fields by name in Source and Destination VSA instances.
     Missed fields are created in the destination VSA.
-    The source Custom Fields with their values are collected and bound to the Machine Name.
-    Corresponding destination Assets are found by matching the Machine Name.
+    The source Custom Fields with their values are collected and bound to the Agent Name.
+    Corresponding destination Assets are found by matching the Agent Name.
     Destination Assets' Custom fields are populated with the values collected at the source.
 .PARAMETER SourceVSAAddress
     The address of the source VSA server.

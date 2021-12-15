@@ -1,35 +1,37 @@
 ﻿<#
 .Synopsis
-   Add Computer Description From AD
+    Populates VSA Machine Summary with the Active Directory Computer description.
 .DESCRIPTION
-   Adds computer description from Active Directory to an Agent's custom field so it is displayed in the Machine Summary.
-   Downloads & installs required VSAModule to the user's environment
-    
-.PARAMETERS
-    [string] VSAAddress
-        - The address of the VSA server.
-    [string] VSAUserName
-        - The VSA User name. The VSA user must have permissions to create/update Agent Custom Fields.
-    [string] VSAUserPAT
-        - The VSA User access token. (VSA->System->User Security->Users->Access Tokens)
-    [string] FieldName
-        - A Custom Field name to store AD Computer description.
-    [string] OrgRef
-        - Specifies string to filter VSA agents by the organization reference. OrgRef uniquely identifies the organization within the VSA, usually a shorten name or an acronim.
-    [switch] OverwriteExistingModule
-        - Overwrites Existing VSAModule on the computer.
-    [switch] LogIt
-        - Enables execution transcript.
+    Gets the Description attribute from the AD domain of which the computer running the script is a member.
+    Downloads the VSAModule PowerShell module from github and installs it if the module folder is not found in the user's environment Module folder.
+    Creates a Custom Field if it does not exist.
+    The VSA Custom Field is populated with AD Description for the Assets which names match AD computers' names. 
+.PARAMETER VSAAddress
+    The address of the VSA server.
+.PARAMETER VSAUserName
+    The VSA User name. The VSA user must have permissions to create/update Agent Custom Fields.
+.PARAMETER VSAUserPAT
+    The VSA User access token. (VSA->System->User Security->Users->Access Tokens)
+.PARAMETER FieldName
+    (Optional) A VSA Custom Field to be populated with AD Computer description. (Default = ADDescription)
+.PARAMETER OrgRef
+    (Optional) Specifies string to filter VSA agents by an organization reference. OrgRef uniquely identifies an organization within the VSA, usually a shorten name or acronim.
+.PARAMETER OverwriteExistingModule
+    (Optional) Downloads the VSAModule module from github and overwrites the existing one in the user's environment Module folder.
+.PARAMETER LogIt
+    (Optional) Logs execution transcript to a file.
 .EXAMPLE
     .\Add-ADDSDescriptionToCustomField.ps1 -VSAAddress 'https://vsaserver.example' -VSAUserName 'vsa_user' -VSAUserPAT '01e0e010-1010-1010-b101-ca1beec10efc' -OverwriteExistingModule -LogIt
+    Populates  the VSA Machine Summary with the Active Directory Computer description. Overwrites existing VSAModule if found. Logs the transcript.
 .EXAMPLE
-    .\Add-ADDSDescriptionToCustomField.ps1 -VSAAddress 'https://vsaserver.example' -VSAUserName 'vsa_user' -VSAUserPAT '01e0e010-1010-1010-b101-ca1beec10efc' -OrgRef 'kserver'
-    .NOTES
-    Version 0.1.1
+    .\Add-ADDSDescriptionToCustomField.ps1 -VSAAddress 'https://vsaserver.example' -VSAUserName 'vsa_user' -VSAUserPAT '01e0e010-1010-1010-b101-ca1beec10efc' -OrgRef 'kserver' -FieldName 'MyField'
+    Filters VSA Agents by OrgRef. Populates specified VSA Custom Field with the Active Directory Computer description.
+.NOTES
+    Version 0.1
     Requires:
-        AD membership for the computer on which the script is executed.
-        Powershell ActiveDirectory module must be installed on the computer. Usually a Domain Controller
-        Internet connection to download VSAModule from GitHub in case the module was not installed prior.
+        AD membership for the computer running the script.
+        The ActiveDirectory PowerShell module installed on the computer running the script (usually a domain controller).
+        Internet connection to download VSAModule from GitHub if the module was not installed beforehand.
         Proper permissions to execute the script.
    
     Author: Proserv Team - VS
@@ -40,7 +42,7 @@ param (
         ValueFromPipelineByPropertyName = $true)]
     [ValidateScript(
             {if ($_ -match '^http(s)?:\/\/([\w.-]+(?:\.[\w\.-]+)+|localhost)$') {$true}
-            else {Throw "$_ is an invalid. Enter a valid address that begins with https://"}}
+            else {Throw "$_ is an invalid address. Enter a valid address that begins with https://"}}
             )]
     [string] $VSAAddress,
 
@@ -56,6 +58,7 @@ param (
     [string] $FieldName = "ADDescription",
 
     [parameter(Mandatory=$false)]
+    [ValidateNotNullOrEmpty()]
     [string] $OrgRef,
 
     [parameter(Mandatory=$false)]
@@ -182,7 +185,9 @@ $ModuleName  = "VSAModule"
 $ArchiveName = "$ModuleName.zip"
 
 $InstallModuleParams = @{ ArchiveName = $ArchiveName }
-if($OverwriteExistingModule) {$InstallModuleParams.Add('OverwriteExistingModule', $true)}
+if($OverwriteExistingModule) {
+    $InstallModuleParams.Add('OverwriteExistingModule', $true)
+}
 $ModulePath  = Install-GithubModule @InstallModuleParams
 
 Import-Module "$ModulePath\$ModuleName.psm1" -Force

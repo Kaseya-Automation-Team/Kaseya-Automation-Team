@@ -63,7 +63,7 @@
           </Statement>
         </Then>
       </If>
-      <If description="Linux OS">
+      <If description="">
         <Condition name="CheckVariable">
           <Parameter xsi:type="StringParameter" name="VariableName" value="#global:osType#" />
           <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
@@ -124,9 +124,14 @@
         </Condition>
         <Then>
           <Statement name="WriteScriptLogEntry" continueOnFail="false">
-            <Parameter xsi:type="StringParameter" name="Comment" value="Detected" />
+            <Parameter xsi:type="StringParameter" name="Comment" value="Log4j vulnerability detected" />
           </Statement>
         </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Not detected Log4j vulnerability" />
+          </Statement>
+        </Else>
       </If>
     </Body>
   </Procedure>

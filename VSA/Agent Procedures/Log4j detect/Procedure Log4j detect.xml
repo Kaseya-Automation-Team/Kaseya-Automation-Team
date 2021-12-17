@@ -5,11 +5,67 @@
       <Statement description="The procedure detects CVE-2021-44228 &amp; CVE-2021-45046 vulnerabilities using LunaSec utility&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="SQLView" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="vMachine/osType" />
-        <Parameter xsi:type="StringParameter" name="VariableName" value="osType" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="osInfo" />
       </Statement>
+      <If description="Determine OS Type">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#osInfo#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+          <Parameter xsi:type="StringParameter" name="Value" value="Linux" />
+        </Condition>
+        <Then>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="Linux" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="global:osType" />
+          </Statement>
+        </Then>
+      </If>
       <If description="">
         <Condition name="CheckVariable">
-          <Parameter xsi:type="StringParameter" name="VariableName" value="#osType#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#osInfo#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+          <Parameter xsi:type="StringParameter" name="Value" value="10" />
+        </Condition>
+        <Then>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="Windows" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="global:osType" />
+          </Statement>
+        </Then>
+      </If>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#osInfo#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+          <Parameter xsi:type="StringParameter" name="Value" value="11" />
+        </Condition>
+        <Then>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="Windows" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="global:osType" />
+          </Statement>
+        </Then>
+      </If>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#osInfo#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+          <Parameter xsi:type="StringParameter" name="Value" value="20" />
+        </Condition>
+        <Then>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="Windows" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="global:osType" />
+          </Statement>
+        </Then>
+      </If>
+      <If description="Linux OS">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#global:osType#" />
           <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
           <Parameter xsi:type="StringParameter" name="Value" value="Linux" />
         </Condition>
@@ -38,7 +94,7 @@
       </If>
       <If description="">
         <Condition name="CheckVariable">
-          <Parameter xsi:type="StringParameter" name="VariableName" value="#osType#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#global:osType#" />
           <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
           <Parameter xsi:type="StringParameter" name="Value" value="Windows" />
         </Condition>
@@ -48,7 +104,7 @@
             <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\log4shell.exe" />
             <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
           </Statement>
-          <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
+          <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Windows">
             <Parameter xsi:type="StringParameter" name="Parameter1" value="#vAgentConfiguration.agentTempDir#\log4shell.exe scan C:\" />
             <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
             <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
@@ -62,7 +118,7 @@
       </If>
       <If description="">
         <Condition name="CheckVariable">
-          <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#global:TestOutput#" />
           <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
           <Parameter xsi:type="StringParameter" name="Value" value="vulnerable" />
         </Condition>

@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Install &amp; Uninistall CrowdStrike (Linux)" treePres="3">
-    <Procedure name="Install CrowdStrike" treePres="3" id="243696927" folderId="773245190211226" treeFullPath="myProcedures - kadmin.Install &amp; Uninistall CrowdStrike (Linux)">
+    <Procedure name="Install CrowdStrike" treePres="3" id="720754144" folderId="773245190211226" treeFullPath="myProcedures - kadmin.Install &amp; Uninistall CrowdStrike (Linux)">
       <Body description="">
-        <Statement description="The procedure detects CrowdStrike falcon-sensor on the computer. If not detected the procedure installs it from the package uploaded to the VSA Shared folder&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS &amp; SKM" name="GetVariable" continueOnFail="false">
+        <Statement description="The procedure detects CrowdStrike falcon-sensor on the computer. If not detected the procedure installs it from the package uploaded&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS &amp; SKM" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="SQLView" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="vMachine/osType" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="osType" />
@@ -16,8 +16,8 @@
           </Condition>
           <Then>
             <Statement name="GetVariable" continueOnFail="false">
-              <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
-              <Parameter xsi:type="StringParameter" name="SourceContent" value="Provide your Customer ID Checksum (CID)" />
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="04484FCD72104844A41C56B2ECBDA323-53" />
               <Parameter xsi:type="StringParameter" name="VariableName" value="CID" />
             </Statement>
             <Statement name="GetVariable" continueOnFail="false">
@@ -40,126 +40,209 @@
               <Parameter xsi:type="StringParameter" name="SourceContent" value="falcon-sensor" />
               <Parameter xsi:type="StringParameter" name="VariableName" value="global:DetectName" />
             </Statement>
-            <If description="">
+            <If description="Debian-based">
               <Condition name="CheckVariable">
                 <Parameter xsi:type="StringParameter" name="VariableName" value="#global:LinuxDistroName#" />
                 <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
                 <Parameter xsi:type="StringParameter" name="Value" value="Ubuntu" />
               </Condition>
               <Then>
-                <Statement description="Check Ubuntu binary" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
-                  <Parameter xsi:type="StringParameter" name="Parameter1" value="dpkg-query -l" />
-                  <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
-                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="dpkg-query -l" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:CheckBinary" />
+                </Statement>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="falcon-sensor_6.32.0-12904_amd64" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:FileName" />
+                </Statement>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#global:FileName#.deb" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:Package" />
+                </Statement>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="dpkg -i" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:InstallCommand" />
+                </Statement>
+              </Then>
+            </If>
+            <If description="Red Hat based">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:LinuxDistroName#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                <Parameter xsi:type="StringParameter" name="Value" value="rhel" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="rpm -qa" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:CheckBinary" />
                 </Statement>
                 <If description="">
                   <Condition name="CheckVariable">
-                    <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#global:LinuxDistroName#" />
                     <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
-                    <Parameter xsi:type="StringParameter" name="Value" value="#global:DetectName#" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="VERSION_ID=&quot;8" />
                   </Condition>
                   <Then>
-                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                      <Parameter xsi:type="StringParameter" name="Comment" value="Found binary #global:DetectName#" />
+                    <Statement name="GetVariable" continueOnFail="false">
+                      <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="falcon-sensor-6.32.0-12904.el8.x86_64" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="global:FileName" />
                     </Statement>
                   </Then>
-                  <Else>
-                    <Statement description="Install Ubuntu binary" name="GetVariable" continueOnFail="false">
+                </If>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#global:LinuxDistroName#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="VERSION_ID=&quot;7" />
+                  </Condition>
+                  <Then>
+                    <Statement name="GetVariable" continueOnFail="false">
                       <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-                      <Parameter xsi:type="StringParameter" name="SourceContent" value="falcon-sensor_6.32.0-12904_amd64.deb" />
-                      <Parameter xsi:type="StringParameter" name="VariableName" value="global:PackageName" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="falcon-sensor-6.32.0-12904.el7.x86_64" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="global:FileName" />
                     </Statement>
-                    <Statement description="Download the package from VSA Shared files" name="WriteFile" continueOnFail="false" osType="Linux">
-                      <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#/#global:PackageName#" />
-                      <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#global:PackageName#" />
-                      <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+                  </Then>
+                </If>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#global:LinuxDistroName#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="VERSION_ID=&quot;6" />
+                  </Condition>
+                  <Then>
+                    <Statement name="GetVariable" continueOnFail="false">
+                      <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="falcon-sensor-6.32.0-12904.el6.x86_64" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="global:FileName" />
+                    </Statement>
+                  </Then>
+                </If>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#global:FileName#.rpm" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:Package" />
+                </Statement>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="rpm -ivh" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:InstallCommand" />
+                </Statement>
+              </Then>
+            </If>
+            <Statement description="Check if binary installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="#global:CheckBinary#" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                <Parameter xsi:type="StringParameter" name="Value" value="#global:DetectName#" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Found binary #global:DetectName#" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement description="Install binary" name="GetURL" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/Public/#global:FileName#.zip" />
+                  <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempDir#/#global:FileName#.zip" />
+                  <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+                </Statement>
+                <If description="">
+                  <Condition name="TestFile">
+                    <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/#global:FileName#.zip" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="" />
+                  </Condition>
+                  <Then>
+                    <Statement name="Unzip file" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Parameter1" value="#vAgentConfiguration.agentTempDir#/#global:FileName#.zip" />
+                      <Parameter xsi:type="StringParameter" name="Parameter2" value="#vAgentConfiguration.agentTempDir#" />
+                      <Parameter xsi:type="StringParameter" name="Parameter3" value="False" />
+                    </Statement>
+                    <Statement name="ExecuteShellCommand" continueOnFail="false" osType="Linux">
+                      <Parameter xsi:type="StringParameter" name="Command" value="#global:InstallCommand#  #vAgentConfiguration.agentTempDir#/#global:Package#" />
+                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                    </Statement>
+                    <Statement description="Check binary after installation" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
+                      <Parameter xsi:type="StringParameter" name="Parameter1" value="#global:CheckBinary#" />
+                      <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+                      <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
                     </Statement>
                     <If description="">
-                      <Condition name="TestFile">
-                        <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#/#global:PackageName#" />
-                        <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
-                        <Parameter xsi:type="StringParameter" name="Value" value="" />
+                      <Condition name="CheckVariable">
+                        <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                        <Parameter xsi:type="StringParameter" name="Value" value="#global:DetectName#" />
                       </Condition>
                       <Then>
-                        <Statement name="ExecuteShellCommand" continueOnFail="false" osType="Linux">
-                          <Parameter xsi:type="StringParameter" name="Command" value="dpkg -i  #WorkingDirectory#/#global:PackageName#" />
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Found binary #global:DetectName#" />
+                        </Statement>
+                        <Statement description="Set the CID" name="ExecuteShellCommand" continueOnFail="false" osType="Linux">
+                          <Parameter xsi:type="StringParameter" name="Command" value="/opt/CrowdStrike/falconctl -s --cid=#CID#" />
                           <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
                           <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
                         </Statement>
-                        <Statement description="Check Ubuntu binary after installation" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
-                          <Parameter xsi:type="StringParameter" name="Parameter1" value="dpkg-query -l" />
+                        <Statement name="ExecuteShellCommand" continueOnFail="false" osType="Linux">
+                          <Parameter xsi:type="StringParameter" name="Command" value="/opt/CrowdStrike/falconctl -s --tags=&quot;Linux-Server&quot;" />
+                          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                        </Statement>
+                        <Statement description="Binary detected. Find  the first process to start service" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
+                          <Parameter xsi:type="StringParameter" name="Parameter1" value="pidof systemd &amp;&amp; echo &quot;systemd&quot;" />
                           <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
                           <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
                         </Statement>
                         <If description="">
                           <Condition name="CheckVariable">
                             <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
-                            <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
-                            <Parameter xsi:type="StringParameter" name="Value" value="#global:DetectName#" />
+                            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                            <Parameter xsi:type="StringParameter" name="Value" value="" />
                           </Condition>
                           <Then>
-                            <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                              <Parameter xsi:type="StringParameter" name="Comment" value="Found binary #global:DetectName#" />
+                            <Statement description="Systemd" name="ExecuteShellCommand" continueOnFail="false" osType="Linux">
+                              <Parameter xsi:type="StringParameter" name="Command" value="systemctl start #global:DetectName#" />
+                              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
                             </Statement>
-                            <If description="Set CID if it was provided">
-                              <Condition name="CheckVariable">
-                                <Parameter xsi:type="StringParameter" name="VariableName" value="CID" />
-                                <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThan" />
-                                <Parameter xsi:type="StringParameter" name="Value" value="" />
-                              </Condition>
-                              <Then>
-                                <Statement name="ExecuteShellCommand" continueOnFail="false" osType="Linux">
-                                  <Parameter xsi:type="StringParameter" name="Command" value="/opt/CrowdStrike/falconctl -s --cid=#CID#" />
-                                  <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
-                                  <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
-                                </Statement>
-                                <Statement description="Binary detected. Find  the first process to start service" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
-                                  <Parameter xsi:type="StringParameter" name="Parameter1" value="pidof systemd &amp;&amp; echo &quot;systemd&quot;" />
-                                  <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
-                                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
-                                </Statement>
-                                <If description="">
-                                  <Condition name="CheckVariable">
-                                    <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
-                                    <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
-                                    <Parameter xsi:type="StringParameter" name="Value" value="" />
-                                  </Condition>
-                                  <Then>
-                                    <Statement description="Systemd" name="ExecuteShellCommand" continueOnFail="false" osType="Linux">
-                                      <Parameter xsi:type="StringParameter" name="Command" value="systemctl start #global:DetectName#" />
-                                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
-                                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
-                                    </Statement>
-                                  </Then>
-                                  <Else>
-                                    <Statement description="SysVinit" name="ExecuteShellCommand" continueOnFail="false" osType="Linux">
-                                      <Parameter xsi:type="StringParameter" name="Command" value="service #global:DetectName# start" />
-                                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
-                                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
-                                    </Statement>
-                                  </Else>
-                                </If>
-                              </Then>
-                              <Else>
-                                <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                                  <Parameter xsi:type="StringParameter" name="Comment" value="CID was not provided" />
-                                </Statement>
-                              </Else>
-                            </If>
                           </Then>
                           <Else>
-                            <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                              <Parameter xsi:type="StringParameter" name="Comment" value="Unable to find #global:DetectName# after installation" />
+                            <Statement description="SysVinit" name="ExecuteShellCommand" continueOnFail="false" osType="Linux">
+                              <Parameter xsi:type="StringParameter" name="Command" value="service #global:DetectName# start" />
+                              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
                             </Statement>
                           </Else>
                         </If>
                       </Then>
                       <Else>
                         <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                          <Parameter xsi:type="StringParameter" name="Comment" value="Could not locate package #global:PackageName# in #WorkingDirectory#" />
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Unable to find #global:DetectName# after installation" />
                         </Statement>
                       </Else>
                     </If>
+                    <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/#global:FileName#.zip" />
+                    </Statement>
+                    <Statement name="DeleteFile" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/#global:FileName#.deb" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Could not locate package #FileName#" />
+                    </Statement>
                   </Else>
                 </If>
                 <Statement description="Check running processes when binary installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
@@ -180,14 +263,17 @@
                   </Then>
                   <Else>
                     <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                      <Parameter xsi:type="StringParameter" name="Comment" value="Not found process #global:DetectName#" />
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Not found process #global:DetectName#. Restart is required" />
+                    </Statement>
+                    <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
+                      <Parameter xsi:type="StringParameter" name="Parameter1" value="/opt/CrowdStrike/falconctl -g --cid --aid --rfm-state --rfm-reason --version" />
+                      <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+                      <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
                     </Statement>
                   </Else>
                 </If>
-              </Then>
-              <Else>
                 <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Comment" value="Not Ubuntu" />
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Installation check returned: #global:cmdresults#" />
                 </Statement>
               </Else>
             </If>
@@ -200,9 +286,9 @@
         </If>
       </Body>
     </Procedure>
-    <Procedure name="Uninstall CrowdStrike" treePres="3" id="670405059" folderId="773245190211226" treeFullPath="myProcedures - kadmin.Install &amp; Uninistall CrowdStrike (Linux)">
+    <Procedure name="Uninstall CrowdStrike" treePres="3" id="243696927" folderId="773245190211226" treeFullPath="myProcedures - kadmin.Install &amp; Uninistall CrowdStrike (Linux)">
       <Body description="">
-        <Statement description="The procedure detects and uninstalls CrowdStrike falcon-sensor on the computer.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS &amp; SKM" name="GetVariable" continueOnFail="false">
+        <Statement description="The procedure detects CrowdStrike falcon-sensor on the computer. If not detected the procedure installs it from the package uploaded&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS &amp; SKM" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="SQLView" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="vMachine/osType" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="osType" />
@@ -214,11 +300,6 @@
             <Parameter xsi:type="StringParameter" name="Value" value="Linux" />
           </Condition>
           <Then>
-            <Statement name="GetVariable" continueOnFail="false">
-              <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
-              <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
-              <Parameter xsi:type="StringParameter" name="VariableName" value="WorkingDirectory" />
-            </Statement>
             <Statement description="Get Linux distribution" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
               <Parameter xsi:type="StringParameter" name="Parameter1" value="cat /etc/*-release" />
               <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
@@ -234,15 +315,66 @@
               <Parameter xsi:type="StringParameter" name="SourceContent" value="falcon-sensor" />
               <Parameter xsi:type="StringParameter" name="VariableName" value="global:DetectName" />
             </Statement>
-            <If description="">
+            <If description="Debian-based">
               <Condition name="CheckVariable">
                 <Parameter xsi:type="StringParameter" name="VariableName" value="#global:LinuxDistroName#" />
                 <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
                 <Parameter xsi:type="StringParameter" name="Value" value="Ubuntu" />
               </Condition>
               <Then>
-                <Statement description="Check Ubuntu binary" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
-                  <Parameter xsi:type="StringParameter" name="Parameter1" value="dpkg-query -l" />
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="dpkg-query -l" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:CheckBinary" />
+                </Statement>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="dpkg --purge --force-all" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:UnInstallCommand" />
+                </Statement>
+              </Then>
+            </If>
+            <If description="Red Hat based">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:LinuxDistroName#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                <Parameter xsi:type="StringParameter" name="Value" value="rhel" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="rpm -qa" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:CheckBinary" />
+                </Statement>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="rpm -e" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:UnInstallCommand" />
+                </Statement>
+              </Then>
+            </If>
+            <Statement description="Check if binary installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="#global:CheckBinary#" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                <Parameter xsi:type="StringParameter" name="Value" value="#global:DetectName#" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Found binary #global:DetectName#" />
+                </Statement>
+                <Statement description="UnInstall binary" name="ExecuteShellCommand" continueOnFail="false" osType="Linux">
+                  <Parameter xsi:type="StringParameter" name="Command" value="#global:UnInstallCommand#  #global:DetectName#" />
+                  <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                  <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                </Statement>
+                <Statement description="Check binary after uninstallation" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="#global:CheckBinary#" />
                   <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
                   <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
                 </Statement>
@@ -254,46 +386,19 @@
                   </Condition>
                   <Then>
                     <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                      <Parameter xsi:type="StringParameter" name="Comment" value="Found binary #global:DetectName#" />
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Removing was not successful. Found binary #global:DetectName#" />
                     </Statement>
-                    <Statement description="Uninstall Ubuntu binary" name="ExecuteShellCommand" continueOnFail="false" osType="Linux">
-                      <Parameter xsi:type="StringParameter" name="Command" value="dpkg --purge --force-all #global:DetectName#" />
-                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
-                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
-                    </Statement>
-                    <Statement description="Check Ubuntu binary after uninstallation" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Linux">
-                      <Parameter xsi:type="StringParameter" name="Parameter1" value="dpkg-query -l" />
-                      <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
-                      <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
-                    </Statement>
-                    <If description="">
-                      <Condition name="CheckVariable">
-                        <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
-                        <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
-                        <Parameter xsi:type="StringParameter" name="Value" value="#global:DetectName#" />
-                      </Condition>
-                      <Then>
-                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                          <Parameter xsi:type="StringParameter" name="Comment" value="Removing was not successful. Found binary #global:DetectName#" />
-                        </Statement>
-                      </Then>
-                      <Else>
-                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                          <Parameter xsi:type="StringParameter" name="Comment" value="#global:PackageName# removed" />
-                        </Statement>
-                      </Else>
-                    </If>
                   </Then>
                   <Else>
                     <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                      <Parameter xsi:type="StringParameter" name="Comment" value="Binary #global:DetectName# not found" />
+                      <Parameter xsi:type="StringParameter" name="Comment" value="#global:PackageName# removed" />
                     </Statement>
                   </Else>
                 </If>
               </Then>
               <Else>
                 <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Comment" value="Not Ubuntu" />
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Binary #global:DetectName# not found" />
                 </Statement>
               </Else>
             </If>

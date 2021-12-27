@@ -41,7 +41,6 @@ if (0 -lt $ServicesToWatch.Count) {
 
 #Proceed if there are no active RDP sessions
 if ( -not $ActiveConnection ) {
-    
     #If a Kaseya Agent service is not running, start it
     $ServicesToWatch = Get-Service -DisplayName "$NewName*"
     Foreach ($Service in $ServicesToWatch) {

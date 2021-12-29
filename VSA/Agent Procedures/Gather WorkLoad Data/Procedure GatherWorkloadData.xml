@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
-  <Procedure name="GatherWorkloadData" treePres="3" id="523022681" folderId="691945742625717">
+  <Procedure name="GatherWorkloadData" treePres="3" id="1966083481" folderId="691945742625717">
     <Body description="The procedure gathers process' information on the host and saves it as a CSV-file on the VSA server.">
       <Statement description="The procedure gathers process' information on the host and saves it as a CSV-file on the VSA server.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Interval in seconds" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
@@ -39,7 +39,7 @@
       </Statement>
       <Statement description="Folder and file name on the VSA server to upload gathered info" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-        <Parameter xsi:type="StringParameter" name="SourceContent" value="..\..\HostLoadInfo" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="..\..\HostWorkLoadInfo" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="VSAFolder" />
       </Statement>
       <Statement name="GetVariable" continueOnFail="false">
@@ -51,6 +51,12 @@
         <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#WorkingDirectory#\#OutputFile#" />
         <Parameter xsi:type="StringParameter" name="KServerFileName" value="#VSAOutputFile#" />
         <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
+      </Statement>
+      <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\#OutputFile#" />
+      </Statement>
+      <Statement name="DeleteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\#ConfigFile#" />
       </Statement>
     </Body>
   </Procedure>

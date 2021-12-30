@@ -21,7 +21,7 @@ $SourceExists = [System.Diagnostics.EventLog]::SourceExists("Kaseya Agent Watchd
 
 #If not, create a new one
 if ($SourceExists -eq $false) {
-    New-EventLog –LogName Application –Source “Kaseya Agent Watchdog”
+    New-EventLog –LogName Application –Source "Kaseya Agent Watchdog"
 }
 
 #Define variables

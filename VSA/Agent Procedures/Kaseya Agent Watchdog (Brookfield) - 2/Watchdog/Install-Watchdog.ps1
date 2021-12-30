@@ -3,7 +3,9 @@
 
 param (
     [parameter(Mandatory=$true)]
-	[string]$Path = "",
+	[string]$ScriptPath,
+    [parameter(Mandatory=$true)]
+    [string[]] $ServicesDisplayNames,
     [parameter(Mandatory=$true)]
     [int]$Minutes,
     [parameter(Mandatory=$false)]
@@ -21,22 +23,19 @@ if (1 -eq $LogIt)
     Start-Transcript -Path $LogFile
 }
 
-#Path to Kaseya Agent Watchdog script
-$ScriptPath = "$Path\Watch-AgentService.ps1"
-
 #Check if task already exists
 $TaskExists = Get-ScheduledTask -TaskName "Kaseya Agent Watchdog" -ErrorAction SilentlyContinue
 
 if ($TaskExists) {
     Write-Host "Task already exists - no need to create."
-    Write-Debug($TaskExists|Out-String)
+     $TaskExists | Out-String | Write-Debug
 } else {
     Write-Host "Task doesn't exist and will be created"
 
     try {
 
         #If task doesn't exist, create it using specified options
-        $TaskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-file ""$ScriptPath`""
+        $TaskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -Command `"$ScriptPath`" `"$ServicesDisplayNames`""
 
         $Repeat = (New-TimeSpan -Minutes $Minutes)
 

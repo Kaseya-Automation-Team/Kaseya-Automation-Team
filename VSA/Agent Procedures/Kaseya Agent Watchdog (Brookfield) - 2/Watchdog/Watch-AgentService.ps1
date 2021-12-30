@@ -7,16 +7,19 @@
    Used by the "Kaseya Agent Watchdog for Brookfield" Agent Procedure
 .EXAMPLE
    .\Watch-AgentService.ps1 -ServicesDisplayNames "Kaseya Agent", "Kaseya Agent Endpoint"
+   .EXAMPLE
+   .\Watch-AgentService.ps1 -ServicesDisplayNames "Kaseya Agent", "Kaseya Agent Endpoint" -LogIt
 .NOTES
    Version 0.1
    Author: Proserv Team - VS
 #>
 param (
-    [parameter(Mandatory=$true)]
+    [parameter(Mandatory=$true,
+                Position=0)]
     [ValidateNotNull()] 
     [string[]] $ServicesDisplayNames
 )
-
+[string] $LogName = "Kaseya Agent Watchdog"
 if ( -not [System.Diagnostics.EventLog]::SourceExists($LogName) ) { 
     New-EventLog -LogName Application -Source $LogName
 }

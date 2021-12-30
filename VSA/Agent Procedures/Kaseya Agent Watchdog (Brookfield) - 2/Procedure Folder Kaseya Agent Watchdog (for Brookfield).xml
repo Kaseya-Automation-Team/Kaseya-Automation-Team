@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Kaseya Agent Watchdog (for Brookfield)" treePres="3">
-    <Procedure name="Install Kaseya Agent Watchdog" treePres="3" id="1653049718" folderId="605576590171818" treeFullPath="myProcedures - admin.Kaseya Agent Watchdog (for Brookfield)">
+    <Procedure name="Install Kaseya Agent Watchdog" treePres="3" id="1653049718" folderId="304759662367757" treeFullPath="myProcedures - kadmin.Kaseya Agent Watchdog (for Brookfield)">
       <Body description="This agent procedure uploads two Powershell script - installer and executable for Kaseya Agent Watchdog.">
-        <Statement description="This agent procedure uploads two Powershell script - installer and executable for Kaseya Agent Watchdog.&#xD;&#xA;Installer creates new job in Task Scheduler,. Job itself executes Kaseya Agent Watchdog script in specified interval of time.&#xD;&#xA;Modification date: 06-15-21&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
+        <Statement description="This agent procedure uploads two Powershell script - installer and executable for Kaseya Agent Watchdog.&#xD;&#xA;Installer creates new task in Task Scheduler. The task, in turn, executes Kaseya Agent Watchdog script at specified intervals of time.&#xD;&#xA;Modification date: 12-30-21&#xD;&#xA;Version 0.2&#xD;&#xA;################################" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
-          <Parameter xsi:type="StringParameter" name="VariableName" value="ksystem" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="WorkingDirectory" />
         </Statement>
         <Statement description="Specify value of debug variable as 1, to enable debug log for installer script" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
@@ -18,30 +18,45 @@
           <Parameter xsi:type="StringParameter" name="SourceContent" value="30" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="minutes" />
         </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Watch-AgentService.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="TheScript" />
+        </Statement>
+        <Statement description="Specify display names of the services in single quotes separated by commas" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="'Kaseya Agent', 'Kaseya Agent Endpoint'" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="DisplayNames" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;#DisplayNames#&quot;" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="DisplayNames" />
+        </Statement>
         <Statement name="WriteFile" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\Watchdog\Install-WatchDog.ps1" />
+          <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\Watchdog\Install-WatchDog.ps1" />
           <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Watchdog\Install-Watchdog.ps1" />
           <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
         </Statement>
         <Statement name="WriteFile" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\Watchdog\WatchDog-AgentService.ps1" />
-          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Watchdog\Watch-AgentService.ps1" />
+          <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\Watchdog\#TheScript#" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Watchdog\#TheScript#" />
           <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
         </Statement>
         <Statement description="Execute PowerShell script" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#ksystem#\Watchdog\Install-WatchDog.ps1&quot; -Path #ksystem#\Watchdog -Minutes #minutes# -LogIt #debug# " />
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#WorkingDirectory#\Watchdog\Install-WatchDog.ps1&quot; -ScriptPath #WorkingDirectory#\Watchdog\#TheScript# -ServicesDisplayNames #DisplayNames# -Minutes #minutes# -LogIt #debug# " />
           <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
           <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
         </Statement>
         <Statement name="WriteScriptLogEntry" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
         </Statement>
-        <Statement name="DeleteFile" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Path" value="#ksystem#\Watchdog\Install-Watchdog.ps1" />
+        <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\Watchdog\Install-WatchDog.ps1" />
         </Statement>
       </Body>
     </Procedure>
-    <Procedure name="Uninstall Kaseya Agent Watchdog" treePres="3" id="1414075616" folderId="605576590171818" treeFullPath="myProcedures - admin.Kaseya Agent Watchdog (for Brookfield)">
+    <Procedure name="Uninstall Kaseya Agent Watchdog" treePres="3" id="1414075616" folderId="304759662367757" treeFullPath="myProcedures - kadmin.Kaseya Agent Watchdog (for Brookfield)">
       <Body description="This procedures uploads PowerShell script and executes it.">
         <Statement description="This procedures uploads PowerShell script and executes it.&#xD;&#xA;Script it self deletes Kaseya Agent Watchdog job from the Task Scheduler.&#xD;&#xA;Modification date: 06-15-21&#xD;&#xA;Version 0.1" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />

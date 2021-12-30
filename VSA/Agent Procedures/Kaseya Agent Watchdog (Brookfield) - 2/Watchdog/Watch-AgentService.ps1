@@ -1,5 +1,21 @@
-﻿## Kaseya Automation Team
-## Used by the "Kaseya Agent Watchdog for Brookfield" Agent Procedure[string]$LogName = "Kaseya Agent Watchdog"
+﻿<#
+.Synopsis
+   Checks if services with given display names are stopped and makes attempt to start them if there are no active RDP connections.
+.DESCRIPTION
+   Checks if services with given display names are stopped and makes attempt to start them if there are no active RDP connections.
+   Information on services' state is logged to the Kaseya Agent Watchdog log.
+   Used by the "Kaseya Agent Watchdog for Brookfield" Agent Procedure
+.EXAMPLE
+   .\Watch-AgentService.ps1 -ServicesDisplayNames "Kaseya Agent", "Kaseya Agent Endpoint"
+.NOTES
+   Version 0.1
+   Author: Proserv Team - VS
+#>
+param (
+    [parameter(Mandatory=$true)]
+    [ValidateNotNull()] 
+    [string[]] $ServicesDisplayNames
+)
 
 if ( -not [System.Diagnostics.EventLog]::SourceExists($LogName) ) { 
     New-EventLog -LogName Application -Source $LogName
@@ -25,24 +41,11 @@ qwinsta | ForEach-Object {
             Message   = 'Kaseya Agent Watchdog'
         }
 
-#Rename service if old names found
-[string]$OldName = "Kaseya Agent*"
-[string]$NewName = "STCST976705554315707"
-$ServicesToWatch = Get-Service -DisplayName $OldName
-if (0 -lt $ServicesToWatch.Count) {
-    Foreach ($Service in $ServicesToWatch) {
-        $OldDisplayName = $Service.DisplayName
-        $NewDisplayName = $OldDisplayName -replace $OldName, $NewName
-        Set-Service -Name $Service.Name -DisplayName $NewDisplayName
-        $EventData.Message = "Display name of the service $($Service.Name) changed from  $OldDisplayName to $NewDisplayName"
-        Write-EventLog @EventData
-    }
-}
 
 #Proceed if there are no active RDP sessions
 if ( -not $ActiveConnection ) {
     #If a Kaseya Agent service is not running, start it
-    $ServicesToWatch = Get-Service -DisplayName "$NewName*"
+    $ServicesToWatch = Get-Service -DisplayName $ServicesDisplayNames
     Foreach ($Service in $ServicesToWatch) {
         switch ( $Service.Status ) {
             'Stopped' {

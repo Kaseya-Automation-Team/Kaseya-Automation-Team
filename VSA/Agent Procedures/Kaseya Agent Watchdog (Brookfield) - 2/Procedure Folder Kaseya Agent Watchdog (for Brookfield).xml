@@ -25,7 +25,7 @@
         </Statement>
         <Statement description="Specify display names of the services in single quotes separated by commas" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="'Kaseya Agent', 'Kaseya Agent Endpoint'" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="'STCST976705554315707', 'STCST976705554315707 Agent Endpoint'" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="DisplayNames" />
         </Statement>
         <Statement name="GetVariable" continueOnFail="false">

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Kaseya Agent Watchdog (for Brookfield)" treePres="3">
     <Procedure name="Install Kaseya Agent Watchdog" treePres="3" id="1653049718" folderId="304759662367757" treeFullPath="myProcedures - kadmin.Kaseya Agent Watchdog (for Brookfield)">
       <Body description="This agent procedure uploads two Powershell script - installer and executable for Kaseya Agent Watchdog.">
@@ -83,4 +83,4 @@
       </Body>
     </Procedure>
   </Folder>
-</ScriptExport>
+</ScExport>

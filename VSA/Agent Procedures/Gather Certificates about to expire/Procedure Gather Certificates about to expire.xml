@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Gather Certificates about to expire" treePres="3" id="909754712" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
+    <Body description="The procedure calls PowerShell script that gathers certificates that are about to expire in given amount of days (30 by default) and saves information to the CSV file named after the Agent ID on the VSA server.">
+      <Statement description="The procedure calls PowerShell script that gathers certificates that are about to expire in given amount of days (30 by default) and saves information to the CSV file named after the Agent ID on the VSA server.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Set number of days to certificate expiration" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="30" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ExpireWithinDays" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="WorkingDirectory" />
+      </Statement>
+      <Statement description="Set output file name" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="cert_info" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="OutputFileBaseName" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="csv" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="OutputFileExtension" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="#OutputFileBaseName#.#OutputFileExtension#" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="OutputFileName" />
+      </Statement>
+      <Statement description="Folder and file name on the VSA server to upload gathered info" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="..\..\CertificatesAboutToExpire" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="VSAFolder" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="#VSAFolder#\#vAgentConfiguration.agentGuid#.#OutputFileExtension#" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="VSAOutputFile" />
+      </Statement>
+      <If description="Remove previous output file if it exists">
+        <Condition name="TestFile">
+          <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\#OutputFileName#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <Statement name="DeleteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\#OutputFileName#" />
+          </Statement>
+        </Then>
+      </If>
+      <Statement name="ExecuteShellCommand" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;Set-Location Cert: ; Get-ChildItem -Recurse | Where-Object { ($_.Thumbprint)  -and ( $_.notafter -ge (Get-Date) ) -and ( $_.notafter -le (Get-Date).AddDays(#ExpireWithinDays#) ) } | Select-Object Thumbprint, Subject, NotAfter | Export-Csv -Encoding UTF8 -Force -NoTypeInformation -Path #WorkingDirectory#\#OutputFileName#&quot;" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+      <If description="">
+        <Condition name="TestFile">
+          <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\#OutputFileName#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <Statement description="Pull the output file to the VSA server and put into the agent's folder inside the UserProfilesInfo directory" name="GetFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#WorkingDirectory#\#OutputFileName#" />
+            <Parameter xsi:type="StringParameter" name="KServerFileName" value="#VSAOutputFile#" />
+            <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="File #OutputFileName# not found" />
+          </Statement>
+        </Else>
+      </If>
+      <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="#WorkingDirectory#\#OutputFileName#" />
+      </Statement>
+    </Body>
+  </Procedure>
+</ScExport>

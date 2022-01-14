@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="RemoveKB5009624-KB5009557-KB5009555" treePres="3" id="937409248" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
+    <Body description="The procedure removes notorious KB5009624, KB5009557 and KB5009555&#xA;Author: Proserv Team - VS">
+      <If description="The procedure removes notorious KB5009624, KB5009557 and KB5009555&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;################################&#xD;&#xA;Dism detects KB5009557 by &quot;17763.2350&quot; substring, KB5009555 by &quot;20348.403&quot; substring, KB5009624 by &quot;KB5009624&quot; substring .">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#vMachine.OsType#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2012" />
+        </Condition>
+        <Then>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="true" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="global:ValidOS" />
+          </Statement>
+        </Then>
+      </If>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#vMachine.OsType#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2019" />
+        </Condition>
+        <Then>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="true" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="global:ValidOS" />
+          </Statement>
+        </Then>
+      </If>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#vMachine.OsType#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="2022" />
+        </Condition>
+        <Then>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="true" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="global:ValidOS" />
+          </Statement>
+        </Then>
+      </If>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#global:ValidOS#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="true" />
+        </Condition>
+        <Then>
+          <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;$PackageName= Get-WindowsPackage -Online | Where-Object {$_.PackageName -match 'KB5009624|17763.2350|20348.403'} | Select-Object -ExpandProperty PackageName; $FileName=&quot;&quot;&quot;C:\Windows\servicing\Packages\$PackageName.mum&quot;&quot;&quot;; (Get-Content $FileName) -replace 'permanent', 'removable' | Set-Content $FileName; Remove-WindowsPackage -PackageName $PackageName -Online -NoRestart&quot;" />
+            <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+            <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+          </Statement>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+          </Statement>
+        </Then>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

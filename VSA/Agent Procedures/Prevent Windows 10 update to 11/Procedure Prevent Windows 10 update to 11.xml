@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Prevent Windows 10 update to 11" treePres="3" id="1747099465" folderId="691945742625717" treeFullPath="myProcedures - kadmin">
+    <Body description="This agent procedure uses a PowerShell script that modifies the registry to prevent Windows 10 from being upgraded to Windows 11. At the same time, it allows Windows 10 upgrade to the target version (21H2 by default).&#xA;Author: Proserv Team - VS">
+      <Statement description="This agent procedure uses a PowerShell script that modifies the registry to prevent Windows 10 from being upgraded to Windows 11. At the same time, it allows Windows 10 upgrade to the target version (21H2 by default)&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="WorkingDirectory" />
+      </Statement>
+      <Statement description="Set Windows 10 upgrade target version (21H2 by default )" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="21H2" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="TargetVersion" />
+      </Statement>
+      <Statement description="Set script filename" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Stop-UpdateTo11" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptBaseName" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="#WorkingDirectory#\#ScriptBaseName#.ps1" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptFullPath" />
+      </Statement>
+      <Statement description="Download the script" name="WriteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+        <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#ScriptBaseName#.ps1" />
+        <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+      </Statement>
+      <If description="check if script downloaded">
+        <Condition name="TestFile">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <Statement description="Define the script's parameters &amp; execute the script" name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;&amp; '#ScriptFullPath#' -TargetVersion #TargetVersion#" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptCommandParameters" />
+          </Statement>
+          <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ScriptCommandParameters#" />
+            <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+            <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+          </Statement>
+          <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Script #ScriptBaseName#.ps1 was not downloaded" />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

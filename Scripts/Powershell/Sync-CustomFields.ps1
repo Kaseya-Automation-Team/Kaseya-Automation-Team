@@ -3,7 +3,7 @@
     Synchronizes Custom Fields between source and destination VSA.
 .DESCRIPTION
     Downloads the VSAModule PowerShell module from github and installs it if the module folder is not found in the user's environment Module folder.
-    Compares Custom Fields by name in the Source and Destination VSA instances.
+    Compares Custom Fields by name in the Source and the Destination VSA instances.
     Missed fields are created in the destination VSA.
     The source Custom Fields with their values are collected and bound to the Agent Name.
     Corresponding destination Assets are found by matching the Agent Name.
@@ -27,12 +27,11 @@
 .EXAMPLE
     .\Sync-CustomFields.ps1 -SourceVSAAddress 'https://source.example' -SourceVSAUserName 'user1' -SourceUserPAT '01e0e010-1010-1010-b101-ca1beec10efc' `
      -DestinationVSAAddress 'https://destination.example' -DestinationVSAUserName 'user2' -DestinationUserPAT '02e0e020-2020-2020-b202-ca2beec20efc' -OverwriteExistingModule
-    Populates  the VSA Machine Summary with the Active Directory Computer description. Overwrites existing VSAModule if found.
 .NOTES
     Version 0.1
     Requires:
         Internet connection to download VSAModule from GitHub if the module was not installed beforehand.
-        Proper permissions to execute the script.
+        Proper permissions to install module VSAModule and execute the script.
    
     Author: Proserv Team - VS
 

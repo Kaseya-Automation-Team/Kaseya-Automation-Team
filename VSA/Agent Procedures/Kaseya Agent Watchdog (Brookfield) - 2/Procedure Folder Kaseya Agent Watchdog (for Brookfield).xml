@@ -15,7 +15,7 @@
         </Statement>
         <Statement name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="30" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="5" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="minutes" />
         </Statement>
         <Statement name="GetVariable" continueOnFail="false">

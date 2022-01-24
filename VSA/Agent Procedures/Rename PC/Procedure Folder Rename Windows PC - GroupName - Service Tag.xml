@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Rename Windows PC - GroupName - Service Tag" treePres="3">
+    <Procedure name="Rename Windows PC - Groupname - ServiceTag" treePres="3" id="774712719" folderId="675839991530328" treeFullPath="Rename Windows PC - GroupName - Service Tag">
+      <Body description="This procedure will rename the machine to &quot;GroupName - System Serial Number&quot;">
+        <Statement description="This procedure will rename the machine to &quot;GroupName - System Serial Number&quot;&#xD;&#xA;Author - Kaseya Automation Team - V1.0" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="SQLView" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="vMachine/groupName" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="group" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="SQLView" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="vMachine/SysSerialNumber" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="SerialNumber" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#group# - #SerialNumber#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="name" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Admin Username:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="username" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Admin Password:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="password" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Reboot? (Y or N)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="reboot" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\Rename.ps1" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\Rename.ps1" />
+            </Statement>
+          </Then>
+        </If>
+        <Statement name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="echo $creds = New-Object pscredential -ArgumentList ([pscustomobject]@{ &gt;&gt; #vAgentConfiguration.agentTempDir#\Rename.ps1" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <Statement name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="echo UserName = '#username#' &gt;&gt;&gt;&gt; #vAgentConfiguration.agentTempDir#\Rename.ps1" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <Statement name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="echo Password = (ConvertTo-SecureString -String '#password#' -AsPlainText -Force)[0]}) &gt;&gt;&gt;&gt; #vAgentConfiguration.agentTempDir#\Rename.ps1" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <Statement name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="echo Rename-Computer -NewName #name# -LocalCredential $creds -Force &gt;&gt;&gt;&gt; #vAgentConfiguration.agentTempDir#\Rename.ps1" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <Statement name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #vAgentConfiguration.agentTempDir#\Rename.ps1" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#reboot#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="BeginsWith" />
+            <Parameter xsi:type="StringParameter" name="Value" value="Y" />
+          </Condition>
+          <Then>
+            <Statement name="Reboot" continueOnFail="false" />
+          </Then>
+          <Else>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#reboot#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="BeginsWith" />
+                <Parameter xsi:type="StringParameter" name="Value" value="y" />
+              </Condition>
+              <Then>
+                <Statement name="Reboot" continueOnFail="false" />
+              </Then>
+            </If>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

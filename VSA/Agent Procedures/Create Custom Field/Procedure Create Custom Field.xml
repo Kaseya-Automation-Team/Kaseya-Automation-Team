@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Create Custom Field" treePres="3" id="876730484" folderId="292207468157737" treeFullPath="myProcedures - vlad">
+    <Body description="The procedure calls PowerShell script that creates a Custom Field">
+      <Statement description="The procedure calls PowerShell script that creates a Custom Field&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Please provide the VSA address, including http(s) prefix" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="VSAAddress" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Please provide the VSA user name" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="VSAUserName" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Please provide the VSA user's PAT (VSA-&gt;System-&gt;User Security-&gt;Users-&gt;Access Tokens)" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="VSAUserPAT" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="WorkingDirectory" />
+      </Statement>
+      <Statement description="Set the Custom Field name and type&#xD;&#xA;Set script and log filename" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Win 10 Feature Version" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="FieldName" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="string" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="FieldType" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Add-CustomField" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptBaseName" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="#WorkingDirectory#\#ScriptBaseName#.ps1" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptFullPath" />
+      </Statement>
+      <Statement description="download the script" name="WriteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+        <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#ScriptBaseName#.ps1" />
+        <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+      </Statement>
+      <If description="check if script downloaded">
+        <Condition name="TestFile">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <Statement description="Define the script's parameters &amp; execute the script" name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;&amp; '#ScriptFullPath#' -VSAAddress '#VSAAddress#' -VSAUserName '#VSAUserName#' -VSAUserPAT '#VSAUserPAT#' -FieldName '#FieldName#' -FieldType '#FieldType#'" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptCommandParameters" />
+          </Statement>
+          <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Windows">
+            <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ScriptCommandParameters#" />
+            <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+            <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+          </Statement>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+          </Statement>
+          <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Script #ScriptBaseName#.ps1 was not downloaded" />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

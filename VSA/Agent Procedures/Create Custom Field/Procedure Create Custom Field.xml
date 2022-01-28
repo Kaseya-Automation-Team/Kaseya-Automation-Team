@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
-  <Procedure name="Create Custom Field" treePres="3" id="876730484" folderId="292207468157737" treeFullPath="myProcedures - vlad">
+  <Procedure name="Create Custom Field" treePres="3" id="876730484" folderId="292207468157737">
     <Body description="The procedure calls PowerShell script that creates a Custom Field">
       <Statement description="The procedure calls PowerShell script that creates a Custom Field&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />

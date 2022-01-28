@@ -57,6 +57,10 @@
               </Statement>
             </Then>
             <Else>
+              <Statement name="UpdateSystemInfo" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="ColumnName" value="AVInfo" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Statement>
               <Statement name="WriteScriptLogEntry" continueOnFail="false">
                 <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
               </Statement>

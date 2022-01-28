@@ -33,7 +33,7 @@ Function ConvertTo-Hex {
     '0x{0:x}' -f $Number
 }
 
-[Array] $Results = @()
+[string] $Results = ''
 [Array] $AntivirusProducts = Try {
                                     Get-CimInstance -Namespace "root/SecurityCenter2" -ClassName "Antivirusproduct" -ErrorAction Stop
                              } Catch {
@@ -49,27 +49,30 @@ if ( $AntivirusProducts ) {
         $Middle = $ProductStateHex.Substring( 3, 2 )
 
         if ($Middle -notmatch "00|01") {
-            $Enabled = $True
+            $State = 'Enabled'
         }
         else {
-            $Enabled = $False
+            $State = 'Disabled'
         }
 
         $Tail = $ProductStateHex.Substring(5)
 
         if ( '00' -eq $Tail) {
-            $UpToDate = $True
+            $UpToDate = 'Up to date'
         }
         else {
-            $UpToDate = $False
+            $UpToDate = 'Outdated'
         }
-
-        $Results += $AV | Select-Object @{Name = "Antivirus Product"; Expression = { $_.Displayname } },
-        @{Name = "Enabled"; Expression = { $Enabled } },
-        @{Name = "UpToDate"; Expression = { $UptoDate } },
-        @{Name = "Last Updated"; Expression = { $_.Timestamp } }
+        if ( -not [string]::IsNullOrEmpty( $($AV.Displayname) ) ) {
+            $AVString = @( "Antivirus: $($AV.Displayname)", $State, $UpToDate, "Last updated: $($AV.Timestamp)") -join ", "
+            if ( -not [string]::IsNullOrEmpty( $Results ) ) {
+                $Results += ";`t"
+            }
+            $Results += $AVString
+        }
+        
     } 
-    $Results | Out-String | Write-Output
+    $Results | Write-Output
 }
 
 if (1 -eq $LogIt)

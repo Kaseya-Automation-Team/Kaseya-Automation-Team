@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="PullDnsEntries" treePres="3" id="978566586" folderId="514173344622446" treeFullPath="myProcedures - kadmin">
+    <Body description="This procedure pulls the dns entries from the endpoint and it compares the same with previously pulled data and notifies if changed">
+      <Statement description="This procedure pulls the dns entries from the endpoint and it compares the same with previously pulled data and notifies if changed&#xD;&#xA;Kaseya Automation Team - SM&#xD;&#xA;Version - 1.0" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="kwrk" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="SQLView" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="vSystemInfoManual/DnsEntries" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="dnsEntries" />
+      </Statement>
+      <Statement name="WriteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/DnsEntries.ps1" />
+        <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\DnsEntries.ps1" />
+        <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+      </Statement>
+      <Statement name="ExecuteShellCommand" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -File #vAgentConfiguration.agentTempSecureDir#/DnsEntries.ps1" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+      <Statement name="PauseScript" continueOnFail="false">
+        <Parameter xsi:type="IntegerParameter" name="Seconds" value="10" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="C:\Temp\DnsEntries.txt" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="dns" />
+      </Statement>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#dnsEntries#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="DoesNotContain" />
+          <Parameter xsi:type="StringParameter" name="Value" value="InterfaceAlias" />
+        </Condition>
+        <Then>
+          <Statement name="UpdateSystemInfo" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="ColumnName" value="DnsEntries" />
+            <Parameter xsi:type="StringParameter" name="Value" value="#dns#" />
+          </Statement>
+        </Then>
+        <Else>
+          <If description="">
+            <Condition name="CheckVariable">
+              <Parameter xsi:type="StringParameter" name="VariableName" value="#dnsEntries#" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+              <Parameter xsi:type="StringParameter" name="Value" value="#dns#" />
+            </Condition>
+            <Then>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="Dns has not been changed." />
+              </Statement>
+            </Then>
+            <Else>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="Dns entries have been changed" />
+              </Statement>
+            </Else>
+          </If>
+        </Else>
+      </If>
+      <If description="">
+        <Condition name="TestFile">
+          <Parameter xsi:type="StringParameter" name="Path" value="C:\temp\dnsentries.txt" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <Statement name="DeleteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="C:\temp\dnsentries.txt" />
+          </Statement>
+        </Then>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

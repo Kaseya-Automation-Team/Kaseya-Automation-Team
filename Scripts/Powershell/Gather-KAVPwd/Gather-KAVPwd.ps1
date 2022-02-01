@@ -90,11 +90,10 @@ else
         {
             [Array] $KAVPwd = $DataSet.Tables[0]
             $DllPath = Join-Path -Path $using:ScriptPath -ChildPath "Kaseya.AppFoundation.dll"
-            $assembly = [System.Reflection.Assembly]::LoadFrom( $DllPath )
+            [System.Reflection.Assembly]::LoadFrom( $DllPath )
             foreach($item in $KAVPwd)
             {
                 $item.uninstallPassword = [Hermes.shared.MaskData]::HashAndUnmaskDataStringForDb($($item.uninstallPassword), $($item.agentGuid))
-                $item.uninstallPassword
             }
             $KAVPwd | Write-Output
         }

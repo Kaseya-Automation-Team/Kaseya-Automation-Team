@@ -1,9 +1,39 @@
-﻿param (
+﻿<#
+.Synopsis
+   Gathers KAV passwords.
+.DESCRIPTION
+   Connects to SQL server, gethers and decrypts KAV uninstall passwords and saves to a CSV-file
+.PARAMETERS
+    [string] SQLUser
+        - User name. SQL User by default. In combination with the UseWindowsAuthentication key specifies Windows user
+    [string] SQLPwd
+        - User password. SQL User password by default. In combination with the UseWindowsAuthentication key specifies Windows user's password
+    [string] OutputFilePath
+        - Output CSV file name
+    [string] SQLServer
+        - Specifies SQL Server Name, Instance Name And Port: SERVER_NAME\INSTANCE_NAME,PORT_NUMBER. By default: localhost, default instance & default 1433 port are used.
+    [switch] UseWindowsAuthentication
+        - Enables Windows Authentication
+    [switch] LogIt
+        - Enables execution transcript		 
+.EXAMPLE
+    .\Gather-KAVPwd.ps1 -SQLUser 'sa' -SQLPwd 'Your_Password' -OutputFilePath 'C:\TEMP\kav_info.csv'
+    .\Gather-KAVPwd.ps1 -User 'windows_user' -Pwd 'Your_Password' -UseWindowsAuthentication -OutputFilePath 'C:\TEMP\kav_info.csv'
+.NOTES
+    Version 0.1
+    Requires:
+        Kaseya.AppFoundation.dll, Kaseya.Model.CoreModels.dll, KCryptoKacm.dll, libkacm.dll, libkacm_ksrv.dll, libkacm.dgst, libkacm_ksrv.dgst
+        Proper permissions to execute the script & connect the SQL Server
+   
+    Author: Proserv Team - VS
+#>
+
+param (
     [Alias("User","UserName")]
     [parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
     [string] $SQLUser,
-    [Alias("Password", "Pwd")]
+    [Alias("Password","Pwd")]
     [parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
     [string] $SQLPwd,
@@ -86,7 +116,7 @@ else
         {
             $_.Exception.Message | Write-Error
         }
-        if(0 -lt $DataSet.Tables.Count)
+        if( 0 -lt $DataSet.Tables.Count )
         {
             [Array] $KAVPwd = $DataSet.Tables[0]
             $DllPath = Join-Path -Path $using:ScriptPath -ChildPath "Kaseya.AppFoundation.dll"

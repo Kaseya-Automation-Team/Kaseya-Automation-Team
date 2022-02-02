@@ -80,11 +80,18 @@ else
 }
 
 [string] $ConnectionString = $ConnectionParameters -join ';'
-[string[]] $Fields = @( 'partitionId', 'agentGuid', 'uninstallPassword' )
+[string[]] $Fields = @( 'tenantId', 'partitionId', 'agentGuid', 'uninstallPassword' )
 
 [scriptblock] $ScriptBlock = {
     
-    [string] $Query = "USE ksubscribers; SELECT $($using:Fields -join ',') FROM sec.SecurityAsset WHERE uninstallPassword LIKE 'CoveredData2::%'"
+    [string] $Query = @"
+USE ksubscribers;
+SELECT dbo.partnerPartitions.id AS tenantId, sec.SecurityAsset.partitionId AS partitionId, agentGuid, uninstallPassword 
+FROM sec.SecurityAsset 
+LEFT JOIN dbo.partnerPartitions ON sec.SecurityAsset.partitionId = dbo.partnerPartitions.partitionId  
+WHERE uninstallPassword LIKE 'CoveredData2::%'
+"@
+
     $SqlConnection = New-Object System.Data.SqlClient.SqlConnection  
     $SqlConnection.ConnectionString = $args[0]
 

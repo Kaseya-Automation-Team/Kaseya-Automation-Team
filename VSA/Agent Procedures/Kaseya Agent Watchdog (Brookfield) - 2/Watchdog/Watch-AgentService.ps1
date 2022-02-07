@@ -48,41 +48,50 @@ qwinsta | ForEach-Object {
 #Proceed if there are no active RDP sessions
 if ( -not $ActiveConnection ) {
     #If a Kaseya Agent service is not running, start it
-    $ServicesToWatch = Get-Service -DisplayName $ServicesDisplayNames
-    Foreach ($Service in $ServicesToWatch) {
-        switch ( $Service.Status ) {
-            'Stopped' {
-                $EventData.EventID = 2
-                $EventData.EntryType = 'Information'
-                $EventData.Message = "The service $($Service.DisplayName) is stopped. Attempt to start"
-                Write-EventLog @EventData
-                try {
-                    Start-Service $Service
+    [array] $ServicesToWatch = Get-Service -DisplayName $ServicesDisplayNames
+    if ( 0 -lt $ServicesToWatch.Count) {
+        Foreach ($Service in $ServicesToWatch) {
+            switch ( $Service.Status ) {
+                'Stopped' {
+                    $EventData.EventID = 2
                     $EventData.EntryType = 'Information'
-                    $EventData.EventID = 3
-                    $EventData.Message = "The service $($Service.DisplayName) has been started."
+                    $EventData.Message = "The service $($Service.DisplayName) is stopped. Attempt to start"
                     Write-EventLog @EventData
-                } catch {
-                    $EventData.EventID   = 10
-                    $EventData.EntryType = 'Error'
-                    $EventData.Message   = "Could not start the service $($Service.DisplayName). Please check logs for details."
+                    try {
+                        Start-Service $Service
+                        $EventData.EntryType = 'Information'
+                        $EventData.EventID = 3
+                        $EventData.Message = "The service $($Service.DisplayName) has been started."
+                        Write-EventLog @EventData
+                    } catch {
+                        $EventData.EventID   = 10
+                        $EventData.EntryType = 'Error'
+                        $EventData.Message   = "Could not start the service $($Service.DisplayName). Please check logs for details."
+                        Write-EventLog @EventData
+                        $EventData.Message = "$_.Exception.Message"
+                        Write-EventLog @EventData
+                    }
+                }
+                'Running' {
+                    $EventData.EntryType = 'Information'
+                    $EventData.EventID = 1
+                    $EventData.Message = "Service $($Service.DisplayName) is running. No action required"
                     Write-EventLog @EventData
-                    $EventData.Message = "$_.Exception.Message"
+                }
+                default {
+                    $EventData.EntryType = 'Information'
+                    $EventData.EventID = 4
+                    $EventData.Message = "The service $($Service.DisplayName) status is $($Service.Status)"
                     Write-EventLog @EventData
                 }
             }
-            'Running' {
-                $EventData.EntryType = 'Information'
-                $EventData.EventID = 1
-                $EventData.Message = "Service $($Service.DisplayName) is running. No action required"
-                Write-EventLog @EventData
-            }
-            default {
-                $EventData.EntryType = 'Information'
-                $EventData.EventID = 4
-                $EventData.Message = "The service $($Service.DisplayName) status is $($Service.Status)"
-                Write-EventLog @EventData
-            }
         }
+    } else {
+        $EventData.EventID   = 11
+        $EventData.EntryType = 'Error'
+        $EventData.Message   = "No services found for the DisplayNames provided:`n$($ServicesDisplayNames | Out-String)"
+        Write-EventLog @EventData
+        $EventData.Message = "$_.Exception.Message"
+        Write-EventLog @EventData
     }
 }

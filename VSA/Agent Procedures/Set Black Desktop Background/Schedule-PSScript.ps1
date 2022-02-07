@@ -2,9 +2,14 @@
     [parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
     [string] $ScheduledTaskAction,
+
     [parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
-    [string] $TaskName
+    [string] $TaskName,
+
+    [parameter(Mandatory=$false)]
+    [ValidateNotNullOrEmpty()]
+    [int] $DelaySeconds = 10
 )
 
 #region Get logged in users
@@ -33,13 +38,13 @@ if ( 0 -ne $LoggedInUsersSIDs.Length )
 
 if ( 0 -ne $LoggedInUsers.Length )
 {
-    [datetime]$At = (Get-Date).AddSeconds(20)
+    
     Foreach ( $UserPrincipal in $LoggedInUsers )
     {
         $TaskName = "RunOnce-$TaskName-$($UserPrincipal.Replace('\', '.') )"
         $TaskParameters = @{
             TaskName = $TaskName
-            Trigger = New-ScheduledTaskTrigger -Once -At $At
+            Trigger = New-ScheduledTaskTrigger -Once -At $( (Get-Date).AddSeconds($DelaySeconds) )
             Principal = New-ScheduledTaskPrincipal -UserId $UserPrincipal
             Action = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument $ScheduledTaskAction
         }

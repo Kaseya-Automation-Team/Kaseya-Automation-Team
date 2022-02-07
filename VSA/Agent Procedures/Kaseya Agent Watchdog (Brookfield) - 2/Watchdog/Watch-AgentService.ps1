@@ -87,7 +87,7 @@ if ( -not $ActiveConnection ) {
             }
         }
     } else {
-        $EventData.EventID   = 11
+        $EventData.EventID   = 12
         $EventData.EntryType = 'Error'
         $EventData.Message   = "No services found for the DisplayNames provided:`n$($ServicesDisplayNames | Out-String)"
         Write-EventLog @EventData

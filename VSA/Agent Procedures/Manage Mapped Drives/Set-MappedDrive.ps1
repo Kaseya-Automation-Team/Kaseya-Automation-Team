@@ -20,14 +20,17 @@ param (
                    ValueFromRemainingArguments=$false, 
                    Position=0)]
     [string] $UNCPath,
+
     [parameter(Mandatory=$true, 
     ValueFromPipeline=$true,
     ValueFromPipelineByPropertyName=$true, 
     ValueFromRemainingArguments=$false, 
     Position=1)]
     [string] $DriveLetter,
+
     [parameter(Mandatory=$false)]
     [switch] $LogIt,
+
     [parameter(Mandatory=$false)]
     [int] $UpdateMapping = 0
 )
@@ -134,22 +137,6 @@ if ( $LogIt )
                     @{name="UserHive";expression={"$($_.ProfileImagePath)\ntuser.dat"}}, 
                     @{name="UserName";expression={$_.ProfileImagePath -replace '^(.*[\\\/])', ''}} | `
                     Where-Object {$_.SID -match $SIDPattern}
-<#
-# Get all user SIDs found in HKEY_USERS (ntuder.dat files that are loaded)
-$LoadedHives = Get-ChildItem Registry::HKEY_USERS | `
-    Where-Object {$_.PSChildname -match $SIDPattern} | `
-    Select-Object @{name="SID";expression={$_.PSChildName}}
-
-[string[]] $HivesToLoad = $ProfileList.SID
-
-#Excluding SIDs of currently logged on users
-if ($null -ne $LoadedHives)
-{
-    # Get all users that are not currently logged
-    $HivesToLoad = Compare-Object -ReferenceObject $ProfileList.SID -DifferenceObject $LoadedHives.SID | `
-    Select-Object -ExpandProperty InputObject
-}
-#>
 
 # Loop through each profile on the machine
 Foreach ($Profile in $ProfileList) {

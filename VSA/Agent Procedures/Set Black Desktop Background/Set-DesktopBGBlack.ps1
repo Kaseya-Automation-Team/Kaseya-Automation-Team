@@ -1,4 +1,14 @@
-﻿#region function Set-RegParam
+﻿param (
+    [parameter(Mandatory=$false)]
+    [string] $WallpaperPath,
+
+    [parameter(Mandatory=$false)]
+    [string] $BackgroundRGB = '0 0 0',
+
+    [switch] $LogIt
+ )
+
+#region function Set-RegParam
 function Set-RegParam {
     [CmdletBinding()]
     param (
@@ -8,6 +18,7 @@ function Set-RegParam {
             ValueFromRemainingArguments=$false, 
             Position=0)]
         [string] $RegPath,
+
         [parameter(Mandatory=$true, 
             ValueFromPipeline=$true,
             ValueFromPipelineByPropertyName=$true, 
@@ -15,6 +26,7 @@ function Set-RegParam {
             Position=1)]
         [AllowEmptyString()]
         [string] $RegValue,
+
         [parameter(Mandatory=$false, 
             ValueFromPipeline=$true,
             ValueFromPipelineByPropertyName=$true, 
@@ -22,6 +34,7 @@ function Set-RegParam {
             Position=2)]
         [ValidateSet('Binary', 'DWord', 'ExpandString', 'MultiString', 'None', 'QWord', 'String', 'Unknown')]
         [string] $ValueType = 'String',
+
         [parameter(Mandatory=$false)]
         [Switch] $UpdateExisting
     )
@@ -31,6 +44,8 @@ function Set-RegParam {
         [string] $RegProperty = Split-Path -Path Registry::$RegPath -Leaf
     }
     process {
+            $RegKey | Write-Debug
+            $RegProperty | Write-Debug
             #Create key
             if( -not (Test-Path -Path $RegKey) )
             {
@@ -64,18 +79,45 @@ function Set-RegParam {
 }
 #endregion function Set-RegParam
 
+
+ if ([string]::IsNullOrEmpty($WallpaperPath)) {$WallpaperPath = ''}
+
+#region check/start transcript
+[string]$Pref = 'Continue'
+if ( $LogIt )
+{
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    $ScriptName = [io.path]::GetFileNameWithoutExtension( $($MyInvocation.MyCommand.Name) )
+    $ScriptPath = Split-Path $script:MyInvocation.MyCommand.Path
+    $LogFile = "$ScriptPath\$ScriptName.log"
+    Start-Transcript -Path $LogFile
+}
+#endregion check/start transcript
+
 #region class Wallpaper
 Add-Type @' 
 using System.Runtime.InteropServices; 
 namespace Win32{ 
     
-     public class Wallpaper{ 
+    public class Wallpaper{ 
         [DllImport("user32.dll", CharSet=CharSet.Auto)] 
-         static extern int SystemParametersInfo (int uAction , int uParam , string lpvParam , int fuWinIni) ; 
+        static extern int SystemParametersInfo (int uAction, int uParam, string lpvParam, int fuWinIni) ; 
          
-         public static void SetWallpaper(string thePath){ 
+        public static void SetWallpaper(string thePath){ 
             SystemParametersInfo(20,0,thePath,3); 
-         }
+        }
+
+        private static extern IntPtr SendMessageTimeout(IntPtr hWnd, int Msg, IntPtr wParam, string lParam, uint fuFlags, uint uTimeout, IntPtr lpdwResult);        
+
+        public static void Refresh()
+        {
+            private static readonly IntPtr HWND_BROADCAST = new IntPtr(0xffff);
+            private const int WM_SETTINGCHANGE = 0x1a;
+            private const int SMTO_ABORTIFHUNG = 0x0002;
+            SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, IntPtr.Zero, null, SMTO_ABORTIFHUNG, 100, IntPtr.Zero);
+        }
     }
  } 
 '@
@@ -106,11 +148,22 @@ Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Sel
                 }
 
         #Apply New Settings
-        Set-RegParam -RegPath $(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "Control Panel\Desktop\Wallpaper") -RegValue '' -ValueType String -UpdateExisting
-        Set-RegParam -RegPath $(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "Control Panel\Colors\Background") -RegValue '0 0 0' -ValueType String -UpdateExisting
+        Set-RegParam -RegPath $(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "Control Panel\Desktop\Wallpaper") -RegValue $WallpaperPath -ValueType String -UpdateExisting
+        Set-RegParam -RegPath $(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "Control Panel\Colors\Background") -RegValue $BackgroundRGB -ValueType String -UpdateExisting
         
-        [Win32.Wallpaper]::SetWallpaper("")
+        [Win32.Wallpaper]::SetWallpaper( $WallpaperPath )
         [gc]::Collect()
         reg unload "HKU\$($_.SID)"
     }
 #endregion Set wallpaper
+
+#region check/stop transcript
+if ( $LogIt )
+{
+    $Pref = 'SilentlyContinue'
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    Stop-Transcript
+}
+#endregion check/stop transcript

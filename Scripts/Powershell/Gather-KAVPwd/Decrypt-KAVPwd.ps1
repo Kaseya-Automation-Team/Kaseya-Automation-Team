@@ -2,7 +2,7 @@
     [parameter(Mandatory=$true)]
     [ValidateScript({
             if( $_ -notmatch "^CoveredData2::\w+$" ) {
-                throw "Non-numeric Id"
+                throw "Wrong format"
             }
             return $true
         })]

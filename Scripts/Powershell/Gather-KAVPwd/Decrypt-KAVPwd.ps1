@@ -20,6 +20,16 @@
 
 $ScriptPath = Split-Path $script:MyInvocation.MyCommand.Path
 
-$DllPath = Join-Path -Path $ScriptPath -ChildPath "Kaseya.AppFoundation.dll"
-[System.Reflection.Assembly]::LoadFrom( $DllPath ) | Out-Null
-[Hermes.shared.MaskData]::HashAndUnmaskDataStringForDb($InputPassword, $AgentGuid) | Write-Output
+[scriptblock] $ScriptBlock = {
+    $DllPath = Join-Path -Path $Using:ScriptPath -ChildPath "Kaseya.AppFoundation.dll"
+    [System.Reflection.Assembly]::LoadFrom( $DllPath ) | Out-Null
+    [Hermes.shared.MaskData]::HashAndUnmaskDataStringForDb($Using:InputPassword, $Using:AgentGuid) | Write-Output
+}
+
+$InvokeParameters = @{
+    ScriptBlock = $ScriptBlock
+    ConfigurationName = "Microsoft.PowerShell32"
+    ComputerName = $($env:COMPUTERNAME)
+}
+
+Invoke-Command @InvokeParameters

@@ -9,8 +9,24 @@
 
     [parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]
-    [int] $DelaySeconds = 10
+    [int] $DelaySeconds = 10,
+
+    [switch] $LogIt
 )
+
+#region check/start transcript
+[string]$Pref = 'Continue'
+if ( $LogIt )
+{
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    $ScriptName = [io.path]::GetFileNameWithoutExtension( $($MyInvocation.MyCommand.Name) )
+    $ScriptPath = Split-Path $script:MyInvocation.MyCommand.Path
+    $LogFile = "$ScriptPath\$ScriptName.log"
+    Start-Transcript -Path $LogFile
+}
+#endregion check/start transcript
 
 #region Get logged in users
 [string] $SIDPattern = 'S-1-5-21-\d+-\d+\-\d+\-\d+$'
@@ -41,10 +57,12 @@ if ( 0 -ne $LoggedInUsers.Length )
     
     Foreach ( $UserPrincipal in $LoggedInUsers )
     {
+        $At = $( (Get-Date).AddSeconds($DelaySeconds) )
         $TaskName = "RunOnce-$TaskName-$($UserPrincipal.Replace('\', '.') )"
+        "PowerShell.exe $ScheduledTaskAction" | Write-Debug
         $TaskParameters = @{
             TaskName = $TaskName
-            Trigger = New-ScheduledTaskTrigger -Once -At $( (Get-Date).AddSeconds($DelaySeconds) )
+            Trigger = New-ScheduledTaskTrigger -Once -At $At
             Principal = New-ScheduledTaskPrincipal -UserId $UserPrincipal
             Action = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument $ScheduledTaskAction
         }
@@ -59,3 +77,14 @@ if ( 0 -ne $LoggedInUsers.Length )
         }
     }
 }
+
+#region check/stop transcript
+if ( $LogIt )
+{
+    $Pref = 'SilentlyContinue'
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    Stop-Transcript
+}
+#endregion check/stop transcript

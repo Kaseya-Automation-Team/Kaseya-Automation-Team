@@ -176,7 +176,7 @@ namespace Desktop {
 Add-Type @AddTypeParams
 #endregion class Wallpaper
 
-[string] $SIDPattern = 'S-1-5-21-\d+-\d+\-\d+\-\d+$'
+[string] $SIDPattern = 'S-1-5-21-(\d+-?){4}$'
 
 #region Set wallpaper
 Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Select-Object LocalPath, SID | `

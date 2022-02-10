@@ -37,7 +37,7 @@
         <Parameter xsi:type="StringParameter" name="SourceContent" value="10" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="global:DelaySeconds" />
       </Statement>
-      <Statement description="Desktop Background settings" name="GetVariable" continueOnFail="false">
+      <Statement description="Desktop Background color settings" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="ColorR" />
@@ -52,9 +52,9 @@
         <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="ColorB" />
       </Statement>
-      <Statement name="GetVariable" continueOnFail="false">
+      <Statement description="SetWallpaper variable. Assign 1 to the to set desktop background image. Assign 0 to set desktop background solid color." name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-        <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="1" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="SetWallpaper" />
       </Statement>
       <Statement name="GetVariable" continueOnFail="false">

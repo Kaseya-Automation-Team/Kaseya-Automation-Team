@@ -54,7 +54,7 @@
       </Statement>
       <Statement description="SetWallpaper variable. Assign 1 to the to set desktop background image. Assign 0 to set desktop background solid color." name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-        <Parameter xsi:type="StringParameter" name="SourceContent" value="1" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="0" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="SetWallpaper" />
       </Statement>
       <Statement name="GetVariable" continueOnFail="false">
@@ -69,18 +69,6 @@
           <Parameter xsi:type="StringParameter" name="Value" value="0" />
         </Condition>
         <Then>
-          <If description="">
-            <Condition name="TestFile">
-              <Parameter xsi:type="StringParameter" name="Path" value="#WallpaperDirectory#\#WallpaperFileName#" />
-              <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
-              <Parameter xsi:type="StringParameter" name="Value" value="" />
-            </Condition>
-            <Then>
-              <Statement name="DeleteFile" continueOnFail="false">
-                <Parameter xsi:type="StringParameter" name="Path" value="#WallpaperDirectory#\#WallpaperFileName#" />
-              </Statement>
-            </Then>
-          </If>
           <Statement name="WriteFile" continueOnFail="false">
             <Parameter xsi:type="StringParameter" name="Path" value="#WallpaperDirectory#\#WallpaperFileName#" />
             <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\DesktopBackground\#WallpaperFileName#" />

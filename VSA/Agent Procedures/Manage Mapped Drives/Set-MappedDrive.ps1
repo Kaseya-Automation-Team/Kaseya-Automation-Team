@@ -121,6 +121,7 @@ if ( $LogIt )
     [PSCustomObject] @{ChildPath = "Network\$DriveLetter\UserName"; Value = ""; Type = 'String'},
     [PSCustomObject] @{ChildPath = "Network\$DriveLetter\ProviderName"; Value = 'Microsoft Windows Network'; Type = 'String'},
     [PSCustomObject] @{ChildPath = "Network\$DriveLetter\ProviderType"; Value = '0x002000'; Type = 'DWord'},
+    [PSCustomObject] @{ChildPath = "Network\$DriveLetter\ProviderFlags"; Value = '0x000001'; Type = 'DWord'},
     [PSCustomObject] @{ChildPath = "Network\$DriveLetter\ConnectionType"; Value = '0x000001'; Type = 'DWord'},
     [PSCustomObject] @{ChildPath = "Network\$DriveLetter\ConnectFlags"; Value = '0x000000'; Type = 'DWord'},
     [PSCustomObject] @{ChildPath = "Network\$DriveLetter\DeferFlag"; Value = '0x000004'; Type = 'DWord'}

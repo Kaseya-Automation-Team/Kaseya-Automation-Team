@@ -213,7 +213,7 @@ if ( Get-Module -ListAvailable -Name $ModuleName) {
 
     # If no FieldsToRemove specified remove all custom fields
     
-    if ( $ExistingFields -notcontains $FieldToCreate )
+    if ( $ExistingFields -notcontains $FieldName )
     {
         Add-VSACustomField -FieldName $FieldName -FieldType $FieldType -VSAConnection $VSAConnection
         Write-Host "The field [$FieldName] was created" -ForegroundColor Green -NoNewline

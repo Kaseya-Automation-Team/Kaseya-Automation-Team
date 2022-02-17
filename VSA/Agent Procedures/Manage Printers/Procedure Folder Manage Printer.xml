@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Manage Printer" treePres="3">
+    <Procedure name="Install Printer" treePres="3" id="168244287" folderId="589780823229715" treeFullPath="myProcedures - kadmin.Manage Printer">
+      <Body description="">
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Driver" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="driver" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Port / IP Address" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ip" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Printer Name" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="name" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Add-PrinterDriver -Name '#driver#'  -ErrorAction Continue;  Add-PrinterPort -Name 'IP_#ip#' -PrinterHostAddress '#ip#'  -ErrorAction Continue;  Add-Printer -Name '#name#' -PortName 'IP_#ip#' -DriverName '#driver#'  -ErrorAction Continue" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PSCommand" />
+        </Statement>
+        <If description="">
+          <Condition name="Windows 32 or 64 Bit Check">
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          </Condition>
+          <Then>
+            <Statement name="Execute Powershell Command (64-bit, Run As System)" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="#PSCommand#" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="False" />
+            </Statement>
+            <Statement name="Execute Powershell Command (64-bit, Run As User)" continueOnFail="false" osType="10">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="#PSCommand#" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="False" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="Execute Powershell Command (32-bit, Run As System)" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="#PSCommand#" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="False" />
+            </Statement>
+            <Statement name="Execute Powershell Command (32-bit, Run As User)" continueOnFail="false" osType="10">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="#PSCommand#" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="False" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Remove Printer" treePres="3" id="282936769" folderId="589780823229715" treeFullPath="myProcedures - kadmin.Manage Printer">
+      <Body description="">
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Printer Name" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="name" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Remove-Printer -Name '#name#' -ErrorAction Continue" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PSCommand" />
+        </Statement>
+        <If description="">
+          <Condition name="Windows 32 or 64 Bit Check">
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          </Condition>
+          <Then>
+            <Statement name="Execute Powershell Command (64-bit, Run As System)" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="#PSCommand#" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="False" />
+            </Statement>
+            <Statement name="Execute Powershell Command (64-bit, Run As User)" continueOnFail="false" osType="10">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="#PSCommand#" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="False" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="Execute Powershell Command (32-bit, Run As System)" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="#PSCommand#" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="False" />
+            </Statement>
+            <Statement name="Execute Powershell Command (32-bit, Run As User)" continueOnFail="false" osType="10">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="#PSCommand#" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="False" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

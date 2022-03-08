@@ -52,6 +52,6 @@ Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Sel
         [gc]::Collect()
         If ( -Not $IsProfileLoaded )
         {
-            reg unload "HKU\$($_.SID)"
+            (reg unload "HKU\$($_.SID)" ) 2> $null
         }
     }

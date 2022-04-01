@@ -20,6 +20,11 @@
 
 $BGInfoScheduledScript = Join-Path -Path $env:PUBLIC -ChildPath "SetBGInfoBkg.ps1"
 
+#Create VSAX Event Source if it doesn't exist
+if ( -not [System.Diagnostics.EventLog]::SourceExists("VSAX")) {
+    [System.Diagnostics.EventLog]::CreateEventSource("VSAX", "Application")
+}
+
 # Configuration:
 
 # Font Family name
@@ -38,7 +43,9 @@ $release = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentV
 $cpu = Get-CimInstance -Class CIM_Processor -Property Name | Select-Object -ExpandProperty Name
 #$BootTimeSpan = $(New-TimeSpan -Start $os.LastBootUpTime -End (Get-Date))
 [string[]] $IPs = Get-NetIPAddress | Where-Object {$_.PrefixOrigin -ne "WellKnown" -and  $_.AddressFamily -eq "IPv4"} | Select-Object -Property @{ Name = 'IP'; Expression = {  "$($_.IPAddress)/$($_.PrefixLength)" }} | Select-Object -ExpandProperty IP| Out-String
-[string[]] $Volumes = Get-Disk | Get-Partition | Get-Volume | Where-Object {$_.DriveLetter -match '[a-zA-Z]'} | `                    Select-Object DriveLetter, Size, FileSystemType | `                    ForEach-Object { Write-Output "$($_.DriveLetter):\`t$( "{0:N2}" -f ($($_.Size) / 1Gb) ) Gb`t$($_.FileSystemType)"}
+[string[]] $Volumes = Get-Disk | Get-Partition | Get-Volume | Where-Object {$_.DriveLetter -match '[a-zA-Z]'} | `
+                    Select-Object DriveLetter, Size, FileSystemType | `
+                    ForEach-Object { Write-Output "$($_.DriveLetter):\`t$( "{0:N2}" -f ($($_.Size) / 1Gb) ) Gb`t$($_.FileSystemType)"}
 
 $BGInfo = ([ordered]@{
     Host = "$($os.CSName) `n$($os.Description)"
@@ -204,7 +211,6 @@ Function New-ImageInfo {
     $textBgRect = New-Object System.Drawing.RectangleF($textBgX, $textBgY, $textBgWidth, $textBgHeight)
     $image.FillRectangle($backBrush, $textBgRect)
 
-    $i = 0
     $cumulativeHeight = $SR.Height - $taskbarOffset
 
     foreach ($Item in $reversed.GetEnumerator()) {
@@ -303,6 +309,7 @@ Get-CimInstance Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | S
         $ProfileSID = $_.SID
 
         reg load "HKU\$($_.SID)" "$UserProfilePath\ntuser.dat"
+        [System.Diagnostics.EventLog]::WriteEntry("VSAX", "Registry file $UserProfilePath\ntuser.dat is being processed", "Information", 200)
 
         [string] $PicturesPath = Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") -Name "My Pictures" | Select-Object -ExpandProperty "My Pictures"
         <#
@@ -406,11 +413,13 @@ Add-Type -TypeDefinition `$typeDef -ReferencedAssemblies "System.Drawing.dll"
 #endregion Generate sceduled script
 
 [string[]]$LoggedUsers = Get-LoggedOnUser | Where-Object {$_.Type -eq 'Interactive' -and ($_.Auth -in @('NTLM', 'Kerberos'))} | Select-Object -ExpandProperty User -Unique
+[System.Diagnostics.EventLog]::WriteEntry("VSAX", "Logged on users:`n$($LoggedUsers | Out-String)", "Information", 200)
 
 #region schedule script for logged on users
 Foreach ( $UserPrincipal in $LoggedUsers ) {
     $At = $( (Get-Date).AddSeconds($DelaySeconds) )
     $TaskName = "RunOnce-$TaskName-$($UserPrincipal.Replace('\', '.') )"
+    [System.Diagnostics.EventLog]::WriteEntry("VSAX", "Creating scheduled task $TaskName for user $UserPrincipal at $At", "Information", 200)
     "PowerShell.exe $ScheduledTaskAction" | Write-Debug
     $TaskParameters = @{
         TaskName = $TaskName

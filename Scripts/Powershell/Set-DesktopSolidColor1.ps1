@@ -20,6 +20,11 @@
 
 $SolidDesktopScheduledScript = Join-Path -Path $env:PUBLIC -ChildPath "SetSolidBkg.ps1"
 
+#Create VSAX Event Source if it doesn't exist
+if ( -not [System.Diagnostics.EventLog]::SourceExists("VSAX")) {
+    [System.Diagnostics.EventLog]::CreateEventSource("VSAX", "Application")
+}
+
 #region function Set-RegParam
 function Set-RegParam {
     [CmdletBinding()]
@@ -145,6 +150,7 @@ Get-CimInstance Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | S
         $UserProfilePath = $_.LocalPath
   
         reg load "HKU\$($_.SID)" "$UserProfilePath\ntuser.dat"
+        [System.Diagnostics.EventLog]::WriteEntry("VSAX", "Registry file $UserProfilePath\ntuser.dat is being processed", "Information", 200)
 
         #Find & remove applied GPO Wallpaper settings
 
@@ -189,11 +195,13 @@ Add-Type -TypeDefinition `$typeDef -ReferencedAssemblies "System.Drawing.dll"
 #endregion Generate sceduled script
 
 [string[]]$LoggedUsers = Get-LoggedOnUser | Where-Object {$_.Type -eq 'Interactive' -and ($_.Auth -in @('NTLM', 'Kerberos'))} | Select-Object -ExpandProperty User -Unique
+[System.Diagnostics.EventLog]::WriteEntry("VSAX", "Logged on users:`n$($LoggedUsers | Out-String)", "Information", 200)
 
 #region schedule script for logged on users
 Foreach ( $UserPrincipal in $LoggedUsers ) {
     $At = $( (Get-Date).AddSeconds($DelaySeconds) )
     $TaskName = "RunOnce-$TaskName-$($UserPrincipal.Replace('\', '.') )"
+    [System.Diagnostics.EventLog]::WriteEntry("VSAX", "Creating scheduled task $TaskName for user $UserPrincipal at $At", "Information", 200)
     "PowerShell.exe $ScheduledTaskAction" | Write-Debug
     $TaskParameters = @{
         TaskName = $TaskName

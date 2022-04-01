@@ -5,7 +5,7 @@
    Gathers Mapped Drive for all the computer's users and saves information to a CSV-file.
    Used by the "Gather Mapped Drives Info" Agent Procedure
 .EXAMPLE
-   .\Gather-MappedDrivesInfo.ps1 -AgentName '12345' -OutputFilePath 'local_accounts.csv' -Path 'C:\TEMP'
+   .\Gather-MappedDrivesInfo.ps1 -AgentName '12345' -OutputFilePath 'mapped_drives.csv' -Path 'C:\TEMP'
 .NOTES
    Version 0.1
    Author: Proserv Team - VS

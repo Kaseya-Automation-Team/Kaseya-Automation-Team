@@ -54,13 +54,18 @@
     )
     $SourceMGs = $SourceMGs | Where-Object { -not [string]::IsNullOrEmpty($_.MachineGroupId) }
 
+    [hashtable]$CommonParams = @{ 'OrganizationId' = $OrgId }        
+    if($VSAConnection) {$CommonParams.Add('VSAConnection', $VSAConnection)}
+    $OrgRef = $(Get-VSAOrganization @CommonParams | Select-Object -ExpandProperty OrgRef) -replace '\.', '\.'
+
     Foreach ($MachineGroup in $($SourceMGs | Sort-Object -Property MachineGroupName, ParentMachineGroupId) )
     {
         [hashtable]$CommonParams = @{ 'OrgId' = $OrgId }        
         if($VSAConnection) {$CommonParams.Add('VSAConnection', $VSAConnection)}
 
         $DestinationMGs = Get-VSAMachineGroup @CommonParams
-        $SplitName = ($MachineGroup.MachineGroupName | Select-String -Pattern "(?:\.root).*$").Matches.Value
+        #$SplitName = ($MachineGroup.MachineGroupName | Select-String -Pattern "(?:\.root).*$").Matches.Value
+        $SplitName = ($MachineGroup.MachineGroupName | Select-String -Pattern "(?<=$OrgRef).*$").Matches.Value
 
         [array]$CheckDestination = $DestinationMGs | Where-Object {$_.MachineGroupName -match "$SplitName`$"}
 

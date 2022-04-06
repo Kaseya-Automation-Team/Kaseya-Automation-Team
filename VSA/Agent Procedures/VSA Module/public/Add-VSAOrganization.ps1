@@ -73,7 +73,6 @@
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $OrgType,
 
         [parameter(Mandatory=$false,
@@ -114,67 +113,54 @@
         [parameter(DontShow,
             Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $ContactInfo,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $PreferredContactMethod,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $PrimaryPhone,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $PrimaryFax,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $PrimaryEmail,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $Country,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $Street,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $City,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $State,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $ZipCode,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $PrimaryTextMessagePhone,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
         [string] $FieldName,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
         [string] $FieldValue,
 
         [parameter(DontShow,

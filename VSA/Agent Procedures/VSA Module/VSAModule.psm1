@@ -45,6 +45,7 @@ public class VSAConnection
 
     public VSAConnection()
     {
+        this.Status = ConnectionState.Open;
     }
     private void RestorePersistent()
     {
@@ -86,7 +87,7 @@ public class VSAConnection
         switch(Status) 
         {
         case ConnectionState.Open:
-            if (DateTime.Compare(DateTime.Now, SessionExpiration) > 0)
+            if (DateTime.Compare(DateTime.UtcNow, SessionExpiration) > 0)
             {
                 this.Status = ConnectionState.Expired;
             }

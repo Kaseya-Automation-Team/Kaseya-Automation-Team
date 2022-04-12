@@ -77,7 +77,7 @@ Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Sel
             #Microsoft browsers
             $ItemsToClear += Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") -Name "Cookies" `
                 | Select-Object -ExpandProperty "Cookies"
-            [System.Diagnostics.EventLog]::WriteEntry("VSA X", "Cookies $Info", "Information", 200)
+            [System.Diagnostics.EventLog]::WriteEntry("VSA X", "Cookies $Info for User SID: $($UserProfile.SID)", "Information", 200)
             #endregion Cookies
             #region Temporary files
             #Mozilla
@@ -88,7 +88,7 @@ Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Sel
             #Microsoft browsers
             $ItemsToClear += Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") -Name "Cache" `
                 | Select-Object -ExpandProperty "Cache"
-            [System.Diagnostics.EventLog]::WriteEntry("VSA X", "Cached files $Info", "Information", 200)
+            [System.Diagnostics.EventLog]::WriteEntry("VSA X", "Cached files $Info for User SID: $($UserProfile.SID)", "Information", 200)
             #endregion Temporary files
             #region History
             #Mozilla
@@ -99,7 +99,7 @@ Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Sel
             #Microsoft browsers
             $ItemsToClear += Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") -Name "History" `
                 | Select-Object -ExpandProperty "History"
-            [System.Diagnostics.EventLog]::WriteEntry("VSA X", "History $Info", "Information", 200)
+            [System.Diagnostics.EventLog]::WriteEntry("VSA X", "History $Info for User SID: $($UserProfile.SID)", "Information", 200)
             #endregion History
 
         $ItemsToClear | ForEach-Object { $Item = $_.Replace($RunningProcessProfilePath, $UserProfilePath); Clear-Path -Path $Item -DaysToKeep $DaysToKeep }

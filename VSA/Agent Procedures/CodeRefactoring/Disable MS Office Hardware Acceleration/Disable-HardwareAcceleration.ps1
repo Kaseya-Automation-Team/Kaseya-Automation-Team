@@ -40,8 +40,7 @@ function Set-RegParam {
     }
     process {
             #Create key
-            if( -not (Test-Path -Path $RegKey) )
-            {
+            if( -not (Test-Path -Path $RegKey) ) {
                 try {
                     New-Item -Path $RegKey -Force -Verbose -ErrorAction Stop
                 } catch { "<$RegKey> Key not created" | Write-Error }
@@ -49,20 +48,16 @@ function Set-RegParam {
                 try {
                     New-ItemProperty -Path $RegKey -Name $RegProperty -PropertyType $ValueType -Value $RegValue -Force -Verbose -ErrorAction Stop
                 } catch { "<$RegKey> property <$RegProperty>  not created" | Write-Error}
-            }            
-            else
-            {
-                $Poperty = try {Get-ItemProperty -Path Registry::$RegPath -ErrorAction Stop | Select-Object -ExpandProperty $Value -ErrorAction Stop} catch { $null}
-                if ($null -eq $Poperty )
-                {
+            } else {
+                $Poperty = try { Get-ItemProperty -Path Registry::$RegPath -ErrorAction Stop | Select-Object -ExpandProperty $Value -ErrorAction Stop } catch { $null}
+                if ($null -eq $Poperty ) {
                      #Create property
                     try {
                         New-ItemProperty -Path $RegKey -Name $RegProperty -PropertyType $ValueType -Value $RegValue -Force -Verbose -ErrorAction Stop
                     } catch { "<$RegKey> property <$RegProperty>  not created" | Write-Error }
                 }
                 #Assign value to the property
-                if( $UpdateExisting )
-                {
+                if( $UpdateExisting ) {
                     try {
                             Set-ItemProperty -Path $RegKey -Name $RegProperty -Value $RegValue -Force -Verbose -ErrorAction Stop
                         } catch { "<$RegKey> property <$RegProperty> not set" | Write-Error }
@@ -73,7 +68,7 @@ function Set-RegParam {
 #endregion function Set-RegParam
 
 # Get each user profile SID and Path to the profile
-$UserProfiles = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\*" | Where {$_.PSChildName -match "^S-1-5-21-(\d+-?){4}$" } | Select-Object @{Name="SID"; Expression={$_.PSChildName}}, @{Name="UserHive";Expression={"$($_.ProfileImagePath)\NTuser.dat"}}
+$UserProfiles = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\*" | Where { $_.PSChildName -match "^S-1-5-21-(\d+-?){4}$" } | Select-Object @{Name="SID"; Expression={$_.PSChildName}}, @{Name="UserHive";Expression={"$($_.ProfileImagePath)\NTuser.dat"} }
 
 # Loop through each profile on the machine
 Foreach ($UserProfile in $UserProfiles)

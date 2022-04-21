@@ -1,25 +1,3 @@
-<#
-.Synopsis
-   Clears the Temp folders.
-.DESCRIPTION
-   Clears the Temp folders. Used by Agent Procedure
-.EXAMPLE
-   .\Clear-TempFolders.ps1
-#>
-
-
-function Clear-Folder {
-[CmdletBinding()]
-param (
-    [parameter(Mandatory=$true, 
-        ValueFromPipeline=$true)]
-    [ValidateNotNullOrEmpty()]
-    [string] $TheFolder)
-    if(Test-Path -Path $TheFolder)
-    {
-        Get-ChildItem -Path $TheFolder -Recurse -Force | Remove-Item -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue
-    }
-}
 
 #Clear the system temp folder
 Get-ItemProperty -Path Registry::'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name "TEMP" | Select-Object -ExpandProperty "TEMP" | Clear-Folder

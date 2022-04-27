@@ -5,16 +5,16 @@
     .DESCRIPTION
        Creates organization structure in an organization based on given array of Machine groups.
        Takes either persistent or non-persistent connection information.
-    .PARAMETER VSAConnection
-        Specifies existing non-persistent VSAConnection.
-    .PARAMETER SourceOrgs
+    .PARAMETER SourceVSA
+        Specifies existing non-persistent VSAConnection to the Source environment.
+    .PARAMETER DestinationVSA
+        Specifies existing non-persistent VSAConnection to the Destination environment.
+    .PARAMETER OrgsToTransfer
         Specifies cource array of Organizations
     .PARAMETER ParentOrgId
         Optional parameter, specifies numeric id of the parent organization
     .EXAMPLE
-        Copy-VSAOrgStructure -SourceOrgs $SourceOrgs
-    .EXAMPLE
-        Copy-VSAOrgStructure -SourceOrgs $SourceOrgs -VSAConnection $connection
+        Copy-VSAOrgStructure -OrgsToTransfer $OrgsToTransfer -SourceVSA $SourceVSAConnection -DestinationVSA $DestinationVSAConnection
     .INPUTS
        Accepts piped parameters 
     .OUTPUTS
@@ -24,158 +24,135 @@
     param (
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
-        [VSAConnection] $VSAConnection,
+        [VSAConnection] $SourceVSA,
+
+        [parameter(Mandatory = $true, 
+            ValueFromPipelineByPropertyName = $true)]
+        [VSAConnection] $DestinationVSA,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [array] $SourceOrgs,
-
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true)]
-        [ValidateScript({
-            if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
-                throw "Non-numeric value"
-            }
-            return $true
-        })]
-        [string] $ParentOrgId
+        [array] $OrgsToTransfer
     )
 
     #Sort Source Organizations So Parent Organizations Come First
-    $SourceOrgs = $SourceOrgs | Where-Object { -not [string]::IsNullOrEmpty($_.OrgId) } | Sort-Object -Property ParentOrgId, OrgRef
+    $OrgsToTransfer = $OrgsToTransfer | Where-Object { -not [string]::IsNullOrEmpty($_.OrgId) }
 
-    [hashtable]$CommonParams = @{}        
-    if($VSAConnection) {$CommonParams.Add('VSAConnection', $VSAConnection)}
+    [hashtable]$DestinationParams = @{VSAConnection = $DestinationVSA}
+    [hashtable]$SourceParams = @{}
+    if($SourceVSA) {$SourceParams.Add('VSAConnection', $SourceVSA)}
 
-    $Info = "Processing [$($SourceOrgs | Select-Object -ExpandProperty OrgRef | Out-String)], Parent <$ParentOrgId>"
+    $Info = "Organizations to create: [$(($OrgsToTransfer | Select-Object -ExpandProperty OrgRef) -join '; ') ]"
 
-    $Info | Write-Host -ForegroundColor Magenta
+    $Info | Write-Host -ForegroundColor Cyan
     $Info | Write-Verbose
     $Info | Write-Debug
 
-    [array] $global:DestinationOrgs = Get-VSAOrganization @CommonParams
+    [array] $global:DestinationOrgs = Get-VSAOrganization @DestinationParams
+    [array] $SourceOrgs = Get-VSAOrganization @SourceParams
 
-    [hashtable] $CompareParams = @{
-                                        ReferenceObject  = $SourceOrgs.OrgRef
-                                        DifferenceObject = $global:DestinationOrgs.OrgRef
-                                    }
-    [string[]] $OrgRefsToTransfer = Compare-Object @CompareParams | Where-Object {$_.SideIndicator -eq '<='} | Select-Object -ExpandProperty InputObject
+    Foreach ( $Organization in $( $OrgsToTransfer | Sort-Object -Property @{Expression = { $_.Orgref.Split('.').Count }}, @{Expression = {$_.ParentOrgId}; Ascending = $false} , @{Expression = {$_.OrgRef}; Ascending = $false} ) ) {
 
-    $Info = "To be created: [ $($OrgRefsToTransfer | Out-String) ]"
-    $Info | Write-Host
-    $Info | Write-Verbose
-    $Info | Write-Debug
+        [hashtable]$DestinationParams = @{VSAConnection = $DestinationVSA}
 
-
-    Foreach ( $Organization in $( $SourceOrgs | Sort-Object -Property ParentOrgId, OrgRef ) ) {
-
-        [hashtable]$CommonParams = @{}        
-        if($VSAConnection) {$CommonParams.Add('VSAConnection', $VSAConnection)}
-
-        $Info = "Processing <$($Organization.OrgRef)>"
-        $Info | Write-Host -ForegroundColor Black -BackgroundColor White
+        $Info = "Orgranizations already created: [ $( $global:DestinationOrgs | Select-Object -ExpandProperty OrgRef | Out-String) ]"
+        $Info | Write-Host
         $Info | Write-Verbose
         $Info | Write-Debug
 
-        #Check if the parent Organization already exists when provided.
-        if( -not [string]::IsNullOrEmpty( $Organization.ParentOrgId ) ) {
-            if ( [string]::IsNullOrEmpty( $ParentOrgId ) ) {
-                #obtain ParentOrgId by orgref
-                $ParentRef = $SourceOrgs | Where-Object { $_.OrgId -eq $Organization.ParentOrgId } | Select-Object -ExpandProperty OrgRef
-                if ( [string]::IsNullOrEmpty($ParentRef) ) {
-                    $Info = "Organization Can't be created. ParentOrgId not provided"
-                    $Info | Write-Host -ForegroundColor Red
-                    continue
-                }
-                $Info = "Parent Ref : <$ParentRef>"
-                $Info | Write-Host -ForegroundColor Black -BackgroundColor White
-                $Info | Write-Verbose
-                $Info | Write-Debug
-                $ParentOrgId = $global:DestinationOrgs | Where-Object { $_.OrgRef.split('.')[-1] -eq $ParentRef.split('.')[-1] } | Select-Object -ExpandProperty OrgId
-                    
-            }
-            if ( $($global:DestinationOrgs | Select-Object -ExpandProperty OrgId) -notcontains $ParentOrgId ) {
-                $Info = "Organization Can't be created. Parent <$ParentOrgId> doesn't exist"
-                $Info | Write-Host -ForegroundColor Red
-                $Info | Write-Verbose
-                $Info | Write-Debug
-                continue
-            }
-            $Info = "Parent <$ParentOrgId> exists, can create <$($Organization.OrgRef)>"
-            $Info | Write-Host -ForegroundColor Green
-            $Info | Write-Verbose
-            $Info | Write-Debug
-        }
-
-        $OrgRefCandidate = ($Organization.OrgRef.split('.'))[-1]
-
-        $Info = "Orgranizations already created: $( $global:DestinationOrgs | Select-Object -ExpandProperty OrgRef | Out-String)"
+        $Info = "Processing <$($Organization.OrgRef)>"
         $Info | Write-Host -ForegroundColor Cyan
         $Info | Write-Verbose
         $Info | Write-Debug
 
-        $CheckDestination = $global:DestinationOrgs | Where-Object { $( ($_.OrgRef.split('.'))[-1] ) -eq $OrgRefCandidate }
+        [string] $ParentOrgId = ''
 
-        $Info = "CheckDestination <$($Organization.OrgRef)>  $($CheckDestination.Count)"
+        #Check if the Parent Organization already exists in the destination.
+        if( -not [string]::IsNullOrEmpty( $Organization.ParentOrgId ) ) {
+
+            #obtain ParentOrgId by orgref
+            $ParentRef = $SourceOrgs | Where-Object { $_.OrgId -eq $Organization.ParentOrgId } | Select-Object -ExpandProperty OrgRef
+            if ( [string]::IsNullOrEmpty($ParentRef) ) {
+                $Info = "Parent Organazation for <$($Organization.OrgRef)> not found in the source. Skip now"
+                $Info | Write-Host -ForegroundColor DarkRed -BackgroundColor White
+                $Info | Write-Verbose
+                $Info | Write-Debug
+                continue
+            } else {
+                $ParentOrgId = $global:DestinationOrgs | Where-Object { $_.OrgRef -eq $ParentRef } | Select-Object -ExpandProperty OrgId
+
+                $Info = "Parent Organazation for <$($Organization.OrgRef)> : <$ParentRef>. Destination ParentOrgId <$ParentOrgId>. Can be created"
+                $Info | Write-Host -ForegroundColor DarkGreen -BackgroundColor White
+                $Info | Write-Verbose
+                $Info | Write-Debug
+
+                $Organization.ParentOrgId = $ParentOrgId 
+            }
+        }
+
+        $CheckDestination = $global:DestinationOrgs | Where-Object { $_.OrgRef -eq $Organization.OrgRef }
+
+        $Info = "CheckDestination for <$($Organization.OrgRef)>: found [$($CheckDestination.Count)]"
         $Info | Write-Host
         $Info | Write-Verbose
         $Info | Write-Debug
 
 
-        if( $( $( ($global:DestinationOrgs | Select-Object -ExpandProperty OrgRef).split('.') ) ).Contains( $OrgRefCandidate ) ) {
-            #Organization with this OrgRef already exists
-            $ParentOrgIdCandidate  = $CheckDestination.OrgId
-        } else {
-            if ( -not [string]::IsNullOrEmpty( $ParentOrgId ) ) { $Organization.ParentOrgId = $ParentOrgId }
-            $Organization.OrgRef = $OrgRefCandidate
+        if( 0 -eq $CheckDestination.Count ) {
+            #Organization does not exis in the Destination. Create
+            
+            [string]$OrgRef = ($Organization.OrgRef.split('.'))[-1]
+            $Organization.OrgRef = $OrgRef
 
-            $AddOrgParams = $CommonParams.Clone()
+
+            $AddOrgParams = $DestinationParams.Clone()
             $AddOrgParams.Add('ExtendedOutput',  $true)
 
-            $Info = "No organization with OrgRef <$($Organization.OrgRef)>. Create $($Organization | Out-String)"
-            $Info | Write-Host
+            $Info = "No organization with OrgRef <$($Organization.OrgRef)>. Create."
+            $Info | Write-Host -ForegroundColor Cyan
             $Info | Write-Verbose
             $Info | Write-Debug
 
-            $ParentOrgIdCandidate = $Organization | Add-VSAOrganization @AddOrgParams
+            $Info = $($Organization | Out-String)
+            $Info | Write-Verbose
+            $Info | Write-Debug
 
-            $Info = "Created Organization <$ParentOrgIdCandidate>"
+            $NewOrgId = $Organization | Add-VSAOrganization @AddOrgParams
+
+            $Info = "Created Organization <$($Organization.OrgRef)> with ID <$NewOrgId>"
             $Info | Write-Host -ForegroundColor Green
             $Info | Write-Verbose
             $Info | Write-Debug
         }
 
-        $global:DestinationOrgs = Get-VSAOrganization @CommonParams
+        $global:DestinationOrgs = Get-VSAOrganization @DestinationParams
 
         $Info = "Orgranizations that are in the destination: $($global:DestinationOrgs | Select-Object -ExpandProperty OrgRef | Out-String)"
-        $Info | Write-Host -ForegroundColor Yellow
+        $Info | Write-Host -ForegroundColor Cyan
         $Info | Write-Verbose
         $Info | Write-Debug
 
         [array]$DirectChildren = $SourceOrgs | Where-Object {$_.ParentOrgId -eq $Organization.OrgId }
 
-        $Info = "Source Parent Org IDs: [$($SourceOrgs | Select-Object -ExpandProperty ParentOrgId | Out-String)]`nCurrent Org Id <$($Organization.OrgId)>`n$SourceOrgs Direct children of <$($Organization.OrgRef)> : []"
+        $Info = "[$($Organization.OrgRef)] `nDirect children: [$(($DirectChildren | Select-Object -ExpandProperty OrgRef) -join '; ' )]"
         $Info | Write-Host -ForegroundColor Yellow
         $Info | Write-Verbose
         $Info | Write-Debug
 
         if ( 0 -lt $DirectChildren.Count) {
-            $Info = "--- Processing Direct children of <$($Organization.OrgRef)> ---"
-            $Info | Write-Host
-            $Info | Write-Verbose
-            $Info | Write-Debug
-            $Info = "<$($DirectChildren.Count)> Direct children of <$($Organization.OrgRef)>. Create $($DirectChildren | Select-Object -ExpandProperty OrgRef | Out-String)"
+            $Info = "--- Processing Direct children of <$($Organization.OrgRef)> ---`n[$($DirectChildren.Count)] Direct children of <$($Organization.OrgRef)>.`nCreate`n[$($DirectChildren | Select-Object -ExpandProperty OrgRef | Out-String)]`n==============="
             $Info | Write-Host
             $Info | Write-Verbose
             $Info | Write-Debug
 
-            [hashtable]$CreateOrgParams = $CommonParams.Clone()
+            [hashtable]$CreateOrgParams = @{
+                                            'OrgsToTransfer' = $DirectChildren
+                                            'DestinationVSA' = $DestinationVSA
+                                            }
 
-            $CreateOrgParams.Add('SourceOrgs',  $DirectChildren)
-            $CreateOrgParams.Add('ParentOrgId', $ParentOrgIdCandidate)
+            if($SourceVSA) {$CreateOrgParams.Add('SourceVSA', $SourceVSA)}
 
             $Info = $CreateOrgParams | Out-String
-            $Info | Write-Host -ForegroundColor Cyan
             $Info | Write-Verbose
             $Info | Write-Debug
 

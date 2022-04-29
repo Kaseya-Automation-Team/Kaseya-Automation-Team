@@ -52,7 +52,7 @@ Else {
 
             If($status -ne "Installed") {
                 Write-Host "Uninstall is completed!"
-                eventcreate /L Application /T INFORMATION /SO VSAX /ID 200 /D "Slack uninstall has been completed!" | Out-Null
+                eventcreate /L Application /T INFORMATION /SO VSA X /ID 200 /D "Slack uninstall has been completed!" | Out-Null
             }
 
             Else {

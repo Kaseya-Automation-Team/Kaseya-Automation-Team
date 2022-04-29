@@ -48,7 +48,7 @@ if ($Status -ne "Installed") {
 
     if ($Status -eq "Installed") {
         Write-Host "Installation has been successully completed"
-        eventcreate /L Application /T INFORMATION /SO VSAX /ID 200 /D "Slack has been installed by VSA-X agent!" | Out-Null
+        eventcreate /L Application /T INFORMATION /SO VSAX /ID 200 /D "Slack has been installed by VSA X agent!" | Out-Null
     } else {
         Write-Host "Installation could not be completed"
     }

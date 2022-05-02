@@ -128,6 +128,10 @@
                 $Info | Write-Host -ForegroundColor Red
                 $Info | Write-Verbose
                 $Info | Write-Debug
+                $Info = "The Organization data was:`n$($Organization | ConvertTo-Json -Depth 3 | Out-String)"
+                $Info | Write-Host
+                $Info | Write-Verbose
+                $Info | Write-Debug
             } 
         }
 

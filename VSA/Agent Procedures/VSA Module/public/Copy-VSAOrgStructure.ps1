@@ -113,16 +113,22 @@
             $Info | Write-Verbose
             $Info | Write-Debug
 
-            $Info = $($Organization | Out-String)
+            $Info = "Organization data:`n$($Organization | ConvertTo-Json -Depth 3 | Out-String)"
             $Info | Write-Verbose
             $Info | Write-Debug
 
-            $NewOrgId = $Organization | Add-VSAOrganization @AddOrgParams
-
-            $Info = "Created Organization <$($Organization.OrgRef)> with ID <$NewOrgId>"
-            $Info | Write-Host -ForegroundColor Green
-            $Info | Write-Verbose
-            $Info | Write-Debug
+            $NewOrgId = try { $Organization | Add-VSAOrganization @AddOrgParams } catch { $_.Exception.Message }
+            if ( $NewOrgId -match "^\d+$" ) {
+                $Info = "Created Organization <$($Organization.OrgRef)> with ID <$NewOrgId>"
+                $Info | Write-Host -ForegroundColor Green
+                $Info | Write-Verbose
+                $Info | Write-Debug
+            } else {
+                $Info = "Something went wrong: <$NewOrgId>"
+                $Info | Write-Host -ForegroundColor Red
+                $Info | Write-Verbose
+                $Info | Write-Debug
+            } 
         }
 
         $global:DestinationOrgs = Get-VSAOrganization @DestinationParams

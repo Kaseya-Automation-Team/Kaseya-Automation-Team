@@ -21,14 +21,44 @@ Invoke-WebRequest $DownloadUrl -OutFile $InstallerPath
 if (Test-Path -Path $InstallerPath ) {
 
     Unblock-File -Path $InstallerPath
+
     #region check if OneDrive already installed and uninstall it
-    $OneDrivePkg = Get-Package | Where-Object {$_.Name -eq 'Microsoft OneDrive'} 
-    if ( $null -ne $OneDrivePkg ) {
+    [string[]]$UninstallStrings = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -eq 'Microsoft OneDrive' } | Select-Object -ExpandProperty UninstallString
+
+    #region Loop through each profile on the machine
+    Foreach ($UserProfile in $UserProfiles)
+    {
+        # Load User ntuser.dat if it's not already loaded
+        [bool] $IsProfileLoaded = Test-Path Registry::HKEY_USERS\$($UserProfile.SID)
+        If ( -Not $IsProfileLoaded )
+        {
+            reg load "HKU\$($UserProfile.SID)" "$($UserProfile.UserHive)"
+        }
+
+        # Manipulate the registry
+        $UninstallStrings += Get-ChildItem -Path $(Join-Path -Path "HKEY_USERS\$($UserProfile.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall") | Get-ItemProperty | Where-Object {$_.DisplayName -eq 'Microsoft OneDrive' } | Select-Object -ExpandProperty UninstallString
+
+        # Unload NTuser.dat        
+        If ( -Not $IsProfileLoaded )
+        {
+            [gc]::Collect()
+            reg unload "HKU\$($UserProfile.SID)"
+        }
+    }
+    #endregion Loop through each profile on the machine
+
+    if ($null -ne $UninstallStrings) {
         [System.Diagnostics.EventLog]::WriteEntry("VSA X", "Microsoft OneDrive detected. Uninstalling", "Information", 200)
         Get-Process -Name 'OneDrive' | Stop-Process -Force -ErrorAction SilentlyContinue
-        Start-Process $InstallerPath -Wait -ArgumentList '/uninstall /allusers' -PassThru
+        $UninstallStrings = $UninstallStrings | Select-Object -Unique
+        foreach ( $UninstallString in $($UninstallStrings | Sort-Object) ) {
+            [string] $FilePath = $($UninstallString -split '/')[0].Trim()
+            [string] $ArgumentList = '/' + $($($UninstallString -split '/' | Select-Object -Skip 1 | ForEach-Object { $_.Trim() | Write-Output }) -join ' /')
+            Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -Wait -PassThru -ErrorAction SilentlyContinue
+        }
     }
     #endregion check if OneDrive already installed and uninstall it
+
     #Install
     Start-Process $InstallerPath -Wait -ArgumentList '/silent /allusers' -PassThru
     #Cleanup

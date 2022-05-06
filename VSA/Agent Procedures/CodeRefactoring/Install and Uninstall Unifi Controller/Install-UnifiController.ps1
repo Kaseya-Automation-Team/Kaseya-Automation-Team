@@ -24,10 +24,8 @@ $Unifi_Status = (Get-Package | Where-Object {$_.Name -eq "Ubiquiti UniFi (remove
         Invoke-WebRequest -Uri $Unifi_Source -OutFile $unifi_destination
 
          #Run the install command
-         Start-Process -FilePath $unifi_destination -ArgumentList '/S'
-         Start-Sleep -Seconds 90
-
-
+         Start-Process -FilePath $unifi_destination -ArgumentList '/S' -Wait
+         
          #Check the install status again
          $Unifi_Status = (Get-Package | Where-Object {$_.Name -eq "Ubiquiti UniFi (remove only)"} | Select-Object -Property Status).Status
 
@@ -70,8 +68,8 @@ if ($java_version -eq $null) {
      Invoke-WebRequest -Uri $source -OutFile $java_destination
 
      #Run the install command
-     Start-Process -FilePath $java_destination -ArgumentList '/s'
-     Start-Sleep -Seconds 60
+     Start-Process -FilePath $java_destination -ArgumentList '/s' -Wait
+     
 
      #Check the install status again
      $java_version = Get-JavaInstallStatus

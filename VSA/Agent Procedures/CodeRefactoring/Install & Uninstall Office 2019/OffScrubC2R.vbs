@@ -286,6 +286,7 @@ Sub ExitScript
 
     End If
    
+   fQuiet = True
     ' Reboot handling
     If fRebootRequired Then
         sPrompt = "In order to complete uninstall, a system reboot is necessary. Would you like to reboot now?"
@@ -331,7 +332,7 @@ Sub Initialize ()
     fNoCancel = False
     fRemoveOse = False
     fDetectOnly = False
-    fQuiet = False
+    fQuiet = True
     fForce = False
     fC2R = True
     fRebootRequired = False
@@ -340,7 +341,7 @@ Sub Initialize ()
     fIsElevated = False
     fNoElevate = False
     fSetRunOnce = False
-    fUserConsent = False
+    fUserConsent = True
     fReturnErrorOrSuccess = False
     fSkipSD = False
     fClearTaskBand = False

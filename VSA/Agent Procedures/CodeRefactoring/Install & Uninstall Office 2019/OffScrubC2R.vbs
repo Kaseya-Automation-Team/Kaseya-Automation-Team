@@ -277,13 +277,16 @@ Sub ExitScript
         If fOverallSuccess Then iError = ERROR_SUCCESS
 
         sTmp = "ReturnErrorOrSuccess switch has been set. The current value return code translates to: "
+        Set WshShell = WScript.CreateObject("WScript.Shell")
         If fOverallSuccess Then 
             iError = ERROR_SUCCESS
             Log sTmp & "SUCCESS"
+            strCommand = "eventcreate /L Application /T INFORMATION /SO ""VSA X"" /ID 200 /D" & Chr(34) & "MS Office removed." & Chr(34)
         Else
             Log sTmp & "ERROR"
+            strCommand = "eventcreate /L Application /T ERROR /SO ""VSA X"" /ID 400 /D" & Chr(34) & "MS Office removing returned Error." & Chr(34)
         End If
-
+        WshShell.Run strCommand
     End If
    
    fQuiet = True

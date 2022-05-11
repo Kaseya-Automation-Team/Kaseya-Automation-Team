@@ -2,7 +2,7 @@
     Install MS Office 2019
 #>
 
-[string] $ActivationKey #                        Set MS Office product key in format 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX'
+[string] $ActivationKey = ''#                    Set MS Office product key in format 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX'
 [string] $OfficeEdition = 'Standard2019Volume' # Set Product ID (Supported Product IDs listed on https://docs.microsoft.com/en-us/office365/troubleshoot/installation/product-ids-supported-office-deployment-click-to-run)
 
 [string] $BitVersion = '64' #                    Set MS Office bit version for 64-bit Windows

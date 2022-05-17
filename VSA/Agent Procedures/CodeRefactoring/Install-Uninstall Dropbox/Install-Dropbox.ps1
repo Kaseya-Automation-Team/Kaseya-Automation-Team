@@ -32,6 +32,7 @@ function Test-IsInstalled(){
 function Get-Installer($URL) {
 
     Write-Host "Downloading $AppName installer."
+	$ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest -Uri $URL -OutFile "$Destination"
 
     if (Test-Path -Path $Destination) {

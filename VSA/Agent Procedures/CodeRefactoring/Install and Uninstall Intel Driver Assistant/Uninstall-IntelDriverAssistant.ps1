@@ -25,6 +25,9 @@ if ($Status -eq "Installed"){
     #Run the install command
     Start-Process -Wait -FilePath $destination -ArgumentList '/uninstall /quiet /norestart' 
 
+    #Deleting the installer
+    Remove-Item -Path $destination -Force
+
     #Check the un-install status again
     $status = Get-InstallStatus
     if ($Status -ne "Installed"){

@@ -2,7 +2,8 @@
 
 #Define variables
 $AppName = "Teamviewer"
-$URL = "https://download.teamviewer.com/download/TeamViewer_Setup_x64.exe"
+$URL_x64 = "https://download.teamviewer.com/download/TeamViewer_Setup_x64.exe"
+$URL_x8 = "https://download.teamviewer.com/download/TeamViewer_Setup.exe"
 $Destination = "$env:TEMP\TeamViewer_Setup_x64.exe"
 
 #Create VSA X Event Source if it doesn't exist
@@ -33,10 +34,15 @@ function Get-Installer($URL) {
 
     Write-Host "Downloading $AppName installer."
 	$ProgressPreference = 'SilentlyContinue'
-    Invoke-WebRequest -Uri $URL -OutFile "$Destination"
+
+    if ([Environment]::Is64BitOperatingSystem) {
+        Invoke-WebRequest -Uri $URL_x64 -OutFile "$Destination"
+    } else {
+        Invoke-WebRequest -Uri $URL_x86 -OutFile "$Destination"
+    }
 
     if (Test-Path -Path $Destination) {
-
+[Environment]::Is64BitOperatingSystem
         Start-Install
     } else {
 

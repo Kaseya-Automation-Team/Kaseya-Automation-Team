@@ -44,6 +44,7 @@ if ( 0 -eq $Detected ) {
 
     $DownloadUrl = "$BaseURL&$Bitness&$Language"
     $MSIPath = "$env:TEMP\FirefoxESR.msi"
+    $ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest $DownloadUrl -OutFile $MSIPath
     if (Test-Path -Path $MSIPath ) {
         #Install

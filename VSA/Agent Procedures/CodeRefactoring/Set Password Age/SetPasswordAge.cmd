@@ -1,7 +1,7 @@
 ::Sets password age in days.
 ::
 ::Custom Number of passwords age
-SET PWD_AGE=90
+SET PWD_AGE=42
 
 SET MIN_AGE=1
 ::

@@ -142,7 +142,7 @@ namespace Desktop {
     public class Background { 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern int SystemParametersInfo(int uAction, int uParm, string lpvParam, int fuWinIni);
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern int SetSysColors(int cElements, int[] lpaElements, int[] lpRgbValues);
 
         public const int COLOR_DESKTOP = 1;
@@ -154,8 +154,7 @@ namespace Desktop {
         }
         public static void SetBackground(byte r, byte g, byte b, string thePath)
         {
-            int[] elements = {COLOR_DESKTOP};
-            SetWallPaper(thePath);
+            int[] elements = {COLOR_DESKTOP};            
             if(string.IsNullOrEmpty(thePath))
             {
                 System.Drawing.Color color = System.Drawing.Color.FromArgb(r,g,b);
@@ -163,7 +162,10 @@ namespace Desktop {
     
                 SetSysColors(elements.Length, elements, colors);
             }        
-            
+            else
+            {
+                SetWallPaper(thePath);
+            }
             
         }
     }

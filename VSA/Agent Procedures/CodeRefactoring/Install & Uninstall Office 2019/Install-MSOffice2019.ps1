@@ -31,12 +31,17 @@ function Get-FileFromURI {
 
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $SaveTo
+        [string] $SaveTo,
+
+        [parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
+        [int] $TimeoutSec = 600
     )
     [bool] $Result = $false
 
+    $ProgressPreference = 'SilentlyContinue'
     $ResponseCode = try {
-        (Invoke-WebRequest -Uri $DownloadUrl -OutFile $SaveTo -UseBasicParsing -TimeoutSec 600 -PassThru -ErrorAction Stop).StatusCode
+        (Invoke-WebRequest -Uri $DownloadUrl -OutFile $SaveTo -UseBasicParsing -TimeoutSec $TimeoutSec -PassThru -ErrorAction Stop).StatusCode
     } catch {
         $_.Exception.Response.StatusCode.value__
     }

@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Procedure name="Disable Microsoft Store" treePres="3" id="1274057001" folderId="639908241545738" treeFullPath="myProcedures - kadmin">
-    <Body description="The procedure detects if Malwarebytes installed on the Windows computer. Downloads &amp; installs it if not already installed. If Malwarebytes is already installed, the procedure reinstalls it">
-      <Statement description="The procedure calls PowerShell script that disables Microsoft Store on a computer&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+    <Body description="TThe procedure invokes PowerShell script that disables Microsoft Store on a computer">
+      <Statement description="The procedure invokes PowerShell script that disables Microsoft Store on a computer&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="Disable-WindowsStore" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptBaseName" />

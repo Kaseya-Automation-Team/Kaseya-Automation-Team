@@ -1,3 +1,16 @@
+<#
+.Synopsis
+   Set MS Edge as default web browser.
+.DESCRIPTION
+   Set MS Edge as default web browser by creating protocol and file type associations. Used by the Set MS Edge As Default Web Browser Agent Procedure 
+.EXAMPLE
+   .\Set-EdgeDefaultBrowser.ps1
+.NOTES
+   Version 0.1
+   Author: Proserv Team - VS
+#>
+
+
 function Set-FTA {
 
     [CmdletBinding()]
@@ -456,7 +469,6 @@ namespace Registry {
   
     Update-RegistryChanges 
 }
-  
 
 #$FoundSoftware = Get-Package | Where-Object {$_.Name -eq "Microsoft Edge"} | Select-Object -ExpandProperty Status
 if ("Installed" -eq (Get-Package | Where-Object {$_.Name -eq "Microsoft Edge"} | Select-Object -ExpandProperty Status) ) {
@@ -489,5 +501,5 @@ if ("Installed" -eq (Get-Package | Where-Object {$_.Name -eq "Microsoft Edge"} |
     }
     #endregion Change Users' Hives
 } else {
-    Write-Output 'Microsoft Edge is Not Found on this computer!'
+    Write-Output 'Attention! Microsoft Edge is Not Found on this computer!'
 }

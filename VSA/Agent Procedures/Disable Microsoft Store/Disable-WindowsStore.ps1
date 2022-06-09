@@ -113,9 +113,11 @@ Foreach ($Profile in $ProfileList) {
     }
 
     #####################################################################
-    # Unload ntuser.dat        
     [gc]::Collect()
-    reg unload "HKU\$($Profile.SID)"
+    $ErrorActionPreferenceSaved = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    reg unload "HKU\$($Profile.SID)" | Out-Null
+    $ErrorActionPreference = $ErrorActionPreferenceSaved
 }
 #endregion Change Users' Hives
 

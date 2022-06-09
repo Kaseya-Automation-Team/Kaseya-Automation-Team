@@ -496,7 +496,8 @@ if ("Installed" -eq (Get-Package | Where-Object {$_.Name -eq "Microsoft Edge"} |
         # Unload ntuser.dat        
         [gc]::Collect()
         $ErrorActionPreferenceSaved = $ErrorActionPreference
-        reg unload "HKU\$($Profile.SID)" | Out-Null
+        $ErrorActionPreference = "SilentlyContinue"
+        reg unload "HKU\$($Profile.SID)"
         $ErrorActionPreference = $ErrorActionPreferenceSaved
     }
     #endregion Change Users' Hives

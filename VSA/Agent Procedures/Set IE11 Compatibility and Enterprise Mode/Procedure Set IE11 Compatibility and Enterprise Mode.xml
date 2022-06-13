@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Set IE11 Compatibility and Enterprise Mode" treePres="3" id="1635821831" folderId="639908241545738" treeFullPath="myProcedures - kadmin">
+    <Body description="The procedure invokes the PowerShell script that adds IE 11 Compatibility Mode Pointer &amp; Configures the enterprise mode site list">
+      <Statement description="The procedure invokes the PowerShell script that adds IE 11 Compatibility Mode Pointer &amp; Configures the enterprise mode site list&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Set path to the Enterprise Mode IE website list file" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="\\cs.msds.kp.org\sysvol\cs.msds.kp.org\scripts\IE_EM_SiteList\UAT\SiteList_Edge.xml" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="SiteListPath" />
+      </Statement>
+      <Statement description="Set the script's base name" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Set-IE11CompatibilityAndEnterpriseMode" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptBaseName" />
+      </Statement>
+      <If description="Check if the Enterprise Mode IE website list file is accessible">
+        <Condition name="TestFile">
+          <Parameter xsi:type="StringParameter" name="Path" value="#SiteListPath#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <Statement description="download the script" name="WriteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\#ScriptBaseName#.ps1" />
+            <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#ScriptBaseName#.ps1" />
+            <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+          </Statement>
+          <If description="check if script downloaded">
+            <Condition name="TestFile">
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\#ScriptBaseName#.ps1" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              <Parameter xsi:type="StringParameter" name="Value" value="" />
+            </Condition>
+            <Then>
+              <Statement description="Define the script's parameters" name="GetVariable" continueOnFail="false">
+                <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;&amp; '#vAgentConfiguration.agentTempSecureDir#\#ScriptBaseName#.ps1' -SiteListPath '#SiteListPath#'&quot; " />
+                <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptCommandParameters" />
+              </Statement>
+              <Statement description="Run Powershell script with required parameters and arguments" name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ScriptCommandParameters#" />
+              </Statement>
+              <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ScriptCommandParameters#" />
+                <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+                <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+              </Statement>
+              <Statement name="GetVariable" continueOnFail="false">
+                <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                <Parameter xsi:type="StringParameter" name="SourceContent" value="#global:cmdresults#" />
+                <Parameter xsi:type="StringParameter" name="VariableName" value="Result" />
+              </Statement>
+              <If description="">
+                <Condition name="CheckVariable">
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="#Result#" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="Attention" />
+                </Condition>
+                <Then>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="#Result#" />
+                  </Statement>
+                </Then>
+                <Else>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="IE 11 Compatibility Mode &amp; Enterprise Mode Site List configured" />
+                  </Statement>
+                </Else>
+              </If>
+              <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\Gather-DomainAccounts.ps1" />
+              </Statement>
+            </Then>
+            <Else>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="Error! Script was not downloaded!" />
+              </Statement>
+            </Else>
+          </If>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Error!  Enterprise Mode IE website list file #SiteListPath# is not sccessible" />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

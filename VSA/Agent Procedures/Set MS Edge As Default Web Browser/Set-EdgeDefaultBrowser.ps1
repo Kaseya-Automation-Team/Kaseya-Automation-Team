@@ -6,7 +6,7 @@
 .EXAMPLE
    .\Set-EdgeDefaultBrowser.ps1
 .NOTES
-   Version 0.1
+   Version 0.1.1a
    Author: Proserv Team - VS
 #>
 
@@ -79,7 +79,7 @@ function Set-FTA {
         })
   
       
-      $allApplicationAssociationToasts += Get-ChildItem -Path HKLM:SOFTWARE\Clients\StartMenuInternet\* , HKCU:SOFTWARE\Clients\StartMenuInternet\* -ErrorAction SilentlyContinue | 
+      $allApplicationAssociationToasts += Get-ChildItem -Path HKLM:SOFTWARE\Clients\StartMenuInternet\* , "HKEY_USERS\$SID\SOFTWARE\Clients\StartMenuInternet\*" -ErrorAction SilentlyContinue | 
       ForEach-Object {
           (Get-ItemProperty ("$($_.PSPath)\Capabilities\" + (@("URLAssociations", "FileAssociations") | Select-Object -Index $Extension.Contains("."))) -ErrorAction SilentlyContinue).$Extension
       }
@@ -87,7 +87,7 @@ function Set-FTA {
       $allApplicationAssociationToasts | 
       ForEach-Object {
           if ($_) {
-              if (Set-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\ApplicationAssociationToasts $_"_"$Extension -Value 0 -Type DWord -ErrorAction SilentlyContinue -PassThru) {
+              if (Set-ItemProperty -Path "HKEY_USERS\$SIDSoftware\Microsoft\Windows\CurrentVersion\ApplicationAssociationToasts" -Name $_"_"$Extension -Value 0 -ErrorAction SilentlyContinue -PassThru) {
                   Write-Verbose  ("Write Reg ApplicationAssociationToastsList OK: " + $_ + "_" + $Extension)
                 } else {
                     Write-Verbose  ("Write Reg ApplicationAssociationToastsList FAILED: " + $_ + "_" + $Extension)
@@ -470,9 +470,10 @@ namespace Registry {
     Update-RegistryChanges 
 }
 
+[string] $LogInfo
+
 #$FoundSoftware = Get-Package | Where-Object {$_.Name -eq "Microsoft Edge"} | Select-Object -ExpandProperty Status
 if ("Installed" -eq (Get-Package | Where-Object {$_.Name -eq "Microsoft Edge"} | Select-Object -ExpandProperty Status) ) {
-    Write-Output 'Microsoft Edge is installed on this computer'
     #region Change Users' Hives
     [string] $SIDPattern = '^S-1-5-21-(\d+-?){4}$'
     [string] $RegKeyUserProfiles = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\*'
@@ -484,23 +485,23 @@ if ("Installed" -eq (Get-Package | Where-Object {$_.Name -eq "Microsoft Edge"} |
     # Loop through each profile on the machine
     Foreach ($Profile in $ProfileList) {
         # Load User ntuser.dat if it's not already loaded
-        reg load "HKU\$($Profile.SID)" "$($Profile.UserHive)"
+        if ( -not [string]::IsNullOrEmpty($LogInfo)  ) { $LogInfo += "`n`n" }
+        $LogInfo += "{0} {1}" -f "Loading registry hive for User:`t", $($Profile.UserName)
+        [string]$ErrInfo = reg load "HKU\$($Profile.SID)" "$($Profile.UserHive)" 2>&1
+        if ( -not [string]::IsNullOrEmpty($ErrInfo)  ) { $LogInfo += "`n$ErrInfo`n" }
         #####################################################################
-        # Modifying a user`s hive of the registry
-        "{0} {1}" -f "`tUser:", $($Profile.UserName) | Write-Verbose
-        Set-FTA -ProgId 'MSEdgeHTM' -Extension ".htm"  -SID $Profile.SID.ToLower() -Verbose
-        Set-FTA -ProgId 'MSEdgeHTM' -Extension ".htm1" -SID $Profile.SID.ToLower() -Verbose
-        Set-FTA -ProgId 'MSEdgeHTM' -Protocol "http"   -SID $Profile.SID.ToLower() -Verbose
-        Set-FTA -ProgId 'MSEdgeHTM' -Protocol "https"  -SID $Profile.SID.ToLower() -Verbose
+        # Modifying the user`s hive of the registry
+        $LogInfo += Set-FTA -ProgId 'MSEdgeHTM' -Extension ".htm"  -SID $Profile.SID.ToLower() -Verbose *>&1 | Format-List | Out-String
+        $LogInfo += Set-FTA -ProgId 'MSEdgeHTM' -Extension ".htm1" -SID $Profile.SID.ToLower() -Verbose *>&1 | Format-List | Out-String
+        $LogInfo += Set-FTA -ProgId 'MSEdgeHTM' -Protocol "http"   -SID $Profile.SID.ToLower() -Verbose *>&1 | Format-List | Out-String
+        $LogInfo += Set-FTA -ProgId 'MSEdgeHTM' -Protocol "https"  -SID $Profile.SID.ToLower() -Verbose *>&1 | Format-List | Out-String
         #####################################################################
         # Unload ntuser.dat        
         [gc]::Collect()
-        $ErrorActionPreferenceSaved = $ErrorActionPreference
-        $ErrorActionPreference = "SilentlyContinue"
-        reg unload "HKU\$($Profile.SID)"
-        $ErrorActionPreference = $ErrorActionPreferenceSaved
+        reg unload "HKU\$($Profile.SID)" 2>$null
     }
     #endregion Change Users' Hives
 } else {
-    Write-Output 'Attention! Microsoft Edge is Not Found on this computer!'
+    $LogInfo = 'ERROR`nMicrosoft Edge is Not Found on this computer!'
 }
+$LogInfo | Write-Output

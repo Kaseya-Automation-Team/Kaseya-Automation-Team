@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="[Win] [Domain] Cleanup OUs" treePres="3" id="933303596" folderId="710973597416176" treeFullPath="K | Ready Start.Windows.Domain Management.Active Directory">
+    <Body description="The procedure calls PowerShell script that removes all the empty OUs in the AD Domain">
+      <Statement description="The procedure calls PowerShell script that removes all the empty OUs in the AD Domain.&#xD;&#xA;To run on a domain controller&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="WMIC.exe ComputerSystem get DomainRole | find /v &quot;DomainRole&quot;" />
+        <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+        <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+      </Statement>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThanOrEquals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="4" />
+        </Condition>
+        <Then>
+          <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command  &quot;$OU = Get-ADOrganizationalUnit -Filter * | ForEach-Object { if (-not (Get-ADObject -SearchBase $_ -SearchScope OneLevel -Filter * )) { Write-Output $_ } }; if (0 -lt $OU.Length) { $OU | Set-ADOrganizationalUnit -ProtectedFromAccidentalDeletion $false -PassThru | Remove-ADOrganizationalUnit -Confirm:$false; $OU | (Select-Object -ExpandProperty DistinguishedName) -join '; ' | Write-Output} else { 'No empty OU found' | Write-Output}&quot;" />
+            <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+            <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+          </Statement>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. Run the procedure on a domain controller" />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

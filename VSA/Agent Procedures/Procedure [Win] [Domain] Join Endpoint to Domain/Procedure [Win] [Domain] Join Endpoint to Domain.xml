@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="[Win] [Domain] Join Endpoint to Domain" treePres="3" id="1277582949" folderId="889077474125234" treeFullPath="K | Ready Start.Windows.Domain Management.Domain">
+    <Body description="This agent procedure will have the endpoint join the Domain. &#xA;&#xA;Action Item: Enter username and password when prompted (either when the procedure is being executed or scheduled.)&#xA;&#xA;Created by Douglas Sanchez. (douglas.sanchez@kaseya.com)">
+      <Statement description="The procedure calls PowerShell script that joins Endpoint to AD Domain.&#xD;&#xA;To run on a domain controller&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Domain Name" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="domain" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Domain Admin Username" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="admin" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Domain Admin Password" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="password" />
+      </Statement>
+      <Statement name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+        <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command  &quot;Import-Module ActiveDirectory; [securestring]$SecPassword = '#password#' | ConvertTo-SecureString -AsPlainText -Force; [PSCredential]$Cred = New-Object System.Management.Automation.PSCredential -ArgumentList '#admin#', $SecPassword; Add-Computer -DomainName '#domain#' -Credential $Cred -Restart -Force&quot;" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+    </Body>
+  </Procedure>
+</ScExport>

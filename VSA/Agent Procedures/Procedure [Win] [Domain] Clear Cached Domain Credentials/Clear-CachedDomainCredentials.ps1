@@ -15,10 +15,5 @@ foreach ( $Entry in $CmdkeyOutput ) {
     }
 }
 
-#Filter Cached Domain credentials
-$CachedCreds = $CachedCreds | Where-Object {$_.Type -match '^Domain'}
-
-#Clear Cached Domain credentials
-foreach ( $Entry in $CachedCreds ) {
-    cmdkey /delete:$($Entry.Target)
-}
+#Filter Cached Domain credentials & clear
+$CachedCreds | Where-Object {$_.Type -match '^Domain'} | ForEach-Object { cmdkey /delete:$($_.Target) }

@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="[Win] [App] Install Live Connect" treePres="3" id="899489576" folderId="319509160341466" treeFullPath="myProcedures - kadmin.Test">
+    <Body description="The procedure downloads LiveConnect from the VSA server and installs it.">
+      <Statement description="The procedure downloads LiveConnect from the VSA server and installs it.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;&quot;&quot;&quot;http://$('#vAgentConfiguration.primaryKServer#' -replace ':.*')/ManagedFiles/VSAHiddenFiles/KaseyaLiveConnect/win64/KaseyaLiveConnect.exe&quot;&quot;&quot; | Write-Output&quot;" />
+        <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+        <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
+      </Statement>
+      <Statement name="GetURL" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="URL" value="#global:cmdresults#" />
+        <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempSecureDir#\LiveConnect.exe" />
+        <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+      </Statement>
+      <If description="">
+        <Condition name="TestFile">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\LiveConnect.exe" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <If description="">
+            <Condition name="ApplicationRunning">
+              <Parameter xsi:type="StringParameter" name="ApplicationName" value="KaseyaLiveConnect.exe" />
+            </Condition>
+            <Then>
+              <Statement name="CloseApplication" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="ApplicationName" value="KaseyaLiveConnect.exe" />
+              </Statement>
+              <Statement name="PauseScript" continueOnFail="false">
+                <Parameter xsi:type="IntegerParameter" name="Seconds" value="10" />
+              </Statement>
+            </Then>
+          </If>
+          <Statement name="ExecuteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\LiveConnect.exe" />
+            <Parameter xsi:type="StringParameter" name="Arguments" value="/q" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+          </Statement>
+          <Statement name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="&quot;C:\Program Files\Kaseya Live Connect\KaseyaLiveConnect.exe&quot;" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="User" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+          <Statement description="cleanup" name="DeleteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\LiveConnect.exe" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: Can't found file #vAgentConfiguration.agentTempSecureDir#\LiveConnect.exe" />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

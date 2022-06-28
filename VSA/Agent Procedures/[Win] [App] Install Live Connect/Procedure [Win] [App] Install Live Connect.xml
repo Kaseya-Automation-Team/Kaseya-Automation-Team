@@ -39,7 +39,7 @@
             <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
           </Statement>
           <Statement name="ExecuteShellCommand" continueOnFail="false">
-            <Parameter xsi:type="StringParameter" name="Command" value="&quot;C:\Program Files\Kaseya Live Connect\KaseyaLiveConnect.exe&quot;" />
+            <Parameter xsi:type="StringParameter" name="Command" value="&quot;%PROGRAMFILES%\Kaseya Live Connect\KaseyaLiveConnect.exe&quot;" />
             <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="User" />
             <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
           </Statement>

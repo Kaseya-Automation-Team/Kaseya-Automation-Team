@@ -4,7 +4,7 @@
 .DESCRIPTION
    Prepares an ODT config file and creates a batch for MS Office setup using the ODT.
 .NOTES
-   Version 0.2
+   Version 0.2.1
    Author: Proserv Team - VS
 .PARAMETERS
     [string] ODTPath
@@ -66,47 +66,27 @@ if ( -not( [Environment]::Is64BitOperatingSystem -and (64 -eq $BitVersion) ))
 
 #--------------------------------
 #region set output files content
-[string] $ConfigContent
-#if activation key provided
-if ( -not [string]::IsNullOrEmpty($ActivationKey) )
-{
-$ConfigContent = @"
+[string] $AutoActivate = "0"
+
+        if ( -not [string]::IsNullOrEmpty($ActivationKey) ) {
+            [string] $ProductKey = "PIDKEY=`"$ActivationKey`""
+            $AutoActivate = "1"
+        }
+
+        [string] $ConfigContent = @"
 <Configuration>
   <Add SourcePath="{0}" OfficeClientEdition="{1}">
-    <Product ID="{2}" PIDKEY="{3}">
+    <Product ID="{2}" {3}>
       <Language ID="MatchOS" />
     </Product>
   </Add>
   <Property Name="FORCEAPPSHUTDOWN" Value="TRUE"/>
   <!--  <Updates Enabled="TRUE" Branch="Current" /> -->
   <Display Level="None" AcceptEULA="TRUE" />
-  <Property Name="AUTOACTIVATE" Value="1" />
+  <Property Name="AUTOACTIVATE" Value="{4}" />
 </Configuration>
-"@ -f @($ODTLocationFolder, $BitVersion, $OfficeEdition, $ActivationKey)
-}
-else #no activation key
-{ 
-$ConfigContent = @"
-<Configuration>
-  <Add SourcePath="{0}" OfficeClientEdition="{1}">
-    <Product ID="{2}">
-      <Language ID="MatchOS" />
-    </Product>
-  </Add>
-  <!--  <Updates Enabled="FALSE" Branch="Current" /> -->
-  <Property Name="FORCEAPPSHUTDOWN" Value="TRUE"/>
-  <Display Level="None" AcceptEULA="TRUE" />
-  <Property Name="AUTOACTIVATE" Value="0" />
-</Configuration>
-"@ -f @($ODTLocationFolder, $BitVersion, $OfficeEdition)
-}
+"@ -f @($ODTLocationFolder, $BitVersion, $OfficeEdition, $ProductKey, $AutoActivate) | Out-File -FilePath "$ODTLocationFolder\Configuration.xml" -Force -Encoding utf8
 #endregion  set output files content
-
-
-#region creating the output files
-$OutputFilePath = Join-Path -Path $ODTLocationFolder -ChildPath "Configuration.xml"
-$ConfigContent | Out-File -FilePath $OutputFilePath -Force -Encoding utf8 -Verbose
-#endregion creating the output files
 
 #region check/stop transcript
 if ( $LogIt )

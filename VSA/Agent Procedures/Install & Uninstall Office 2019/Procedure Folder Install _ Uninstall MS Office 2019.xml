@@ -2,7 +2,7 @@
 <ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Install &amp; Uninstall MS Office 2019" treePres="3">
     <Procedure name="Install MS Office 2019" treePres="3" id="582701520" folderId="154885566167014">
-      <Body description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office 2016.&#xA;&#xA;Author: Proserv Team - VS">
+      <Body description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office 2019.&#xA;&#xA;Author: Proserv Team - VS">
         <Statement description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office 2019.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;Set path  for software distribution." name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="C:\TEMP" />

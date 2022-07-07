@@ -2,7 +2,12 @@
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Procedure name="Set MS Edge As Default Web Browser" treePres="3" id="1137072769" folderId="639908241545738" treeFullPath="myProcedures - kadmin">
     <Body description="The procedure invokes the PowerShell script that sets MS Edge as default web browser by creating protocol and file type associations">
-      <Statement description="The procedure invokes the PowerShell script that sets MS Edge as default web browser by creating protocol and file type associations&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+      <Statement description="The procedure invokes the PowerShell script that sets MS Edge as default web browser by creating protocol and file type associations&#xD;&#xA;Version: 0.1.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Set the LogIt variable to 1 if you need extended logging for the Procedure. Otherwise set it to 0." name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="1" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="LogIt" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
         <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
         <Parameter xsi:type="StringParameter" name="SourceContent" value="Set-EdgeDefaultBrowser" />
         <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptBaseName" />
@@ -33,7 +38,7 @@
             <Condition name="CheckVariable">
               <Parameter xsi:type="StringParameter" name="VariableName" value="#Result#" />
               <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
-              <Parameter xsi:type="StringParameter" name="Value" value="Attention" />
+              <Parameter xsi:type="StringParameter" name="Value" value="ERROR" />
             </Condition>
             <Then>
               <Statement name="WriteScriptLogEntry" continueOnFail="false">
@@ -44,6 +49,18 @@
               <Statement name="WriteScriptLogEntry" continueOnFail="false">
                 <Parameter xsi:type="StringParameter" name="Comment" value="File &amp; protocol associations were set to MS Edge" />
               </Statement>
+              <If description="Write extended procedure log if required">
+                <Condition name="CheckVariable">
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="#LogIt#" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="1" />
+                </Condition>
+                <Then>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="#Result#" />
+                  </Statement>
+                </Then>
+              </If>
             </Else>
           </If>
           <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">

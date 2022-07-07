@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="[Win] [Domain] Unlock Domain User" treePres="3" id="207391580" folderId="710973597416176" treeFullPath="K | Ready Start.Windows.Domain Management.Active Directory">
+    <Body description="This agent procedure will prompt for a username and unlock it from Active Directory. &#xA;&#xA;Action Item: Enter username when prompted. &#xA;&#xA;Created by Douglas Sanchez. (douglas.sanchez@kaseya.com)">
+      <Statement description="The procedure calls PowerShell script that unlocks a domain user.&#xD;&#xA;To run on a domain controller&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="WMIC.exe ComputerSystem get DomainRole | find /v &quot;DomainRole&quot;" />
+        <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+        <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+      </Statement>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThanOrEquals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="4" />
+        </Condition>
+        <Then>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="Username to unlock" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="username" />
+          </Statement>
+          <Statement name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+            <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command  &quot;Import-Module ActiveDirectory; Unlock-ADAccount -Identity #username#&quot;" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. Run the procedure on a domain controller" />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

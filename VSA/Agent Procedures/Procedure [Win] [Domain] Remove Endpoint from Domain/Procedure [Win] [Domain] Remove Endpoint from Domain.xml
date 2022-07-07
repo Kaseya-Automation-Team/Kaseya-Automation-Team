@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="[Win] [Domain] Remove Endpoint from Domain" treePres="3" id="1928620235" folderId="889077474125234" treeFullPath="K | Ready Start.Windows.Domain Management.Domain">
+    <Body description="This agent procedure will have the endpoint leave the Domain. &#xA;&#xA;Action Item: Enter username and password when prompted (either when the procedure is being executed or scheduled.)&#xA;&#xA;Created by Douglas Sanchez. (douglas.sanchez@kaseya.com)">
+      <Statement description="The procedure calls PowerShell script that removes Endpoint from AD Domain.&#xD;&#xA;To run on a domain controller&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Admin Username" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="admin" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Admin Password" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="password" />
+      </Statement>
+      <Statement name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+        <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command  &quot;Import-Module ActiveDirectory; [securestring]$SecPassword = '#password#' | ConvertTo-SecureString -AsPlainText -Force; [PSCredential]$Cred = New-Object System.Management.Automation.PSCredential -ArgumentList '#admin#', $SecPassword; Remove-Computer -UnjoinDomaincredential $Cred -PassThru -Restart -Force&quot;" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+    </Body>
+  </Procedure>
+</ScExport>

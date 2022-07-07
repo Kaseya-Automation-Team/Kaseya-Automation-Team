@@ -18,7 +18,7 @@
     [switch] LogIt
         - Enables execution transcript	
 .EXAMPLE
-   .\Create-MSOfficeInstaller.ps1 -ODTPath C:\TEMP\setup.exe -BitVersion 32 -OfficeEdition Standard2019Volume -ActivationKey '12345-12345-12345-12345-12345' -LogIt
+   .\Create-MSOfficeInstaller.ps1 -ODTPath C:\TEMP\setup.exe -BitVersion 32 -OfficeEdition Standard2021Volume -ActivationKey '12345-12345-12345-12345-12345' -LogIt
 #>
 
 param (
@@ -32,21 +32,24 @@ param (
         }
         return $true
     })]
-    [string] $ODTPath,
+    [System.IO.FileInfo] $ODTPath,
+
     [parameter(Mandatory=$true)]
-    [string]$BitVersion,
+    [string] $BitVersion,
+
     [parameter(Mandatory=$true)]
-    [string]$OfficeEdition,
+    [string] $OfficeEdition,
+
     [parameter(Mandatory=$false)]
-    [string]$ActivationKey,
+    [string] $ActivationKey,
+
     [parameter(Mandatory=$false)]
     [switch] $LogIt
 )
 
 #region check/start transcript
 [string]$Pref = 'Continue'
-if ( $LogIt )
-{
+if ( $LogIt ) {
     $DebugPreference = $Pref
     $VerbosePreference = $Pref
     $InformationPreference = $Pref
@@ -58,8 +61,7 @@ if ( $LogIt )
 #endregion check/start transcript
 
 #--------------------------------
-if ( -not( [Environment]::Is64BitOperatingSystem -and (64 -eq $BitVersion) ))
-{
+if ( -not( [Environment]::Is64BitOperatingSystem -and (64 -eq $BitVersion) )) {
     $BitVersion = 32
 }
 [string] $ODTLocationFolder = Split-Path $ODTPath -Parent
@@ -89,8 +91,7 @@ if ( -not( [Environment]::Is64BitOperatingSystem -and (64 -eq $BitVersion) ))
 #endregion  set output files content
 
 #region check/stop transcript
-if ( $LogIt )
-{
+if ( $LogIt ) {
     $Pref = 'SilentlyContinue'
     $DebugPreference = $Pref
     $VerbosePreference = $Pref

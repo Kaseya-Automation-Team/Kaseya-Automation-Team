@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<monitor_set_definition version="1.0">
+<MonitorSet name="KLC" description='KLC monitoring' enableCounterMatching='0'>
+<Counters>
+</Counters>
+<Services>
+</Services>
+<Processes>
+<Process name='KaseyaRemoteControlHost.exe'  description='KRC Monitoring' monitorDirection='Up'  reArm='1800'/>
+</Processes>
+</MonitorSet>
+</monitor_set_definition>

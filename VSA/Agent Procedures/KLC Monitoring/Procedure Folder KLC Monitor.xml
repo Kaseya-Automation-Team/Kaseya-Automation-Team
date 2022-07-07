@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="KLC Monitor" treePres="3">
+    <Procedure name="KLC-Monitor-Executer" treePres="3" id="548617614" folderId="412170061009084" treeFullPath="myProcedures - kadmin.KLC Monitor">
+      <Body description="">
+        <Statement description="&quot;This procedure checks  if the application is running. If so it  asks user whether to continue KLC and (if user disagreed) it terminates KLC/KRC session&quot;" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="KaseyaRemoteControl is running on your computer. Would you want this to continue?" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="TheMessage" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="kaseyaremotecontrolhost.exe" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="App" />
+        </Statement>
+        <If description="">
+          <Condition name="ApplicationRunning">
+            <Parameter xsi:type="StringParameter" name="ApplicationName" value="#App#" />
+          </Condition>
+          <Then>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#App# is running" />
+            </Statement>
+            <If description="">
+              <Condition name="UserResponseIsYes">
+                <Parameter xsi:type="StringParameter" name="Message" value="+++YES:OK+++NO:Close Session+++#TheMessage#" />
+                <Parameter xsi:type="IntegerParameter" name="Timeout" value="0" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Customer wanted the session to be going" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="The user decided to close the #App#&quot;" />
+                </Statement>
+                <Statement name="CloseApplication" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="ApplicationName" value="#App#" />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#App# is NOT running" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="KLC-Monitor-Scheduler" treePres="3" id="1199654899" folderId="412170061009084" treeFullPath="myProcedures - kadmin.KLC Monitor">
+      <Body description="">
+        <Statement description="&quot;Tic&quot; procedure checks if the application is running. If so it waits for a defined period of time and starts the &quot;Toc&quot; procedure" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="30" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="DelayInMinutes" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="kaseyaremotecontrolhost.exe" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="AppName" />
+        </Statement>
+        <If description="">
+          <Condition name="ApplicationRunning">
+            <Parameter xsi:type="StringParameter" name="ApplicationName" value="#AppName#" />
+          </Condition>
+          <Then>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#AppName# is running. Scheduling the &quot;Toc&quot; procedure with delay #DelayInMinutes# minutes" />
+            </Statement>
+            <Statement name="ExecuteScript" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="ScriptID" value="548617614" />
+              <Parameter xsi:type="StringParameter" name="ScriptName" value="KLC-Monitor-Executer" />
+              <Parameter xsi:type="StringParameter" name="TimeDelay" value="#DelayInMinutes#" />
+              <Parameter xsi:type="EnumParameter" name="TimeUnit" value="Minutes" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#AppName# is NOT running" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="[Win] [App] Uninstall LiveConnect" treePres="3" id="1282520127" folderId="319509160341466" treeFullPath="myProcedures - kadmin.Test">
+    <Body description="The procedure uninstall LiveConnect.">
+      <Statement description="The procedure uninstall LiveConnect.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS" name="ExecuteShellCommand" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;Start-Process -FilePath $(Get-ChildItem -Path &quot;&quot;&quot;$env:ProgramData\Package Cache&quot;&quot;&quot; -Filter bundle.exe -Recurse | ForEach-Object {$_.FullName} | Select-Object -First 1) -ArgumentList &quot;&quot;&quot;/uninstall /quiet&quot;&quot;&quot; -Wait&quot;" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="User" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+    </Body>
+  </Procedure>
+</ScExport>

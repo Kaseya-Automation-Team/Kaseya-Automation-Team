@@ -1,10 +1,10 @@
-## This script downloads and silently installs Audacity 2.2.2
+## This script downloads and silently installs Box Drive
 
 #Define variables
-$AppName = "Audacity"
-$AppFullName = "Audacity*"
-$URL = "https://dl2.boxcloud.com/d/1/b1!qAMdcJr9Cn448sQH3FjIV9iFu7X7RhDOWYLXki3RLLJ4yOIFvq7yh19udO6-3cxWEBmz3-FE1mNMPDXmw7b815Ie8MELGg4-hSjbXNFP1w-HxBcALdg-xpotOkiFsSexawA5SDwP1AMJ5W_A3r4ofDrZ1O9nM0TrfPuq7rGNtAg7-eV0nWsS_FwO9idu116T9ieCEVd36hTkxw5KkN_xaGb1b20IDhqBu0TQscaAl1OBgIqxCwAJaKjfpYpuzTO7BklHOSlLVSFwX1Mmvpx_T6W2cwpHZ6WfMTUBdNvlY9xWjnnW6s5bZJlf298DnRg2dZjH18kka1cXAguksOWrtXFA3E4YO5o3Rk-qQAHPhV9T1w4i3jJ6HDu7OMkOSoi7eFxVUZCgFQXlSJbxWu9hmSg5qfmoxxkWrnqEU7394Br-HXcWibwBnA4-axtWsUvLmmmP2rFjIFXwvJgFuv7RZwXjKrRajc2MK6SQ25ix9UF4lG0iN8WtNNkJcSyOMaeyg8kfvUwWr5wxjsElfg17uc-i7uW3jesyQRBDT5uTsXYING8_Fc5ukMDq1vXauJ3B8nfYdYVFySEnkUDk2KNji9qXCn6OQMG5ET9S_IqC3J7n-vCKaHr0JZoeJVF4BqXSJlTQCPWbjDZkaJKloLuRC1vi4nq1hGLHtrNSMlNi5ELomO5tt2z1Ldk8fKVUL8Flp9WGAAb3KE3-EDu20clQaJglBU5lCIda20fG10goMSpD3JTt6roCBU47J5Cwcof0EYigJmVAOy521oZnkFQP0G5cZS0dMcF-3HbveRNv3vjRGHqIZGcc0iQjy0ekU5XsdBDFMI3dEzgdknhUiu0f2tUxezhMSbNeIUsoUH83Ng3_6MO7i4FvKwbXtDF9ACNo3n9j-J9vYAR3YGQI85FPXr3sBjbTDoy80nW8G2oh0uVYw5yt4XfNY0bxV8BbzkyJ7R3OCkJcMLbjDIFGCiTdI0QrjYSDmiYl_hJE4YkIj2Bv0fYy9w4J85r2CB7-CLnSyKYcYEIzJi-z50RPqDy0LANBwhpR25r_z7JtsfG6Qq3AGKcMj1XteYkWGLJSWDqkMHpckYCqWNS3UmDAEp34bFEeSsH7ET5ZyhOYz6cP4n7rMenr1duz6_YjMrBpTQsFFfznEJts5RwoMw-ki6JQPf7lzuE-JHoX-9uylFMbBH3xRvpBD_35R22AsrzM9dWZB4IyyqNYsTGXIaWPaYQzLJf5mSCrgH1XbUxdAl8BPm2YWkjho6VE_xdT52a4rGF3AgPqzwcWlbRa-9cWbkxy9VO1YQ../download"
-$Destination = "$env:TEMP\audacity.exe"
+$AppName = "Box Drive"
+$AppNameWithWildCard = "Box"
+$URL = "https://dl2.boxcloud.com/d/1/b1!BYnYnTS2OebP-0pOhJ5eryd_OzsgbKjE2rlEQhLGUydepUX1dNlgpvw53pnEnDjM4ALQUL_NqwS51SyfFHNGIgEFeTrhVm1Pwiwc6948CrGEsTyGj7mBm111mOVa5WL_MePh0sR8hFjhCqNK6CBu46maMY5SxNJ7hZUIN4m4c2GYv-j7d8uKFTZbxRR6LTi2x5RoXxtJVhp3Wnjr6fwocPQ9oY4XURAaBMpZ4ux5dU4obLa_0uZ0e0i1Vw1s-B9CV0E59peJzSb0J6prvwDDnbDyDlEAkFMZeCW9oUR3WcTlo1SPFAzHB43evJiKUFTJEwCGfgwtbVAvpPhdT2dFbqVUuSpDrdgdzGhclf5fCYJ3WvhD2d6nTHztD9pEA0DsJQ683k8ew0YAeDiBquNDbrkq6mU8aPD3G1WfK66kI57Z1ZvBdKRNWRdBzMbKzSpdmCcMsDpqyYWq0tINJBD760_O6avXySP6xcgvAnejdRuvjTv-Ua6V3kL-meDKqUmGYlWiK8xeVz1QMX7O0OvHv3UNs0dBLMQUkxJrFB7190aiW1urZ6605bOnsti7ifi2pPwvLN0GW2F-bJqXQq8_saZcaNByUYqL6Jfq6hDy68VT-QpOBhF_cQKstlTNQT5wh62mEpERHoz4fewqIZhdYAxEPDWTnp4dDt9hSHryT5Gv4UOFzyvuFmhAZHtPez8e4i4KA9g2qScaBhr2fZeTQ9fQPVLMBPi93y0HD_hAne26GK595L67BW9OAA-k7memyONfzdMXqVbV6e0HAY3OvWgWftODBkA39Tn4Cl5WwWoPdDcqx71p-qxE-w-5sVC6wXGB-5xgaubXoZO0Nq6ebc0dEg_-FE-mdSxWVB9BcijdCirysCLatcc_H6Fbctil6aa0CgMxEHqtyTSSD5JWXT_covD-Ol6s31_1HVPT17v3YR9uVONQy-KZHTCZXJN9Q2H09qP5lZPL3_V42elI6O8LaZz7agr_E7Tc4nlS7qmhcLP3jdkjSy53ki6mEOUyxfFV07ZGFvyXFkQIni0Sxf_7F2i_kfAbsYVE-esmTWG6ccRli5ejqAUS-CpnO0mUrhS4Ag4e5KIMEjjOuqkgr0Wzfcb5nYSHDyHz6iEPArVV88doRzND2MftWmu7KQqnWzI54qZs-1skxypcWKbeu0AUB6IsCzHef4A0BQR6DdLYSDQPXG_XYdf66bw5ii4aI4m5pYBdZqhKu7_YysT5VEHTTnnhagYmFwak5v5eYMLKLm0cQfeiXvI5U6fMYN0bnEZRv--uUzI./download"
+$Destination = "$env:TEMP\boxdrive.msi"
 
 #Create VSA X Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA X")) {
@@ -26,14 +26,14 @@ function Get-RegistryRecords {
 
 #Lookup related records in Windows Registry to check if application is already installed
 function Test-IsInstalled(){
-    return Get-RegistryRecords($AppFullName);
+    return Get-RegistryRecords($AppNameWithWildCard);
 }
 
 #Start download
 function Get-Installer($URL) {
 
     Write-Host "Downloading $AppName installer."
-	$ProgressPreference = 'SilentlyContinue'
+    $ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest -Uri $URL -OutFile "$Destination"
 
     if (Test-Path -Path $Destination) {
@@ -49,7 +49,7 @@ function Get-Installer($URL) {
 function Start-Install() {
 
     Write-Host "Starting $AppName installation."
-    Start-Process -FilePath $Destination -ArgumentList "/VERYSILENT /NORESTART" -Wait
+    Start-Process -FilePath "MsiExec.exe" -ArgumentList "/i $Destination /quiet /qn /norestart /log $env:TEMP\Zoom-Install.log" -Wait
 }
 
 #Delete installation file

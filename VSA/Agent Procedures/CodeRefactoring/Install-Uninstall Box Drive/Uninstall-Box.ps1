@@ -1,8 +1,8 @@
-## This script silently uninstalls Audacity from the computer
+## This script silently uninstalls Box Drive from the computer
 
 #Define varibles
-$AppName = "Audacity"
-$AppFullName = "Audacity*"
+$AppName = "Box Drive"
+$AppFullName = "Box"
 
 #Create VSA X Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA X")) {
@@ -34,9 +34,9 @@ If (Test-IsInstalled -ne $null) {
     [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName was detected. Starting uninstall process.", "Information", 200)
     Write-Host "$AppName was detected. Starting uninstall process."
 
-    $UninstallString = Test-IsInstalled|Select-Object -ExpandProperty UninstallString
+    $AppGUID = Test-IsInstalled|Select-Object -ExpandProperty PSChildName
     
-    Start-Process -FilePath "$UninstallString" -ArgumentList "/SILENT" -Wait
+    Start-Process -FilePath "MsiExec.exe" -ArgumentList "/x $AppGUID /qn /norestart" -Wait
 
     Start-Sleep -s 10
 
@@ -59,4 +59,3 @@ If (Test-IsInstalled -ne $null) {
     [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName was not detected, aborting uninstall.", "Warning", 300)
     Write-Host "$AppName was not detected, aborting uninstall."
 }
-

@@ -1,10 +1,9 @@
-## This script downloads and silently installs Audacity 2.2.2
+## This script downloads and silently installs Box Tools
 
 #Define variables
-$AppName = "Audacity"
-$AppFullName = "Audacity*"
+$AppName = "Box Tools"
 $URL = ""
-$Destination = "$env:TEMP\audacity.exe"
+$Destination = "$env:TEMP\boxtools.exe"
 
 #Create VSA X Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA X")) {
@@ -26,7 +25,7 @@ function Get-RegistryRecords {
 
 #Lookup related records in Windows Registry to check if application is already installed
 function Test-IsInstalled(){
-    return Get-RegistryRecords($AppFullName);
+    return Get-RegistryRecords($AppName);
 }
 
 #Start download
@@ -49,7 +48,7 @@ function Get-Installer($URL) {
 function Start-Install() {
 
     Write-Host "Starting $AppName installation."
-    Start-Process -FilePath $Destination -ArgumentList "/VERYSILENT /NORESTART" -Wait
+    Start-Process -FilePath $Destination -ArgumentList "/exenoui /qn" -Wait
 }
 
 #Delete installation file

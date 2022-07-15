@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Greenshot Installer" treePres="3" id="245667129" folderId="514173344622446" treeFullPath="myProcedures - kadmin">
+    <Body description="This procedure pulls Greenshot installer from its official site and downloads it on the target computer.">
+      <Statement description="This procedure pulls Greenshot installer from its official site and downloads it on the target computer.&#xD;&#xA;Please make sure to update the download URL as and when the version is updated. Because unfortunately, Greenshot doesn't provide a URL that automatically updates its installers." name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="https://github.com/greenshot/greenshot/releases/download/Greenshot-RELEASE-1.2.10.6/Greenshot-INSTALLER-1.2.10.6-RELEASE.exe" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="DownloadURL" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="kwork" />
+      </Statement>
+      <Statement description="Check whether greenshot is installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe -NoProfile -ExecutionPolicy Bypass -command &quot;(Get-Package | Where-Object {$_.Name -match 'Greenshot'} | Select-Object -Property Status).Status&quot;" />
+        <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+        <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+      </Statement>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="BeginsWith" />
+          <Parameter xsi:type="StringParameter" name="Value" value="Installed" />
+        </Condition>
+        <Then>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Greenshot is already installed on this computer!" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement description="Download the file" name="GetURL" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="URL" value="#DownloadURL#" />
+            <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#kwork#\Greenshot.exe" />
+            <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="False" />
+          </Statement>
+          <Statement description="Install Greenshot" name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="#kwork#\Greenshot.exe /VERYSILENT /SUPPRESSMESSAGEBOXES /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS /NORESTART" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+          <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe -NoProfile -ExecutionPolicy Bypass -command &quot;(Get-Package | Where-Object {$_.Name -match 'Greenshot'} | Select-Object -Property Status).Status&quot;" />
+            <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+            <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+          </Statement>
+          <If description="">
+            <Condition name="CheckVariable">
+              <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="BeginsWith" />
+              <Parameter xsi:type="StringParameter" name="Value" value="Installed" />
+            </Condition>
+            <Then>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="Greenshot is successfully installed on this computer!" />
+              </Statement>
+            </Then>
+            <Else>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="Greenshot Couldn't be installed on this computer." />
+              </Statement>
+            </Else>
+          </If>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

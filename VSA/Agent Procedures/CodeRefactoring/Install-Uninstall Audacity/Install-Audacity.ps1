@@ -2,7 +2,9 @@
 param (
     [parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()] 
-    [string] $URL
+    [string] $URL,
+    [parameter(Mandatory=$false)]
+    [string] $Destination = "$env:TEMP\audacity.exe"
 )
 if ($URL -eq 'Test') {
     $URL = 'https://dl2.boxcloud.com/d/1/b1!ktrIiwiJsP6xDlUQ8Mmr2aCB-BPwWleHL14geoKYeKpMxqeeSBcX7evu954p9n0iSlfD_mp6vB69x-MyC2dPqpC_zlFRyeJHmXVKvJ9tQviphzU6soO0sLefLjWAVXtrMh1fgPkwOf5foV87DE5fE5kxh14aVIZ3Mn6_HydCdZb2Am_TNQzUu-4ClBMgX8oGP7ef3QpemaD4LaBQHViQTpVNJ4QYrVB_ZaxAnsLnopTAq4fJWMwGgWg0c5w_GotrPcM7b9IcV1Y09Y_nBfoumH94It8OyfD3yJuLWcBB7ubkrm1bGUoW4qqdWfx5_n9BCDSPRNuzvxq_uXeWMc5QxyFqOj9BIeyTpQoEXZv9oslkYBTCRbsYMX_iw7F1me6jmWmIf4oP38E0XaNFfncQglQRu4sBKj-R7SHb7NVgtGWtj-OyTPZJj_UVr0CF-dUBq5c7-VihcNzLWEKexE-Hr3RFIMHyRxN7SJOhiCi7qreetoHZiXtVGxiCJA4MdaBkhxSElVMibexgO7uMaNJP8RJ4NsnBe3X2MWusAF-CR-UVd4vUGpA8m7gvWuBPD-f1gmMWN4RbEYxDjVQBmpxrm8rwkY49Evga6YXQ7zm2oy05wgBjx4HNaE3hrs9ZQOx4LJ0JIb4R1E6MCeCf_xL1kIJUU0bM_c_cwSY4J7dWxRjCOmi2VfjjjZUvTLV6cMqJiABuchhLQawHLXT_a1LhoNLqry4IKYi-c7ChqI1zZUlTGq2jR3exlqbtC-_ZQdOBFqBl3IvKhlnM1oEZ6bcdnZ8FyUwF6qBhRBAix7OgjwmCSx1N9EfgQDkCphdU78IJQx1PkeyPdPjhGeKcQ8iNVZ24FeHjoMTDluMQ9_YYzppPRobgUHndPnMEoa4D9jxrI1Od9hP7_tCsWtLRkvxDacOLnFQDOALmzeM8QQG-D-tGbSsNqtniRsgo-XZ1-vB7_MFbHNkdOrttohtEJqPb6mbIaq399VOytqtdGYHoAMsDJY-HwurCt7LUBTNvtUcTmTUchAuFU6ymn7eAcErS58YmsW_ZKiw1qzDMuGjH-YfPV1sGiBi4S16NK8TQ3F2nhgf694d80UgflyEKP14qmBHCWHd_DC8hJz2wVhAArKMrq7BXp2CcfOZvRp-YTH5N9bSUu25K8DjUSEhbqjiFcTsffvVp2scGwkV527-EqRyTIVkgf7gw0LKq2V0MyAWO7MlKrQO-uqV7Qcc1XAGT_JhH6u2obivVVEQvBy_-bJ8edbabCZLxgMi3p9Wl12PKzpRbcGCUIlLdVQ3RP0UqRKAv/download'
@@ -11,7 +13,6 @@ if ($URL -eq 'Test') {
 #Define variables
 $AppName = "Audacity"
 $AppFullName = "Audacity*"
-$Destination = "$env:TEMP\audacity.exe"
 
 #Create VSA X Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA X")) {

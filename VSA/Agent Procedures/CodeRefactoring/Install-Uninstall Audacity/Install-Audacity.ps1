@@ -1,9 +1,13 @@
 ## This script downloads and silently installs Audacity 2.2.2
+param (
+    [parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()] 
+    [string] $URL
+)
 
 #Define variables
 $AppName = "Audacity"
 $AppFullName = "Audacity*"
-$URL = ""
 $Destination = "$env:TEMP\audacity.exe"
 
 #Create VSA X Event Source if it doesn't exist

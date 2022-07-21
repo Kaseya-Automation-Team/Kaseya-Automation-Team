@@ -17,7 +17,7 @@ $status = Get-InstallStatus
 
 if ($Status -ne "Installed") {
      
-     Write-Host "Slack is not installed on this computer and proceeding with the insallation steps!"
+     Write-Output "Slack is not installed on this computer and proceeding with the insallation steps!"
 
      #Check to see if windows is 64 bit or 32 bit
      if ($env:PROCESSOR_ARCHITECTURE -match "64") {
@@ -47,10 +47,10 @@ if ($Status -ne "Installed") {
 
 
     if ($Status -eq "Installed") {
-        Write-Host "Installation has been successully completed"
+        Write-Output "Installation has been successully completed"
         eventcreate /L Application /T INFORMATION /SO VSA X /ID 200 /D "Slack has been installed by VSA X agent!" | Out-Null
     } else {
-        Write-Host "Installation could not be completed"
+        Write-Output "Installation could not be completed"
     }
 
  }
@@ -58,7 +58,7 @@ if ($Status -ne "Installed") {
 # If Slack is already installed, show the message and do nothing.
  else {
 
-    Write-Host "Slack is already installed on this computer"
+    Write-Output "Slack is already installed on this computer"
  }
 
 

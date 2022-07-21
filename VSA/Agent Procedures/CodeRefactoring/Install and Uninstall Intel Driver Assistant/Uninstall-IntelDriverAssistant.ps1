@@ -17,7 +17,7 @@ $status = Get-InstallStatus
 
 if ($Status -eq "Installed"){
     
-    Write-Host "Intel Driver Assistant is installed on this computer and proceeding with the un-insallation steps!"
+    Write-Output "Intel Driver Assistant is installed on this computer and proceeding with the un-insallation steps!"
 
     #Download the file
     Invoke-WebRequest -Uri $source -OutFile $destination
@@ -32,10 +32,10 @@ if ($Status -eq "Installed"){
     $status = Get-InstallStatus
     if ($Status -ne "Installed"){
     
-        Write-Host "Intel Driver Assistant is successfully un-installed on this computer!"
+        Write-Output "Intel Driver Assistant is successfully un-installed on this computer!"
     }
     else{
-      Write-Host "Intel Driver Assistant couldn't be un-installed on this computer!"
+      Write-Output "Intel Driver Assistant couldn't be un-installed on this computer!"
     }
 
     
@@ -43,6 +43,6 @@ if ($Status -eq "Installed"){
 
 else {
 
-    Write-Host "Intel Driver Assistant is not installed on this computer!"
+    Write-Output "Intel Driver Assistant is not installed on this computer!"
 
 }

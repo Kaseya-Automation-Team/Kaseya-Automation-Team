@@ -1,9 +1,12 @@
 ## This script downloads and silently installs latest version of Google Drive installer from the official website
-
+param (
+    [parameter(Mandatory=$false)]
+    [string] $URL ="https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe",
+    [parameter(Mandatory=$false)]
+    [string] $Destination = "$env:TEMP\GoogleDriveSetup.exe"
+)
 #Define variables
 $AppName = "Google Drive"
-$URL = "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe"
-$Destination = "$env:TEMP\GoogleDriveSetup.exe"
 
 #Create VSA X Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA X")) {
@@ -31,7 +34,7 @@ function Test-IsInstalled(){
 #Start download
 function Get-Installer($URL) {
 
-    Write-Host "Downloading $AppName installer."
+    Write-Output "Downloading $AppName installer."
     $ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest -Uri $URL -OutFile "$Destination"
 
@@ -47,14 +50,14 @@ function Get-Installer($URL) {
 #Execute installer
 function Start-Install() {
 
-    Write-Host "Starting $AppName installation."
+    Write-Output "Starting $AppName installation."
     Start-Process -FilePath $Destination -ArgumentList "--silent --desktop_shortcut" -Wait
 }
 
 #Delete installation file
 function Start-Cleanup() {
 
-    Write-Host "Removing installation files."
+    Write-Output "Removing installation files."
     Remove-Item -Path $Destination -ErrorAction SilentlyContinue
 }
 
@@ -62,7 +65,7 @@ function Start-Cleanup() {
 if (Test-IsInstalled -ne $null) {
 
     [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName is already installed on the target computer, not proceeding with installation.", "Warning", 300)
-    Write-Host "$AppName is already installed on the target computer, not proceeding with installation."
+    Write-Output "$AppName is already installed on the target computer, not proceeding with installation."
 
     break
 
@@ -81,10 +84,10 @@ if (Test-IsInstalled -ne $null) {
     if ($null -eq $Installed) {
 
         [System.Diagnostics.EventLog]::WriteEntry("VSA X", "Couldn't install $AppName on the target computer.", "Error", 400)
-        Write-Host "Couldn't install $AppName on the target computer."
+        Write-Output "Couldn't install $AppName on the target computer."
 
     } else {
         [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName has been successfully installed.", "Information", 200)
-        Write-Host "$AppName has been successfully installed."
+        Write-Output "$AppName has been successfully installed."
     }
 }

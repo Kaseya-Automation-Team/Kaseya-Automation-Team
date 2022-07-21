@@ -31,7 +31,7 @@ function Test-IsInstalled(){
 If (Test-IsInstalled -ne $null) {
 
     [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName was detected. Starting uninstall process.", "Information", 200)
-    Write-Host "$AppName was detected. Starting uninstall process."
+    Write-Output "$AppName was detected. Starting uninstall process."
 
     $AppGUID = Test-IsInstalled|Select-Object -ExpandProperty PSChildName
     
@@ -44,17 +44,17 @@ If (Test-IsInstalled -ne $null) {
     #Verify that application has been successfully uninstalled
     If ($null -eq $Installed) {
 
-        Write-Host "$AppName has been succesfully removed from the target computer."
+        Write-Output "$AppName has been succesfully removed from the target computer."
         [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName has been succesfully removed from the target computer.", "Information", 200)
 
     } else {
 
-        Write-Host "$AppName couldn't be uninstalled from the target computer."
+        Write-Output "$AppName couldn't be uninstalled from the target computer."
         [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName couldn't be uninstalled from the target computer.", "Error", 400)
 
     }
 
 } else {
     [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName was not detected, aborting uninstall.", "Warning", 300)
-    Write-Host "$AppName was not detected, aborting uninstall."
+    Write-Output "$AppName was not detected, aborting uninstall."
 }

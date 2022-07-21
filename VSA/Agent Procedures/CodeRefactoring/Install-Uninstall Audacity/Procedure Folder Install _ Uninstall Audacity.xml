@@ -46,7 +46,7 @@
       </Body>
     </Procedure>
     <Procedure name="Uninstall Audacity" treePres="3" id="1076881512" folderId="559207506179446" treeFullPath="myProcedures - vlad.Install &amp; Uninstall Audacity">
-      <Body description="The procedure uninstalls all the versions of Firefox installed on the Windows computer">
+      <Body description="The procedure leverages PowerShell script that uninstalls Audicity. The script is downloaded from GitHub">
         <Statement description="The procedure leverages PowerShell script that uninstalls Audicity. The script is downloaded from GitHub&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="Uninstall-Audacity.ps1" />

@@ -9,11 +9,11 @@ Return  (Get-Package | Where-Object {$_.Name -eq "Slack"} | Select-Object -Prope
 $status = Get-InstallStatus
 
 If($status -ne "Installed") {
-    Write-Host "Slack is not installed on this computer yet!"
+    Write-Output "Slack is not installed on this computer yet!"
 }
 
 Else {
-    Write-Host "Slack is installed on this computer, proceeding with the uninstall steps!"
+    Write-Output "Slack is installed on this computer, proceeding with the uninstall steps!"
         
     #region Change Users' Hives
     [string] $SIDPattern = '^S-1-5-21-(\d+-?){4}$'
@@ -51,12 +51,12 @@ Else {
             $status = Get-InstallStatus
 
             If($status -ne "Installed") {
-                Write-Host "Uninstall is completed!"
+                Write-Output "Uninstall is completed!"
                 eventcreate /L Application /T INFORMATION /SO VSA X /ID 200 /D "Slack uninstall has been completed!" | Out-Null
             }
 
             Else {
-                Write-Host "Slack couldn't be uninstalled!"
+                Write-Output "Slack couldn't be uninstalled!"
             }
      }
 

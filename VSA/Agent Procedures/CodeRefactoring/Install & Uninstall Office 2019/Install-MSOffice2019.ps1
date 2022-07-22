@@ -39,7 +39,7 @@ function Get-FileFromURI {
     )
     [bool] $Result = $false
 
-    $ProgressPreference = 'SilentlyContinue'
+    Set-Variable ProgressPreference SilentlyContinue
     $ResponseCode = try {
         (Invoke-WebRequest -Uri $DownloadUrl -OutFile $SaveTo -UseBasicParsing -TimeoutSec $TimeoutSec -PassThru -ErrorAction Stop).StatusCode
     } catch {

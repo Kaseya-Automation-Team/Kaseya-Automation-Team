@@ -5,8 +5,8 @@ $AppName = "Audacity"
 $AppFullName = "Audacity*"
 
 #Create VSA Event Source if it doesn't exist
-if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA")) {
-    [System.Diagnostics.EventLog]::CreateEventSource("VSA", "Application")
+if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA X")) {
+    [System.Diagnostics.EventLog]::CreateEventSource("VSA X", "Application")
 }
 
 function Get-RegistryRecords {
@@ -26,12 +26,12 @@ function Test-IsInstalled(){
     return Get-RegistryRecords($AppFullName);
 }
 
-[System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName uninstall process has been initiated by VSA script.", "Information", 200)
+[System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName uninstall process has been initiated by VSA script.", "Information", 200)
 
 #If application is installed, continue with uninstall
 If (Test-IsInstalled -ne $null) {
 
-    [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName was detected. Starting uninstall process.", "Information", 200)
+    [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName was detected. Starting uninstall process.", "Information", 200)
     Write-Host "$AppName was detected. Starting uninstall process."
 
     $UninstallString = Test-IsInstalled|Select-Object -ExpandProperty UninstallString
@@ -46,17 +46,17 @@ If (Test-IsInstalled -ne $null) {
     If ($null -eq $Installed) {
 
         Write-Host "$AppName has been succesfully removed from the target computer."
-        [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName has been succesfully removed from the target computer.", "Information", 200)
+        [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName has been succesfully removed from the target computer.", "Information", 200)
 
     } else {
 
         Write-Host "$AppName couldn't be uninstalled from the target computer."
-        [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName couldn't be uninstalled from the target computer.", "Error", 400)
+        [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName couldn't be uninstalled from the target computer.", "Error", 400)
 
     }
 
 } else {
-    [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName was not detected, aborting uninstall.", "Warning", 300)
+    [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName was not detected, aborting uninstall.", "Warning", 300)
     Write-Host "$AppName was not detected, aborting uninstall."
 }
 

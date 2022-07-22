@@ -1,0 +1,303 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Install &amp; Uninstall MS Office 2021" treePres="3">
+    <Procedure name="Install MS Office 2021" treePres="3" id="582701520" folderId="154885566167014">
+      <Body description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office 2021.&#xA;&#xA;Author: Proserv Team - VS">
+        <Statement description="The procedure calls Powershell script that creates file Configuration.xml. The file is used for unattended install MS Office 2021.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;Set path  for software distribution." name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="C:\TEMP" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="DownloadTo" />
+        </Statement>
+        <Statement name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="if not exist &quot;#DownloadTo#&quot; mkdir #DownloadTo#" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <Statement description="Set MS Office 2021 edition" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Standard2021Volume" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="OfficeEdition" />
+        </Statement>
+        <Statement description="Set the activation key. KMS or MAK" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Please provide KMS or MAK activation key XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="global:ActivationKey" />
+        </Statement>
+        <Statement description="Local working folder" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="WorkingDirectory" />
+        </Statement>
+        <Statement description="Config file name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#WorkingDirectory#\Config.xml" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="config_file" />
+        </Statement>
+        <Statement description="Set name for the script and/or log file" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Get-ODTUrl" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptBaseName" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#WorkingDirectory#\#ScriptBaseName#.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptFullPath" />
+        </Statement>
+        <Statement description="Download the script" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#ScriptBaseName#.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -File #ScriptFullPath#" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Could not download #ScriptBaseName#.ps1" />
+            </Statement>
+          </Else>
+        </If>
+        <If description="Check if ODT URI was obtained successfully">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="NotEquals" />
+            <Parameter xsi:type="StringParameter" name="Value" value="Failed" />
+          </Condition>
+          <Then>
+            <Statement name="GetURL" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="URL" value="#global:cmdresults#" />
+              <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#DownloadTo#\ODT.exe" />
+              <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+            </Statement>
+          </Then>
+        </If>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#DownloadTo#\ODT.exe" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement description="extract setup.exe from the ODT archive" name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="#DownloadTo#\ODT.exe /extract:#DownloadTo# /quiet" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <If description="">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#DownloadTo#\setup.exe" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement description="Set name for the script and/or log file" name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="Create-MSOfficeInstaller" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptBaseName" />
+                </Statement>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#WorkingDirectory#\#ScriptBaseName#.ps1" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptFullPath" />
+                </Statement>
+                <Statement description="Download the script" name="WriteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+                  <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#ScriptBaseName#.ps1" />
+                  <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+                </Statement>
+                <If description="">
+                  <Condition name="TestFile">
+                    <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="" />
+                  </Condition>
+                  <Then>
+                    <If description="">
+                      <Condition name="Windows 32 or 64 Bit Check">
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+                      </Condition>
+                      <Then>
+                        <Statement description="Office version. 32 bit/64 bit" name="GetVariable" continueOnFail="false">
+                          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                          <Parameter xsi:type="StringParameter" name="SourceContent" value="32" />
+                          <Parameter xsi:type="StringParameter" name="VariableName" value="global:BitVersion" />
+                        </Statement>
+                      </Then>
+                    </If>
+                    <If description="">
+                      <Condition name="Windows 32 or 64 Bit Check">
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                      </Condition>
+                      <Then>
+                        <Statement name="GetVariable" continueOnFail="false">
+                          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+                          <Parameter xsi:type="StringParameter" name="SourceContent" value="Choose 32/64 bit Office version for 64-bit OS. Valid values are 32 and 64" />
+                          <Parameter xsi:type="StringParameter" name="VariableName" value="global:BitVersion" />
+                        </Statement>
+                      </Then>
+                    </If>
+                    <Statement name="GetVariable" continueOnFail="false">
+                      <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="-ODTPath '#DownloadTo#\setup.exe' -BitVersion #global:BitVersion# -OfficeEdition #OfficeEdition#" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="global:ScriptParameters" />
+                    </Statement>
+                    <If description="">
+                      <Condition name="CheckVariable">
+                        <Parameter xsi:type="StringParameter" name="VariableName" value="#global:ActivationKey#" />
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                        <Parameter xsi:type="StringParameter" name="Value" value="-" />
+                      </Condition>
+                      <Then>
+                        <Statement name="GetVariable" continueOnFail="false">
+                          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                          <Parameter xsi:type="StringParameter" name="SourceContent" value="#global:ScriptParameters# -ActivationKey '#global:ActivationKey#'" />
+                          <Parameter xsi:type="StringParameter" name="VariableName" value="global:ScriptParameters" />
+                        </Statement>
+                      </Then>
+                    </If>
+                    <Statement name="GetVariable" continueOnFail="false">
+                      <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                      <Parameter xsi:type="StringParameter" name="SourceContent" value="#global:ScriptParameters# -LogIt" />
+                      <Parameter xsi:type="StringParameter" name="VariableName" value="global:ScriptParameters" />
+                    </Statement>
+                    <Statement description="Generate install config" name="ExecuteShellCommand" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ScriptFullPath#  #global:ScriptParameters#" />
+                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                    </Statement>
+                    <Statement name="DeleteFile" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+                    </Statement>
+                    <If description="Install">
+                      <Condition name="TestFile">
+                        <Parameter xsi:type="StringParameter" name="Path" value="#DownloadTo#\Configuration.xml" />
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                        <Parameter xsi:type="StringParameter" name="Value" value="" />
+                      </Condition>
+                      <Then>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Office download started. It may take a long time, please be patient" />
+                        </Statement>
+                        <Statement name="ExecuteShellCommand" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#DownloadTo#&quot; &amp;&amp; setup.exe /download Configuration.xml" />
+                          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                        </Statement>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Office installation started. The log files are in the system %TEMP% folder" />
+                        </Statement>
+                        <Statement name="ExecuteShellCommand" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#DownloadTo#&quot; &amp;&amp; setup.exe /configure Configuration.xml" />
+                          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                        </Statement>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Office installation completed. The log files are in the system %TEMP% folder" />
+                        </Statement>
+                      </Then>
+                      <Else>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="The file #DownloadTo#\Configuration.xml was not generated" />
+                        </Statement>
+                      </Else>
+                    </If>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Could not download #ScriptBaseName#.ps1" />
+                    </Statement>
+                  </Else>
+                </If>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="The file #DownloadTo#\setup.exe was not extracted from ODT.exe" />
+                </Statement>
+              </Else>
+            </If>
+            <Statement description="Cleanup" name="ExecuteShellCommand" continueOnFail="true">
+              <Parameter xsi:type="StringParameter" name="Command" value="IF EXIST &quot;#DownloadTo#\Office\&quot; RMDIR /S /Q &quot;#DownloadTo#\Office&quot;" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <Statement name="ExecuteShellCommand" continueOnFail="true">
+              <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#DownloadTo#&quot; &amp;&amp; del Configuration*.xml /s /f /q" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <Statement name="DeleteFile" continueOnFail="true">
+              <Parameter xsi:type="StringParameter" name="Path" value="#DownloadTo#\setup.exe" />
+            </Statement>
+            <Statement name="DeleteFile" continueOnFail="true">
+              <Parameter xsi:type="StringParameter" name="Path" value="#DownloadTo#\ODT.exe" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Could not download the ODT file" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Uninstall MS Office" treePres="3" id="1483987225" folderId="154885566167014" treeFullPath="myProcedures - kadmin.Install &amp; Uninstall MS Office 2021">
+      <Body description="The procedure calls script that uninstalls MS Office&#xA;Version 0.1.1&#xA;Author: Proserv Team - VS">
+        <Statement description="The procedure calls script that uninstalls MS Office&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Version 0.1.1&#xD;&#xA;Get local path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="WorkingDirectory" />
+        </Statement>
+        <Statement description="Set VB script name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="OffScrubC2R.vbs" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="OfficeUninstallC2R" />
+        </Statement>
+        <Statement description="The scripts name &amp; path" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#WorkingDirectory#\#OfficeUninstallC2R#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptFullPathC2R" />
+        </Statement>
+        <Statement description="download the script" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPathC2R#" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#OfficeUninstallC2R#" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <If description="Run VB script with required parameters and arguments.">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPathC2R#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="cscript.exe #ScriptFullPathC2R# ALL /SkipSD /NoCancel /Quiet" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+            <Statement name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPathC2R#" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Could not download #ScriptFullPathC2R#" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScriptExport>

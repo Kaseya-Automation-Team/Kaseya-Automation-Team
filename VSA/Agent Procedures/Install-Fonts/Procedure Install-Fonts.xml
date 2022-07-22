@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Install-Fonts" treePres="3" id="40590836" folderId="514173344622446" treeFullPath="myProcedures - kadmin">
+    <Body description="This procedure installs the supplied Fonts on to the target windows machine.">
+      <Statement description="This procedure installs the supplied Fonts on to the target windows machine." name="WriteDirectory" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="C\Fonts" />
+        <Parameter xsi:type="StringParameter" name="SourceDirectory" value="VSASharedFiles\Fonts\" />
+        <Parameter xsi:type="StringParameter" name="Param3" value="NoShow" />
+      </Statement>
+      <Statement description="Run the install script" name="ExecuteShellCommand" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -File C\Fonts\Install-Fonts.ps1" />
+        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+      </Statement>
+    </Body>
+  </Procedure>
+</ScExport>

@@ -1,11 +1,15 @@
 ## This script downloads and silently installs Google Chrome
-
+param (
+    [parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()] 
+    [string] $URL,
+    [parameter(Mandatory=$false)]
+    [string] $Destination = "$env:TEMP\googlechrome.exe"
+)
 #Define variables
 $AppName = "Google Chrome"
-$URL = ""
-$Destination = "$env:TEMP\googlechrome.exe"
 
-#Create VSA Event Source if it doesn't exist
+#Create VSA X Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA")) {
     [System.Diagnostics.EventLog]::CreateEventSource("VSA", "Application")
 }
@@ -31,7 +35,7 @@ function Test-IsInstalled(){
 #Start download
 function Get-Installer($URL) {
 
-    Write-Host "Downloading $AppName installer."
+    Write-Output "Downloading $AppName installer."
 	$ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest -Uri $URL -OutFile "$Destination"
 
@@ -47,14 +51,14 @@ function Get-Installer($URL) {
 #Execute installer
 function Start-Install() {
 
-    Write-Host "Starting $AppName installation."
+    Write-Output "Starting $AppName installation."
     Start-Process -FilePath $Destination -ArgumentList "/silent /install" -Wait
 }
 
 #Delete installation file
 function Start-Cleanup() {
 
-    Write-Host "Removing installation files."
+    Write-Output "Removing installation files."
     Remove-Item -Path $Destination -ErrorAction SilentlyContinue
 }
 
@@ -62,13 +66,13 @@ function Start-Cleanup() {
 if (Test-IsInstalled -ne $null) {
 
     [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName is already installed on the target computer, not proceeding with installation.", "Warning", 300)
-    Write-Host "$AppName is already installed on the target computer, not proceeding with installation."
+    Write-Output "$AppName is already installed on the target computer, not proceeding with installation."
 
     break
 
 } else {
     
-    [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName installation process has been initiated by VSA script", "Information", 200)
+    [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName installation process has been initiated by VSA X script", "Information", 200)
 
     Get-Installer($URL)
     Start-Cleanup
@@ -81,10 +85,10 @@ if (Test-IsInstalled -ne $null) {
     if ($null -eq $Installed) {
 
         [System.Diagnostics.EventLog]::WriteEntry("VSA", "Couldn't install $AppName on the target computer.", "Error", 400)
-        Write-Host "Couldn't install $AppName on the target computer."
+        Write-Output "Couldn't install $AppName on the target computer."
 
     } else {
         [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName has been successfully installed.", "Information", 200)
-        Write-Host "$AppName has been successfully installed."
+        Write-Output "$AppName has been successfully installed."
     }
 }

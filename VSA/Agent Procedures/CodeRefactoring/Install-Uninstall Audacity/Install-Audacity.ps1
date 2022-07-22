@@ -7,8 +7,8 @@ $URL = ""
 $Destination = "$env:TEMP\audacity.exe"
 
 #Create VSA Event Source if it doesn't exist
-if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA")) {
-    [System.Diagnostics.EventLog]::CreateEventSource("VSA", "Application")
+if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA X")) {
+    [System.Diagnostics.EventLog]::CreateEventSource("VSA X", "Application")
 }
 
 function Get-RegistryRecords {
@@ -41,7 +41,7 @@ function Get-Installer($URL) {
         Start-Install
     } else {
 
-        [System.Diagnostics.EventLog]::WriteEntry("VSA", "Unable to download $AppName installation file.", "Error", 400)
+        [System.Diagnostics.EventLog]::WriteEntry("VSA X", "Unable to download $AppName installation file.", "Error", 400)
     }
 }
 
@@ -62,14 +62,14 @@ function Start-Cleanup() {
 #If application is not installed yet, continue with installation
 if (Test-IsInstalled -ne $null) {
 
-    [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName is already installed on the target computer, not proceeding with installation.", "Warning", 300)
+    [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName is already installed on the target computer, not proceeding with installation.", "Warning", 300)
     Write-Host "$AppName is already installed on the target computer, not proceeding with installation."
 
     break
 
 } else {
     
-    [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName installation process has been initiated by VSA script", "Information", 200)
+    [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName installation process has been initiated by VSA script", "Information", 200)
 
     Get-Installer($URL)
     Start-Cleanup
@@ -81,11 +81,11 @@ if (Test-IsInstalled -ne $null) {
     #Verify that application has been successfully installed
     if ($null -eq $Installed) {
 
-        [System.Diagnostics.EventLog]::WriteEntry("VSA", "Couldn't install $AppName on the target computer.", "Error", 400)
+        [System.Diagnostics.EventLog]::WriteEntry("VSA X", "Couldn't install $AppName on the target computer.", "Error", 400)
         Write-Host "Couldn't install $AppName on the target computer."
 
     } else {
-        [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName has been successfully installed.", "Information", 200)
+        [System.Diagnostics.EventLog]::WriteEntry("VSA X", "$AppName has been successfully installed.", "Information", 200)
         Write-Host "$AppName has been successfully installed."
     }
 }

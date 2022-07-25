@@ -1,5 +1,8 @@
-﻿$FONTS = 0x14
-$Path="C:\Fonts"
+﻿## The script installs fonts from a folder. By default, the folder containing the fonts to install is C:\Fonts.
+param (
+    [parameter(Mandatory=$false)]
+    $Path="C:\Fonts"
+)
 $objShell = New-Object -ComObject Shell.Application
 $objFolder = $objShell.Namespace($FONTS)
 $Fontdir = dir $Path

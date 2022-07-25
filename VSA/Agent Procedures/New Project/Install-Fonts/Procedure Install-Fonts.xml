@@ -1,17 +1,41 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
-  <Procedure name="Install-Fonts" treePres="3" id="40590836" folderId="514173344622446" treeFullPath="myProcedures - kadmin">
+  <Procedure name="Install-Fonts" treePres="3" id="1675963508" folderId="292207468157737" treeFullPath="myProcedures - vlad">
     <Body description="This procedure installs the supplied Fonts on to the target windows machine.">
-      <Statement description="This procedure installs the supplied Fonts on to the target windows machine." name="WriteDirectory" continueOnFail="false">
-        <Parameter xsi:type="StringParameter" name="Path" value="C\Fonts" />
+      <Statement description="This procedure installs the supplied Fonts from VSA Shared Folder to the target windows machine." name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Install-Fonts.ps1" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="TheScript" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="C:\Fonts" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="TheFolder" />
+      </Statement>
+      <Statement description="Download the script  &amp; fonts from the shared folder" name="WriteDirectory" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="#TheFolder#" />
         <Parameter xsi:type="StringParameter" name="SourceDirectory" value="VSASharedFiles\Fonts\" />
         <Parameter xsi:type="StringParameter" name="Param3" value="NoShow" />
       </Statement>
-      <Statement description="Run the install script" name="ExecuteShellCommand" continueOnFail="false">
-        <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -File C\Fonts\Install-Fonts.ps1" />
-        <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
-        <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
-      </Statement>
+      <If description="">
+        <Condition name="TestFile">
+          <Parameter xsi:type="StringParameter" name="Path" value="#TheFolder#\#TheScript#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <Statement name="ExecuteShellCommand" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -File #TheFolder#\#TheScript#" />
+            <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+            <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Could not download from #TheFolder#" />
+          </Statement>
+        </Else>
+      </If>
     </Body>
   </Procedure>
 </ScExport>

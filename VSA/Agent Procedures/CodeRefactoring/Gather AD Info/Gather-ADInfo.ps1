@@ -177,7 +177,7 @@ Function Get-TrustAttributes
 function Get-TrustInfoAsHtml
 {
     Try {$TheDC = (Get-ADDomainController -Discover).Name}
-      Catch {Write-Error "Error in Get-ADDomainController Cmdlet" $_.Exception.Message}
+      Catch { [System.Diagnostics.EventLog]::WriteEntry("VSA X", "Error in Get-ADDomainController Cmdlet: $($_.Exception.Message)", 400)}
 
     # Query trust status on $TheDC discovered domain controller
     $AllTrusts = Try { Get-WmiObject -Class Microsoft_DomainTrustStatus -Namespace root\microsoftactivedirectory -ComputerName $TheDC -ErrorAction Stop

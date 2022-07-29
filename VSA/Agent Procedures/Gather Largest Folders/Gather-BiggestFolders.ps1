@@ -51,11 +51,11 @@ if ($null -ne $LocalDrives)
                     Hostname = $env:COMPUTERNAME
                     Date = $currentDate
                     Drive = $Drive.Name
-                    DriveFreeSpace = $( "{0:P2}" -f ( $Drive.FreeSpace / $Drive.Capacity ) )
+                    Available = $( "{0:P2}" -f ( $Drive.FreeSpace / $Drive.Capacity ) )
                     Folder = $($_.FullName)
-                    SizeGb = $( "{0:N2}" -f ($Size / 1Gb) )
+                    Size = $Size
                 }
         }
-        $FolderInfo | Sort-Object -Descending -Property SizeGb | Select-Object -First $Top | Export-Csv -Path "FileSystem::$FileName" -Append -Encoding UTF8 -NoTypeInformation
+        $FolderInfo | Sort-Object -Descending -Property SizeGb | Select-Object -First $Top| Select-Object AgentGuid, Hostname, Date, Drive, Available, Folder, @{name="Size, Gb";expression={ $( "{0:N2}" -f ($_.Size / 1Gb) )}} | Export-Csv -Path "FileSystem::$FileName" -Append -Encoding UTF8 -NoTypeInformation
     }
 }

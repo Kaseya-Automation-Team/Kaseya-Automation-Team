@@ -10,7 +10,7 @@ param (
 $AppName = "Box Drive"
 $AppNameWithWildCard = "Box"
 
-#Create VSA X Event Source if it doesn't exist
+#Create vsa Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA")) {
     [System.Diagnostics.EventLog]::CreateEventSource("VSA", "Application")
 }
@@ -73,7 +73,7 @@ if (Test-IsInstalled -ne $null) {
 
 } else {
     
-    [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName installation process has been initiated by VSA X script", "Information", 200)
+    [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName installation process has been initiated by vsa script", "Information", 200)
 
     Get-Installer($URL)
     Start-Cleanup

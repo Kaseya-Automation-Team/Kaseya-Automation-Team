@@ -4,7 +4,7 @@
 $AppName = "Audacity"
 $AppFullName = "Audacity*"
 
-#Create VSA X Event Source if it doesn't exist
+#Create VSA Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA")) {
     [System.Diagnostics.EventLog]::CreateEventSource("VSA", "Application")
 }
@@ -26,7 +26,7 @@ function Test-IsInstalled(){
     return Get-RegistryRecords($AppFullName);
 }
 
-[System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName uninstall process has been initiated by VSA X script.", "Information", 200)
+[System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName uninstall process has been initiated by VSA script.", "Information", 200)
 
 #If application is installed, continue with uninstall
 If (Test-IsInstalled -ne $null) {

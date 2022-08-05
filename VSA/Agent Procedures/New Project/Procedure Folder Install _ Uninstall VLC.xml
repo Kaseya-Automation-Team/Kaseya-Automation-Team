@@ -21,7 +21,7 @@
           </Condition>
           <Then>
             <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#agenttemp#\VLC\Install-VLC.ps1&quot;  -path '#agenttemp#'" />
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#agenttemp#\VLC\Install-VLC.ps1&quot;  -path '#agenttemp#\VLC\vlc-3.0.1-win64.exe'" />
               <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
               <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
             </Statement>

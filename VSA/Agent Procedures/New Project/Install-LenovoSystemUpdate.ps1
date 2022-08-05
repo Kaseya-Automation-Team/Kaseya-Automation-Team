@@ -1,9 +1,10 @@
-## This script downloads and silently installs Lenovo System Update
-
+## The script silently installs Lenovo System Update
+param (
+    [parameter(Mandatory=$true)]
+    [string] $Path
+)
 #Define variables
 $AppName = "Lenovo System Update"
-$URL = ""
-$Destination = "$env:TEMP\lenovosystemupdate.exe"
 
 #Create VSA Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA")) {
@@ -28,50 +29,17 @@ function Test-IsInstalled(){
     return Get-RegistryRecords($AppName);
 }
 
-#Start download
-function Get-Installer($URL) {
-
-    Write-Host "Downloading $AppName installer."
-	$ProgressPreference = 'SilentlyContinue'
-    Invoke-WebRequest -Uri $URL -OutFile "$Destination"
-
-    if (Test-Path -Path $Destination) {
-
-        Start-Install
-    } else {
-
-        [System.Diagnostics.EventLog]::WriteEntry("VSA", "Unable to download $AppName installation file.", "Error", 400)
-    }
-}
-
-#Execute installer
-function Start-Install() {
-
-    Write-Host "Starting $AppName installation."
-    Start-Process -FilePath "$Destination" -ArgumentList "/VERYSILENT /NORESTART /CLOSEAPPLICATIONS" -Wait
-}
-
-#Delete installation file
-function Start-Cleanup() {
-
-    Write-Host "Removing installation files."
-    Remove-Item -Path $Destination -ErrorAction SilentlyContinue
-}
-
 #If application is not installed yet, continue with installation
 if (Test-IsInstalled -ne $null) {
 
     [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName is already installed on the target computer, not proceeding with installation.", "Warning", 300)
     Write-Host "$AppName is already installed on the target computer, not proceeding with installation."
 
-    break
-
 } else {
     
     [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName installation process has been initiated by VSA script", "Information", 200)
 
-    Get-Installer($URL)
-    Start-Cleanup
+    Start-Process -FilePath "$Path" -ArgumentList "/VERYSILENT /NORESTART /CLOSEAPPLICATIONS" -Wait
     
     Start-Sleep -s 10
 

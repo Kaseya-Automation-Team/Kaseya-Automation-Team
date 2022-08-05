@@ -1,10 +1,7 @@
 ## This script downloads and silently installs Audacity 2.2.2
 param (
     [parameter(Mandatory=$true)]
-    [ValidateNotNullOrEmpty()] 
-    [string] $URL,
-    [parameter(Mandatory=$false)]
-    [string] $Destination = "$env:TEMP\audacity.exe"
+    [string] $Path
 )
 
 #Define variables
@@ -34,52 +31,16 @@ function Test-IsInstalled(){
     return Get-RegistryRecords($AppFullName);
 }
 
-#Start download
-function Get-Installer($URL) {
-
-    Write-Output "Downloading $AppName installer."
-	$ProgressPreference = 'SilentlyContinue'
-    Invoke-WebRequest -Uri $URL -OutFile $Destination
-
-    if (Test-Path -Path $Destination) {
-        Start-Install
-    } else {
-
-        [System.Diagnostics.EventLog]::WriteEntry("VSA", "Unable to download $AppName installation file.", "Error", 400)
-    }
-}
-
-#Execute installer
-function Start-Install() {
-
-    Write-Output "Starting $AppName installation."
-    Start-Process -FilePath $Destination -ArgumentList "/VERYSILENT /NORESTART" -Wait
-}
-
-#Delete installation file
-function Start-Cleanup() {
-
-    Write-Output "Removing installation files."
-    Remove-Item -Path $Destination -ErrorAction SilentlyContinue
-}
-
 #If application is not installed yet, continue with installation
 if (Test-IsInstalled -ne $null) {
-
     [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName is already installed on the target computer, not proceeding with installation.", "Warning", 300)
     Write-Output "$AppName is already installed on the target computer, not proceeding with installation."
-
-    break
-
 } else {
     
     [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName installation process has been initiated by VSA script", "Information", 200)
-
-    Get-Installer($URL)
-    Start-Cleanup
-    
+    #Execute installer
+    Start-Process -FilePath $Path -ArgumentList "/VERYSILENT /NORESTART" -Wait
     Start-Sleep -s 10
-
     $Installed = Test-IsInstalled
 
     #Verify that application has been successfully installed

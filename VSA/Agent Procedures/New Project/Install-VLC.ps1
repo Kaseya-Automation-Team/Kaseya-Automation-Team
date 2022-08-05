@@ -1,10 +1,7 @@
-## This script downloads and silently installs VLC media player
+## The script silently installs VLC media player
 param (
     [parameter(Mandatory=$true)]
-    [ValidateNotNullOrEmpty()] 
-    [string] $URL,
-    [parameter(Mandatory=$false)]
-    [string] $Destination = "$env:TEMP\vlc-3.0.1-win64.exe"
+    [string] $Path
 )
 #Define variables
 $AppName = "VLC media player"
@@ -26,57 +23,22 @@ function Get-RegistryRecords {
            } | Sort-Object -Property @{Expression = {$_.DisplayVersion}; Descending = $True} | Select-Object -First 1
 }
 
-
 #Lookup related records in Windows Registry to check if application is already installed
 function Test-IsInstalled(){
     return Get-RegistryRecords($AppName);
 }
 
-#Start download
-function Get-Installer($URL) {
-
-    Write-Output "Downloading $AppName installer."
-	$ProgressPreference = 'SilentlyContinue'
-    Invoke-WebRequest -Uri $URL -OutFile "$Destination"
-
-    if (Test-Path -Path $Destination) {
-
-        Start-Install
-    } else {
-
-        [System.Diagnostics.EventLog]::WriteEntry("VSA", "Unable to download $AppName installation file.", "Error", 400)
-    }
-}
-
-#Execute installer
-function Start-Install() {
-
-    Write-Output "Starting $AppName installation."
-    Start-Process -FilePath $Destination -ArgumentList "/S" -Wait
-    #cmd /c $Destination /S /L=1033
-}
-
-#Delete installation file
-function Start-Cleanup() {
-
-    Write-Output "Removing installation files."
-    Remove-Item -Path $Destination -ErrorAction SilentlyContinue
-}
 
 #If application is not installed yet, continue with installation
 if (Test-IsInstalled -ne $null) {
 
     [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName is already installed on the target computer, not proceeding with installation.", "Warning", 300)
     Write-Output "$AppName is already installed on the target computer, not proceeding with installation."
-
-    break
-
 } else {
     
     [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName installation process has been initiated by VSA script", "Information", 200)
 
-    Get-Installer($URL)
-    Start-Cleanup
+    Start-Process -FilePath $Path -ArgumentList "/S" -Wait
     
     Start-Sleep -s 10
 

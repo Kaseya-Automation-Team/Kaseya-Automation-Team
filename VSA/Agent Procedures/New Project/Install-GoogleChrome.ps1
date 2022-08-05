@@ -1,13 +1,11 @@
-## This script downloads and silently installs Google Chrome
+## The script silently installs Google Chrome
 param (
     [parameter(Mandatory=$true)]
-    [ValidateNotNullOrEmpty()] 
-    [string] $URL,
-    [parameter(Mandatory=$false)]
-    [string] $Destination = "$env:TEMP\googlechrome.exe"
+    [string] $Path
 )
 #Define variables
 $AppName = "Google Chrome"
+$AppFullName = "Google Chrome*"
 
 #Create VSA Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA")) {
@@ -29,37 +27,7 @@ function Get-RegistryRecords {
 
 #Lookup related records in Windows Registry to check if application is already installed
 function Test-IsInstalled(){
-    return Get-RegistryRecords($AppName);
-}
-
-#Start download
-function Get-Installer($URL) {
-
-    Write-Output "Downloading $AppName installer."
-	$ProgressPreference = 'SilentlyContinue'
-    Invoke-WebRequest -Uri $URL -OutFile "$Destination"
-
-    if (Test-Path -Path $Destination) {
-
-        Start-Install
-    } else {
-
-        [System.Diagnostics.EventLog]::WriteEntry("VSA", "Unable to download $AppName installation file.", "Error", 400)
-    }
-}
-
-#Execute installer
-function Start-Install() {
-
-    Write-Output "Starting $AppName installation."
-    Start-Process -FilePath $Destination -ArgumentList "/silent /install" -Wait
-}
-
-#Delete installation file
-function Start-Cleanup() {
-
-    Write-Output "Removing installation files."
-    Remove-Item -Path $Destination -ErrorAction SilentlyContinue
+    return Get-RegistryRecords($AppFullName);
 }
 
 #If application is not installed yet, continue with installation
@@ -74,8 +42,7 @@ if (Test-IsInstalled -ne $null) {
     
     [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName installation process has been initiated by VSA script", "Information", 200)
 
-    Get-Installer($URL)
-    Start-Cleanup
+    Start-Process -FilePath $Path -ArgumentList "/silent /install" -Wait
     
     Start-Sleep -s 10
 

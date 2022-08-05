@@ -21,7 +21,7 @@
           </Condition>
           <Then>
             <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#agenttemp#\Audacity\Install-Audacity.ps1&quot;  -path '#agenttemp#\Audacity'" />
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#agenttemp#\Audacity\Install-Audacity.ps1&quot;  -path '#agenttemp#\Audacity\audacity-win-2.2.2.exe'" />
               <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
               <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
             </Statement>
@@ -43,7 +43,7 @@
     </Procedure>
     <Procedure name="Uninstall Audacity" treePres="3" id="1214378073" folderId="230359886926766" treeFullPath="myProcedures - kadmin.Install &amp; Uninstall Audacity">
       <Body description="The procedure leverages PowerShell script that uninstalls Audicity.">
-        <Statement description="The procedure leverages PowerShell script that uninstalls Audicity. The script is downloaded from GitHub&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Copy the script" name="WriteFile" continueOnFail="false">
+        <Statement description="The procedure leverages PowerShell script that uninstalls Audicity.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Copy the script" name="WriteFile" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-Audacity.ps1" />
           <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Audacity\Uninstall-Audacity.ps1" />
           <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />

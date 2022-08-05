@@ -29,7 +29,7 @@
               <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
             </Statement>
             <Statement description="Cleanup" name="Delete Directory" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="#agenttemp#\Slack\Install-Slack.ps1" />
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="#agenttemp#\Slack" />
               <Parameter xsi:type="StringParameter" name="Parameter2" value="true" />
             </Statement>
           </Then>

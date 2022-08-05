@@ -9,19 +9,19 @@
           <Parameter xsi:type="StringParameter" name="VariableName" value="agenttemp" />
         </Statement>
         <Statement description="Copy the files" name="WriteDirectory" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Path" value="#agenttemp#\BoxDrive" />
-          <Parameter xsi:type="StringParameter" name="SourceDirectory" value="VSASharedFiles\BoxDrive\" />
+          <Parameter xsi:type="StringParameter" name="Path" value="#agenttemp#\GoogleChrome" />
+          <Parameter xsi:type="StringParameter" name="SourceDirectory" value="VSASharedFiles\GoogleChrome\" />
           <Parameter xsi:type="StringParameter" name="Param3" value="NoShow" />
         </Statement>
         <If description="">
           <Condition name="TestFile">
-            <Parameter xsi:type="StringParameter" name="Path" value="#agenttemp#\BoxDrive\Install-GoogleChrome.ps1" />
+            <Parameter xsi:type="StringParameter" name="Path" value="#agenttemp#\GoogleChrome\Install-GoogleChrome.ps1" />
             <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
             <Parameter xsi:type="StringParameter" name="Value" value="" />
           </Condition>
           <Then>
             <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#agenttemp#\BoxDrive\Install-GoogleChrome.ps1&quot; -Path #agenttemp#\BoxDrive\ChromeSetup.exe" />
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#agenttemp#\GoogleChrome\Install-GoogleChrome.ps1&quot; -Path #agenttemp#\GoogleChrome\ChromeSetup.exe" />
               <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
               <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
             </Statement>
@@ -29,7 +29,7 @@
               <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
             </Statement>
             <Statement description="Cleanup" name="Delete Directory" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="#agenttemp#\BoxDrive" />
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="#agenttemp#\GoogleChrome" />
               <Parameter xsi:type="StringParameter" name="Parameter2" value="false" />
             </Statement>
           </Then>
@@ -44,19 +44,19 @@
     <Procedure name="Uninstall Google Chrome" treePres="3" id="1023330871" folderId="168973239962465" treeFullPath="myProcedures - kadmin.Install &amp; Uninstall Google Chrome">
       <Body description="The procedure leverages PowerShell script that uninstalls Google Chrome. ">
         <Statement description="The procedure leverages PowerShell script that uninstalls Google Chrome.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;copy the script" name="WriteFile" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-BoxDrive.ps1" />
-          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\BoxDrive\Uninstall-BoxDrive.ps1" />
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-GoogleChrome.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\GoogleChrome\Uninstall-GoogleChrome.ps1" />
           <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
         </Statement>
         <If description="">
           <Condition name="TestFile">
-            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-BoxDrive.ps1" />
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-GoogleChrome.ps1" />
             <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
             <Parameter xsi:type="StringParameter" name="Value" value="" />
           </Condition>
           <Then>
             <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#vAgentConfiguration.agentTempSecureDir#/Uninstall-BoxDrive.ps1&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#vAgentConfiguration.agentTempSecureDir#/Uninstall-GoogleChrome.ps1&quot;" />
               <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
               <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
             </Statement>
@@ -64,7 +64,7 @@
               <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
             </Statement>
             <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-BoxDrive.ps1" />
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-GoogleChrome.ps1" />
             </Statement>
           </Then>
           <Else>

@@ -21,7 +21,7 @@
           </Condition>
           <Then>
             <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#agenttemp#\Audacity\Install-Audacity.ps1&quot;  -kwork '#agenttemp#'" />
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#agenttemp#\Audacity\Install-Audacity.ps1&quot;  -path '#agenttemp#\Audacity'" />
               <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
               <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
             </Statement>

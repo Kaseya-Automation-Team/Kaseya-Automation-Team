@@ -1,71 +1,62 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Install &amp; Uninstall Audacity" treePres="3">
-    <Procedure name="Install Audacity" treePres="3" id="732602159" folderId="559207506179446" treeFullPath="myProcedures - vlad.Install &amp; Uninstall Audacity">
-      <Body description="The procedure leverages PowerShell script that downloads Audicity installer from the URL provided and installs it. The script is downloaded from GitHub">
-        <Statement description="The procedure leverages PowerShell script that downloads Audicity installer from the URL provided and installs it. The script is downloaded from GitHub&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Provide actual URL to download the installer, please" name="GetVariable" continueOnFail="false">
-          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="Provide URL to the installer, please" />
-          <Parameter xsi:type="StringParameter" name="VariableName" value="URL" />
+    <Procedure name="Install Audacity" treePres="3" id="99574382" folderId="230359886926766" treeFullPath="myProcedures - kadmin.Install &amp; Uninstall Audacity">
+      <Body description="The procedure runs a PowerShell script that installs Audacity on the target computer.">
+        <Statement description="The procedure runs a PowerShell script that installs Audacity on the target computer.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="agenttemp" />
         </Statement>
-        <Statement name="GetVariable" continueOnFail="false">
-          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="Install-Audacity.ps1" />
-          <Parameter xsi:type="StringParameter" name="VariableName" value="TheScript" />
-        </Statement>
-        <Statement description="Download the script" name="GetURL" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/VSA/Agent%20Procedures/New%20Project/#TheScript#" />
-          <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
-          <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+        <Statement description="Copy the files to the endpoint" name="WriteDirectory" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#agenttemp#\Audacity" />
+          <Parameter xsi:type="StringParameter" name="SourceDirectory" value="VSASharedFiles\Audacity\" />
+          <Parameter xsi:type="StringParameter" name="Param3" value="NoShow" />
         </Statement>
         <If description="">
           <Condition name="TestFile">
-            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\#TheScript#" />
+            <Parameter xsi:type="StringParameter" name="Path" value="#agenttemp#\Audacity\Install-Audacity.ps1" />
             <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
             <Parameter xsi:type="StringParameter" name="Value" value="" />
           </Condition>
           <Then>
             <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#vAgentConfiguration.agentTempSecureDir#\#TheScript#&quot; -URL #URL#" />
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#agenttemp#\Audacity\Install-Audacity.ps1&quot;  -path '#agenttemp#\Audacity\audacity-win-2.2.2.exe'" />
               <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
               <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
             </Statement>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">
               <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
             </Statement>
-            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+            <Statement description="Cleanup" name="Delete Directory" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="#agenttemp#\Audacity" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="false" />
             </Statement>
           </Then>
           <Else>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. #TheScript# was not downloaded from GitHub" />
+              <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. Couldn't copy the files to the endpoint. Please try again later!" />
             </Statement>
           </Else>
         </If>
       </Body>
     </Procedure>
-    <Procedure name="Uninstall Audacity" treePres="3" id="1076881512" folderId="559207506179446" treeFullPath="myProcedures - vlad.Install &amp; Uninstall Audacity">
-      <Body description="The procedure leverages PowerShell script that uninstalls Audicity. The script is downloaded from GitHub">
-        <Statement description="The procedure leverages PowerShell script that uninstalls Audicity. The script is downloaded from GitHub&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
-          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="Uninstall-Audacity.ps1" />
-          <Parameter xsi:type="StringParameter" name="VariableName" value="TheScript" />
-        </Statement>
-        <Statement description="Download the script" name="GetURL" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="URL" value="https://raw.githubusercontent.com/Kaseya-Automation-Team/Kaseya-Automation-Team/main/VSA/Agent%20Procedures/New%20Project/#TheScript#" />
-          <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
-          <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+    <Procedure name="Uninstall Audacity" treePres="3" id="1214378073" folderId="230359886926766" treeFullPath="myProcedures - kadmin.Install &amp; Uninstall Audacity">
+      <Body description="The procedure leverages PowerShell script that uninstalls Audicity.">
+        <Statement description="The procedure leverages PowerShell script that uninstalls Audicity.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Copy the script" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-Audacity.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Audacity\Uninstall-Audacity.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
         </Statement>
         <If description="">
           <Condition name="TestFile">
-            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\#TheScript#" />
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-Audacity.ps1" />
             <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
             <Parameter xsi:type="StringParameter" name="Value" value="" />
           </Condition>
           <Then>
             <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#vAgentConfiguration.agentTempSecureDir#\#TheScript#&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#vAgentConfiguration.agentTempSecureDir#/Uninstall-Audacity.ps1&quot;" />
               <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
               <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
             </Statement>
@@ -73,12 +64,12 @@
               <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
             </Statement>
             <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-Audacity.ps1" />
             </Statement>
           </Then>
           <Else>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. #TheScript# was not downloaded from GitHub" />
+              <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. File couldn't be copied to the endpoint, please try again later!" />
             </Statement>
           </Else>
         </If>

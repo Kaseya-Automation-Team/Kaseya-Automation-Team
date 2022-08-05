@@ -1,4 +1,4 @@
-## This script downloads and silently installs Audacity 2.2.2
+## The script silently installs Audacity 2.2.2
 param (
     [parameter(Mandatory=$true)]
     [string] $Path

@@ -42,7 +42,7 @@
       </Body>
     </Procedure>
     <Procedure name="Uninstall VLC" treePres="3" id="457859037" folderId="378564021353872" treeFullPath="myProcedures - sasha.Install &amp; Uninstall VLC">
-      <Body description="The procedure leverages PowerShell script that uninstalls Audicity.">
+      <Body description="The procedure leverages PowerShell script that uninstalls VLC.">
         <Statement description="The procedure leverages PowerShell script that uninstalls VLC.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Copy the script" name="WriteFile" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-VLC.ps1" />
           <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\VLC\Uninstall-VLC.ps1" />

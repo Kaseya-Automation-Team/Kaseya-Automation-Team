@@ -1,10 +1,7 @@
-## This script downloads and silently installs Greenshot
+## The script silently installs Greenshot
 param (
     [parameter(Mandatory=$true)]
-    [ValidateNotNullOrEmpty()] 
-    [string] $URL,
-    [parameter(Mandatory=$false)]
-    [string] $Destination = "$env:TEMP\greenshot.exe"
+    [string] $Path
 )
 #Define variables
 $AppName = "Greenshot"
@@ -33,36 +30,6 @@ function Test-IsInstalled(){
     return Get-RegistryRecords($AppFullName);
 }
 
-#Start download
-function Get-Installer($URL) {
-
-    Write-Output "Downloading $AppName installer."
-	$ProgressPreference = 'SilentlyContinue'
-    Invoke-WebRequest -Uri $URL -OutFile "$Destination"
-
-    if (Test-Path -Path $Destination) {
-
-        Start-Install
-    } else {
-
-        [System.Diagnostics.EventLog]::WriteEntry("VSA", "Unable to download $AppName installation file.", "Error", 400)
-    }
-}
-
-#Execute installer
-function Start-Install() {
-
-    Write-Output "Starting $AppName installation."
-    & "$Destination" /VERYSILENT /SP- /NOCANCEL /NORESTART /SUPPRESSMSGBOXES /CLOSEAPPLICATIONS | Out-String
-}
-
-#Delete installation file
-function Start-Cleanup() {
-
-    Write-Output "Removing installation files."
-    Remove-Item -Path $Destination -ErrorAction SilentlyContinue
-}
-
 #If application is not installed yet, continue with installation
 if (Test-IsInstalled -ne $null) {
 
@@ -75,8 +42,7 @@ if (Test-IsInstalled -ne $null) {
     
     [System.Diagnostics.EventLog]::WriteEntry("VSA", "$AppName installation process has been initiated by VSA script", "Information", 200)
 
-    Get-Installer($URL)
-    Start-Cleanup
+    Start-Process -FilePath $Path /VERYSILENT /SP- /NOCANCEL /NORESTART /SUPPRESSMSGBOXES /CLOSEAPPLICATIONS
     
     Start-Sleep -s 10
 

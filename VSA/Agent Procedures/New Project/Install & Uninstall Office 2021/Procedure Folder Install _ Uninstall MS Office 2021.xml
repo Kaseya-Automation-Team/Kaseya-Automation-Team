@@ -103,63 +103,41 @@
                   <Parameter xsi:type="StringParameter" name="SourceContent" value="#WorkingDirectory#\#ScriptBaseName#.ps1" />
                   <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptFullPath" />
                 </Statement>
-                <Statement description="Download the script" name="WriteFile" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
-                  <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#ScriptBaseName#.ps1" />
+                <Statement description="Download the installation configuration file" name="WriteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#DownloadTo#/Configuration.xml" />
+                  <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Configuration.xml" />
                   <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
                 </Statement>
                 <If description="">
                   <Condition name="TestFile">
-                    <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+                    <Parameter xsi:type="StringParameter" name="Path" value="#DownloadTo#\Configuration.xml" />
                     <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
                     <Parameter xsi:type="StringParameter" name="Value" value="" />
                   </Condition>
                   <Then>
-                    <Statement description="Generate install config" name="ExecuteShellCommand" continueOnFail="false">
-                      <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ScriptFullPath# -ODTPath '#DownloadTo#\setup.exe'" />
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Office download started. It may take a long time, please be patient" />
+                    </Statement>
+                    <Statement description="Download setup files" name="ExecuteShellCommand" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#DownloadTo#&quot; &amp;&amp; setup.exe /download Configuration.xml" />
                       <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
                       <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
                     </Statement>
-                    <Statement name="DeleteFile" continueOnFail="false">
-                      <Parameter xsi:type="StringParameter" name="Path" value="#ScriptFullPath#" />
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Office installation started. The log files are in the system %TEMP% folder" />
                     </Statement>
-                    <If description="Install">
-                      <Condition name="TestFile">
-                        <Parameter xsi:type="StringParameter" name="Path" value="#DownloadTo#\Configuration.xml" />
-                        <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
-                        <Parameter xsi:type="StringParameter" name="Value" value="" />
-                      </Condition>
-                      <Then>
-                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                          <Parameter xsi:type="StringParameter" name="Comment" value="Office download started. It may take a long time, please be patient" />
-                        </Statement>
-                        <Statement name="ExecuteShellCommand" continueOnFail="false">
-                          <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#DownloadTo#&quot; &amp;&amp; setup.exe /download Configuration.xml" />
-                          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
-                          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
-                        </Statement>
-                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                          <Parameter xsi:type="StringParameter" name="Comment" value="Office installation started. The log files are in the system %TEMP% folder" />
-                        </Statement>
-                        <Statement name="ExecuteShellCommand" continueOnFail="false">
-                          <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#DownloadTo#&quot; &amp;&amp; setup.exe /configure Configuration.xml" />
-                          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
-                          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
-                        </Statement>
-                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                          <Parameter xsi:type="StringParameter" name="Comment" value="Office installation completed. The log files are in the system %TEMP% folder" />
-                        </Statement>
-                      </Then>
-                      <Else>
-                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                          <Parameter xsi:type="StringParameter" name="Comment" value="The file #DownloadTo#\Configuration.xml was not generated" />
-                        </Statement>
-                      </Else>
-                    </If>
+                    <Statement description="Install MS Office" name="ExecuteShellCommand" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#DownloadTo#&quot; &amp;&amp; setup.exe /configure Configuration.xml" />
+                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                    </Statement>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Office installation completed. The log files are in the system %TEMP% folder" />
+                    </Statement>
                   </Then>
                   <Else>
                     <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                      <Parameter xsi:type="StringParameter" name="Comment" value="Could not download #ScriptBaseName#.ps1" />
+                      <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: could not download installation configuration file" />
                     </Statement>
                   </Else>
                 </If>

@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Install &amp; Uninstall DNSFilter Agent (Windows)" treePres="3">
-    <Procedure name="Install DNSFilter" treePres="3" id="140187919" folderId="748555845976134" treeFullPath="myProcedures - kadmin.Test.Install &amp; Uninstall DNSFilter Agent (Windows)">
+    <Procedure name="Install DNSFilter" treePres="3" id="140187919" folderId="716610762996883" treeFullPath="myProcedures - sasha.Install &amp; Uninstall DNSFilter Agent (Windows)">
       <Body description="The procedure installs DNSFilter Agent">
         <Statement description="The procedure installs DNSFilter Agent&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Set the Site Secret Key for the DNSFilter Agent" name="GetVariable" continueOnFail="false">
-          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="8c34e0a8618ce013dca2cb04" />
-          <Parameter xsi:type="StringParameter" name="VariableName" value="TheKey" />
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Please provide secret key" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="secret" />
         </Statement>
         <Statement description="detect if DNSFilter Agent is already installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where name='DNSFilter Agent'" />
@@ -33,7 +33,7 @@
               </Condition>
               <Then>
                 <Statement name="ExecuteShellCommand" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#vAgentConfiguration.agentTempSecureDir#&quot; &amp;&amp; msiexec /qn /i DNSFilter_Agent_Setup.msi NKEY='#TheKey#'" />
+                  <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#vAgentConfiguration.agentTempSecureDir#&quot; &amp;&amp; msiexec /qn /i DNSFilter_Agent_Setup.msi NKEY='#secret#'" />
                   <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
                   <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
                 </Statement>
@@ -78,7 +78,7 @@
         </If>
       </Body>
     </Procedure>
-    <Procedure name="Uninstall DNSFilter" treePres="3" id="123710308" folderId="748555845976134" treeFullPath="myProcedures - kadmin.Test.Install &amp; Uninstall DNSFilter Agent (Windows)">
+    <Procedure name="Uninstall DNSFilter" treePres="3" id="123710308" folderId="716610762996883" treeFullPath="myProcedures - sasha.Install &amp; Uninstall DNSFilter Agent (Windows)">
       <Body description="">
         <Statement description="The procedure uninstalls DNSFilter Agent&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;detect if DNSFilter Agent is already installed" name="ExecuteShellCommand" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Command" value="wmic product where name=&quot;DNSFilter Agent&quot; call uninstall" />

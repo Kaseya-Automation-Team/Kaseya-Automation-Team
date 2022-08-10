@@ -33,7 +33,7 @@
               </Condition>
               <Then>
                 <Statement name="ExecuteShellCommand" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#vAgentConfiguration.agentTempSecureDir#&quot; &amp;&amp; msiexec /qn /i DNSFilter_Agent_Setup.msi NKEY='8c34e0a8618ce013dca2cb04'" />
+                  <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#vAgentConfiguration.agentTempSecureDir#&quot; &amp;&amp; msiexec /qn /i DNSFilter_Agent_Setup.msi NKEY='#TheKey#'" />
                   <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
                   <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
                 </Statement>

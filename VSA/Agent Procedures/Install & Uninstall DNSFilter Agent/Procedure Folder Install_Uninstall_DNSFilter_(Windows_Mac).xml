@@ -1,0 +1,288 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Install &amp; Uninstall DNSFilter (Windows &amp; Mac)" treePres="3">
+    <Procedure name="Install DNSFilter (Windows &amp; Mac)" treePres="3" id="547669294" folderId="469569336049989" treeFullPath="myProcedures - sasha.Install &amp; Uninstall DNSFilter (Windows &amp; Mac)">
+      <Body description="This procedure automatically detects operation system (Windows or Mac OS X) on target computer and install DNS Filter application">
+        <Statement description="This procedure automatically detects operation system (Windows or Mac OS X) on target computer and install DNS Filter application&#xD;&#xA;Version 0.1&#xD;&#xA;Author: Proserv Team&#xD;&#xA;Prompt for security key" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Please provide secret key" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="secret" />
+        </Statement>
+        <Statement description="Define destination to download installer" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="SQLView" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="vMachine/OsType" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ostype" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#ostype#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+            <Parameter xsi:type="StringParameter" name="Value" value="Mac" />
+          </Condition>
+          <Then>
+            <If description="Commands for Mac OS X&#xD;&#xA;Make sure agent application is not yet installed">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="/Applications/DNS Agent.app" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="MacOS">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="DNSFilter application agent is already installed on target system. Aborting installation." />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Starting download of installation package." />
+                </Statement>
+                <Statement description="Download agent installer" name="GetURL" continueOnFail="false" osType="MacOS">
+                  <Parameter xsi:type="StringParameter" name="URL" value="https://download.dnsfilter.com/User_Agent/MacOS/DNS Agent-Installer.pkg" />
+                  <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ktemp#/DNSFilterAgent.pkg" />
+                  <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+                </Statement>
+                <If description="Check if download was successful">
+                  <Condition name="TestFile">
+                    <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#/DNSFilterAgent.pkg" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="" />
+                  </Condition>
+                  <Then>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Download completed, starting installation." />
+                    </Statement>
+                    <Statement description="Put secret key into the file" name="Write text to file" continueOnFail="false" osType="MacOS">
+                      <Parameter xsi:type="StringParameter" name="Parameter1" value="#secret#" />
+                      <Parameter xsi:type="StringParameter" name="Parameter2" value="#ktemp#/dns_agent_site_key" />
+                      <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+                    </Statement>
+                    <Statement description="Start agent installation" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="MacOS">
+                      <Parameter xsi:type="StringParameter" name="Parameter1" value="installer -dumplog -store -pkg #ktemp#/DNSFilterAgent.pkg -target /" />
+                      <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+                      <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                    </Statement>
+                    <Statement description="Run install agent" name="ExecuteShellCommand" continueOnFail="false" osType="MacOS">
+                      <Parameter xsi:type="StringParameter" name="Command" value="open -a 'DNS Agent'" />
+                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="User" />
+                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                    </Statement>
+                    <Statement description="Clean up" name="DeleteFile" continueOnFail="false" osType="MacOS">
+                      <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#/DNSFilterAgent.pkg" />
+                    </Statement>
+                    <If description="Check if installation was successful">
+                      <Condition name="TestFile">
+                        <Parameter xsi:type="StringParameter" name="Path" value="/Applications/DNS Agent.app" />
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                        <Parameter xsi:type="StringParameter" name="Value" value="" />
+                      </Condition>
+                      <Then>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="MacOS">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="DNSFilter agent has been successfully installed on the target machine." />
+                        </Statement>
+                      </Then>
+                      <Else>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="MacOS">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Installation failed." />
+                        </Statement>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="MacOS">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+                        </Statement>
+                      </Else>
+                    </If>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="MacOS">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Unable to download installation package." />
+                    </Statement>
+                  </Else>
+                </If>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement description="Commands for Windows&#xD;&#xA;detect if DNSFilter Agent is already installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Windows">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where name='DNSFilter Agent'" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                <Parameter xsi:type="StringParameter" name="Value" value="No Instance" />
+              </Condition>
+              <Then>
+                <Statement name="GetURL" continueOnFail="false" osType="Windows">
+                  <Parameter xsi:type="StringParameter" name="URL" value="https://download.dnsfilter.com/User_Agent/Windows/DNSFilter_Agent_Setup.msi" />
+                  <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempSecureDir#/DNSFilter_Agent_Setup.msi" />
+                  <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+                </Statement>
+                <If description="">
+                  <Condition name="TestFile">
+                    <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/DNSFilter_Agent_Setup.msi" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="" />
+                  </Condition>
+                  <Then>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Download completed, starting installation." />
+                    </Statement>
+                    <Statement name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+                      <Parameter xsi:type="StringParameter" name="Command" value="cd &quot;#vAgentConfiguration.agentTempSecureDir#&quot; &amp;&amp; msiexec /qn /i DNSFilter_Agent_Setup.msi NKEY='#secret#'" />
+                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                    </Statement>
+                    <Statement description="Detect the software after installation" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Windows">
+                      <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where name=&quot;DNSFilter Agent&quot;" />
+                      <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                      <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                    </Statement>
+                    <If description="">
+                      <Condition name="CheckVariable">
+                        <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="DoesNotContain" />
+                        <Parameter xsi:type="StringParameter" name="Value" value="No Instance" />
+                      </Condition>
+                      <Then>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="DNSFilter agent has been successfully installed on the target machine." />
+                        </Statement>
+                      </Then>
+                      <Else>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Installation failed." />
+                        </Statement>
+                      </Else>
+                    </If>
+                    <Statement description="Cleanup" name="DeleteFile" continueOnFail="false" osType="Windows">
+                      <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/DNSFilter_Agent_Setup.msi" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Unable to download installation package." />
+                    </Statement>
+                  </Else>
+                </If>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="DNSFilter application agent is already installed on target system. Aborting installation." />
+                </Statement>
+              </Else>
+            </If>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Uninstall DNSFilter (Windows &amp; Mac)" treePres="3" id="1940551937" folderId="469569336049989" treeFullPath="myProcedures - sasha.Install &amp; Uninstall DNSFilter (Windows &amp; Mac)">
+      <Body description="This procedure automatically detects operation system (Windows or Mac OS X) on target computer and uninstall DNS Filter application">
+        <Statement description="This procedure automatically detects operation system (Windows or Mac OS X) on target computer and uninstall DNS Filter application&#xD;&#xA;Version 0.1&#xD;&#xA;Author: Proserv Team&#xD;&#xA;Prompt for security key" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="SQLView" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="vMachine/OsType" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ostype" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#ostype#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+            <Parameter xsi:type="StringParameter" name="Value" value="Mac" />
+          </Condition>
+          <Then>
+            <If description="Commands for Mac OS X">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="/Applications/DNS Agent.app" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="MacOS">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="DNSFilter agent has been detected. Starting uninstallation." />
+                </Statement>
+                <Statement description="Run uninstall command" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="MacOS">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="echo 'no' | /bin/sh '/Applications/DNS Agent.app/Contents/Resources/uninstall.sh'" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+                <If description="Check if agent was uninstalled correctly">
+                  <Condition name="TestFile">
+                    <Parameter xsi:type="StringParameter" name="Path" value="/Applications/DNS Agent.app" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="" />
+                  </Condition>
+                  <Then>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="MacOS">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Unable to uninstall application." />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="MacOS">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Uninstallation of DNSFilter agent has been successfully completed." />
+                    </Statement>
+                  </Else>
+                </If>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="MacOS">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="DNSFilter agent doesn't seem to be installed on target machine." />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement description="Commands for Windows" name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Windows">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where name='DNSFilter Agent'" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                <Parameter xsi:type="StringParameter" name="Value" value="No Instance" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="DNSFilter agent doesn't seem to be installed on target machine." />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+                  <Parameter xsi:type="StringParameter" name="Command" value="wmic product where name=&quot;DNSFilter Agent&quot; call uninstall" />
+                  <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                  <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                </Statement>
+                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Windows">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where name='DNSFilter Agent'" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="No Instance" />
+                  </Condition>
+                  <Then>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Uninstallation of DNSFilter agent has been successfully completed." />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Unable to uninstall application." />
+                    </Statement>
+                  </Else>
+                </If>
+              </Else>
+            </If>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

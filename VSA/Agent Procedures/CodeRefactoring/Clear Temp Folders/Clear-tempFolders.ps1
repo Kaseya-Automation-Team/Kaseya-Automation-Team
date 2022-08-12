@@ -1,10 +1,21 @@
+function Clear-Folder {
+[CmdletBinding()]
+param (
+    [parameter(Mandatory=$true, 
+        ValueFromPipeline=$true)]
+    [ValidateNotNullOrEmpty()]
+    [string] $TheFolder)
+    if(Test-Path -Path $TheFolder) {
+        Get-ChildItem -Path $TheFolder -Recurse -Force | Remove-Item -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue
+    }
+}
 
 #Clear the system temp folder
 Get-ItemProperty -Path Registry::'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name "TEMP" | Select-Object -ExpandProperty "TEMP" | Clear-Folder
 
 #Clear users' temp folders
 [string] $SIDPattern = 'S-1-5-21-(\d+-?){4}$'
-Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Select-Object LocalPath, SID | `
+Get-CimInstance Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Select-Object LocalPath, SID | `
 ForEach-Object {
     $UserProfilePath = $_.LocalPath
 

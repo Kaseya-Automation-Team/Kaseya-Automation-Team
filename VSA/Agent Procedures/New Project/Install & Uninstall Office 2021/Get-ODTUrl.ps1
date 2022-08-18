@@ -23,9 +23,10 @@ try {
 if ($null -ne $WebResponse) { #URL responded
     #Look for actual download URL
     [string]$DownloadUri = $WebResponse.Links | Where-Object outerHTML -Match 'click here to download manually' | Select-Object -ExpandProperty href -Unique
-    if ( -Not [string]::IsNullOrEmpty($DownloadUri)) {
-        $DownloadUri | Write-Output
-    } else {
-        "Failed" | Write-Output
+    if ( [string]::IsNullOrEmpty($DownloadUri)) {
+        $DownloadUri = 'Failed' 
     }
+} else {
+    $DownloadUri = 'Failed' 
 }
+$DownloadUri | Write-Output

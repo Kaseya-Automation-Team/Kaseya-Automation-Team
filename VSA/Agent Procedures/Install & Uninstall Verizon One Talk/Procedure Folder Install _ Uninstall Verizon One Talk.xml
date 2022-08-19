@@ -80,7 +80,7 @@
     </Procedure>
     <Procedure name="Uninstall Verizon One Talk" treePres="3" id="1735372240" folderId="927225056908663" treeFullPath="myProcedures - kadmin.Install &amp; Uninstall Verizon One Talk">
       <Body description="The procedure uninstalls Verizon One Talk">
-        <Statement description="The procedure uninstalls Verizon One Talk&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;detect if DNSFilter Agent is already installed" name="ExecuteShellCommand" continueOnFail="false">
+        <Statement description="The procedure uninstalls Verizon One Talk&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;detect if Verizon One Talk is already installed" name="ExecuteShellCommand" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Command" value="wmic product where name=&quot;One Talk&quot; call uninstall" />
           <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
           <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />

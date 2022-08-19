@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Install &amp; Uninstall Verizon One Talk" treePres="3">
-    <Procedure name="Install Verizon One Talk" treePres="3" id="1817337870" folderId="927225056908663" treeFullPath="myProcedures - kadmin.Install &amp; Uninstall Verizon One Talk">
+    <Procedure name="Install Verizon One Talk" treePres="3" id="1817337870" folderId="601604258735479" treeFullPath="myProcedures - vlad.TMP.Install &amp; Uninstall Verizon One Talk">
       <Body description="The procedure calls downloads and installs for all users on the computer the Verizon One Talk">
         <Statement description="The procedure calls downloads and installs for all users on the computer the Verizon One Talk&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;Set path  for software distribution.&#xD;&#xA;detect if Verizon One Talk is already installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where name=&quot;One Talk&quot;" />
@@ -78,9 +78,9 @@
         </If>
       </Body>
     </Procedure>
-    <Procedure name="Uninstall Verizon One Talk" treePres="3" id="1735372240" folderId="927225056908663" treeFullPath="myProcedures - kadmin.Install &amp; Uninstall Verizon One Talk">
+    <Procedure name="Uninstall Verizon One Talk" treePres="3" id="1735372240" folderId="601604258735479" treeFullPath="myProcedures - vlad.TMP.Install &amp; Uninstall Verizon One Talk">
       <Body description="The procedure uninstalls Verizon One Talk">
-        <Statement description="The procedure uninstalls Verizon One Talk&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;detect if Verizon One Talk is already installed" name="ExecuteShellCommand" continueOnFail="false">
+        <Statement description="The procedure uninstalls Verizon One Talk&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="ExecuteShellCommand" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Command" value="wmic product where name=&quot;One Talk&quot; call uninstall" />
           <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
           <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />

@@ -2,7 +2,7 @@
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Install &amp; Uninstall Adobe Reader" treePres="3">
     <Procedure name="Install Adobe Reader" treePres="3" id="2141230442" folderId="502361411183309" treeFullPath="myProcedures - vlad.TMP.Install &amp; Uninstall Adobe Reader">
-      <Body description="The procedure downloads and installs the Adobe Reader for all users on the computer">
+      <Body description="The procedure downloads and installs the Adobe Reader 2200220191 for all users on the computer">
         <Statement description="The procedure downloads and installs the Adobe Reader for all users on the computer &#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;detect if Adobe Reader is already installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name like 'Adobe Acrobat DC%%'&quot;" />
           <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />

@@ -105,7 +105,7 @@
     <Procedure name="Uninstall Adobe Reader" treePres="3" id="308111931" folderId="502361411183309" treeFullPath="myProcedures - vlad.TMP.Install &amp; Uninstall Adobe Reader">
       <Body description="The procedure uninstalls Adobe Reader">
         <Statement description="The procedure uninstalls Adobe Reader&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="ExecuteShellCommand" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Command" value="wmic product where &quot;Name like 'Adobe Acrobat DC%%'&quot; call uninstall" />
+          <Parameter xsi:type="StringParameter" name="Command" value="wmic product where &quot;name like 'Adobe Acrobat DC (%%-bit)' or name like 'Adobe Acrobat Reader DC%%'&quot; call uninstall" />
           <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
           <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
         </Statement>

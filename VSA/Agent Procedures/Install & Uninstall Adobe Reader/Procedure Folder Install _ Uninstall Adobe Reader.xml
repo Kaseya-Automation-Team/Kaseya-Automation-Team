@@ -3,7 +3,12 @@
   <Folder name="Install &amp; Uninstall Adobe Reader" treePres="3">
     <Procedure name="Install Adobe Reader" treePres="3" id="2141230442" folderId="502361411183309" treeFullPath="myProcedures - vlad.TMP.Install &amp; Uninstall Adobe Reader">
       <Body description="The procedure downloads and installs the Adobe Reader for all users on the computer">
-        <Statement description="The procedure downloads and installs the Adobe Reader for all users on the computer &#xD;&#xA;Current Adobe Reader version is 2200220191&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;detect if Adobe Reader is already installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+        <Statement description="The procedure downloads and installs the Adobe Reader for all users on the computer &#xD;&#xA;Current Adobe Reader version is 2200220191&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;detect if Adobe Reader is already installed" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Adobe Reader" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="TheSoftwareName" />
+        </Statement>
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name like 'Adobe Acrobat DC%%'&quot;" />
           <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
           <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
@@ -24,11 +29,6 @@
               <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
               <Parameter xsi:type="StringParameter" name="SourceContent" value="AcrobatReaderSetup.exe" />
               <Parameter xsi:type="StringParameter" name="VariableName" value="TheInstaller" />
-            </Statement>
-            <Statement name="GetVariable" continueOnFail="false">
-              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-              <Parameter xsi:type="StringParameter" name="SourceContent" value="Adobe Reader" />
-              <Parameter xsi:type="StringParameter" name="VariableName" value="TheSoftwareName" />
             </Statement>
             <If description="">
               <Condition name="Windows 32 or 64 Bit Check">

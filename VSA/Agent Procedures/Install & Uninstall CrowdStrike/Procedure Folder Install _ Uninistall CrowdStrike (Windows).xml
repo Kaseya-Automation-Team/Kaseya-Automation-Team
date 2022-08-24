@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Install &amp; Uninistall CrowdStrike (Windows)" treePres="3">
+    <Procedure name="Install CrowdStrike" treePres="3" id="720754144" folderId="970249721719999" treeFullPath="myProcedures - vlad.TMP.Install &amp; Uninistall CrowdStrike (Windows)">
+      <Body description="">
+        <Statement description="The procedure detects CrowdStrike falcon-sensor on the computer. If not detected the procedure installs it from the package uploaded&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="CrowdStrike" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="TheSoftwareName" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="-" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="global:osType" />
+        </Statement>
+        <If description="">
+          <Condition name="Windows 32 or 64 Bit Check">
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          </Condition>
+          <Then>
+            <Statement name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="Windows" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="global:osType" />
+            </Statement>
+          </Then>
+        </If>
+        <If description="">
+          <Condition name="Windows 32 or 64 Bit Check">
+            <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+          </Condition>
+          <Then>
+            <Statement name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="Windows" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="global:osType" />
+            </Statement>
+          </Then>
+        </If>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:osType#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="NotEquals" />
+            <Parameter xsi:type="StringParameter" name="Value" value="Windows" />
+          </Condition>
+          <Then>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: Can't be executed. Run on Windows only" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement description="Check if CrowdStrike already installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name like '#TheSoftwareName#%%'&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="DoesNotContain" />
+                <Parameter xsi:type="StringParameter" name="Value" value="No Instance" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#TheSoftwareName# is already installed" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="Provide the CID for your CrowdStrike product, please" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:CID" />
+                </Statement>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="WindowsSensor.exe" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="TheInstaller" />
+                </Statement>
+                <Statement name="WriteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheInstaller#" />
+                  <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\CrowdStrike\#TheInstaller#" />
+                  <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+                </Statement>
+                <If description="">
+                  <Condition name="TestFile">
+                    <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\#TheInstaller#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="" />
+                  </Condition>
+                  <Then>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: The installer file was not downloaded" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement description="Run the installer" name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+                      <Parameter xsi:type="StringParameter" name="Command" value="#vAgentConfiguration.agentTempSecureDir#\#TheInstaller# /install /quiet /norestart CID=#global:CID#" />
+                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                    </Statement>
+                    <Statement description="Check if CrowdStrike already installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name like '#TheSoftwareName#%%'&quot;" />
+                      <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                      <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                    </Statement>
+                    <If description="">
+                      <Condition name="CheckVariable">
+                        <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="DoesNotContain" />
+                        <Parameter xsi:type="StringParameter" name="Value" value="No Instance" />
+                      </Condition>
+                      <Then>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="#TheSoftwareName# successfully installed" />
+                        </Statement>
+                      </Then>
+                      <Else>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="Could not detect #TheSoftwareName# after installation" />
+                        </Statement>
+                      </Else>
+                    </If>
+                    <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheInstaller#" />
+                    </Statement>
+                  </Else>
+                </If>
+              </Else>
+            </If>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

@@ -1,5 +1,19 @@
 ﻿<#
-    Archives and Clears non-empty Windows Event Logs
+=================================================================================
+Script Name:        Management: Event Logs Archive And Clear.
+Description:        Archives and Clears non-empty Windows Event Logs.
+Lastest version:    2022-04-19
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
 
 #Path to store backed up Logs. Provide custom path if needed

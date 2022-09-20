@@ -1,4 +1,20 @@
-﻿#This script will logoff all the local users logged on to the machine
+﻿<#
+=================================================================================
+Script Name:        Management: Log all the users off.
+Description:        Logoff all the local users logged on to the machine.
+Lastest version:    2022-04-27
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 $scriptBlock = {
 

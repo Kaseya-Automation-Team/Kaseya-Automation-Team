@@ -1,5 +1,19 @@
 ﻿<#
-    Install MS Office 2019
+=================================================================================
+Script Name:        Software Management: Install MS Office 2019.
+Description:        Install MS Office 2019.
+Lastest version:    2022-06-29
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
 
 [string] $ActivationKey = ''#                    Set MS Office product key in format 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX'

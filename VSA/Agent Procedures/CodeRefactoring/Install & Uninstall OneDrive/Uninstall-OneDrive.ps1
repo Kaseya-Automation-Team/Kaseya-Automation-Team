@@ -1,5 +1,19 @@
 ﻿<#
-    Uninstall Microsoft OneDrive
+=================================================================================
+Script Name:        Software Management: Uninstall Microsoft OneDrive.
+Description:        Uninstall Microsoft OneDrive.
+Lastest version:    2022-05-04
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
 #Create VSA X Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA X")) {

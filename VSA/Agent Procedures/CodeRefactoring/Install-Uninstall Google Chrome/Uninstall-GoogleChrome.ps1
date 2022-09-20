@@ -1,4 +1,20 @@
-## This script silently uninstalls Google Chrome from the computer
+<#
+=================================================================================
+Script Name:        Software Management: Uninstall Google Chrome.
+Description:        Silently uninstalls Google Chrome from the computer
+Lastest version:    2022-07-22
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 #Define varibles
 $AppName = "Google Chrome"

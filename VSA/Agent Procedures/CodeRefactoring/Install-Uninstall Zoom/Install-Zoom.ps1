@@ -1,4 +1,20 @@
-## This script downloads and silently installs latest version of Zoom from the official website
+<#
+=================================================================================
+Script Name:        Software Management: Install Zoom.
+Description:        Downloads and silently installs Zoom.
+Lastest version:    2022-05-25
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 #Define variables
 $AppName = "Zoom"

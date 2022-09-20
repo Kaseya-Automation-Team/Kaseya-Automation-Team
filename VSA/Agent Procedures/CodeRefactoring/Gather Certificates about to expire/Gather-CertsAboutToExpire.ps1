@@ -1,4 +1,21 @@
-﻿$ExpireWithInDays = 30
+﻿<#
+=================================================================================
+Script Name:        Audit: Security: Gather Certificates about to expire.
+Description:        Gather Certificates about to expire
+Lastest version:    2022-06-16
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+$ExpireWithInDays = 30
 $Destination = "$Env:Temp\certs.csv"
 
 Set-Location Cert: ; Get-ChildItem -Recurse | Where-Object { ($_.Thumbprint)  -and ( $_.notafter -ge (Get-Date) ) -and ( $_.notafter -le (Get-Date).AddDays($ExpireWithInDays) ) } | Select-Object Thumbprint, Subject, NotAfter | Export-Csv -Encoding UTF8 -Force -NoTypeInformation -Path $Destination

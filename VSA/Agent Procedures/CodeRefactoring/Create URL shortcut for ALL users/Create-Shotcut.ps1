@@ -1,7 +1,7 @@
 <#
 =================================================================================
 Script Name:        Management: Create URL shortcut for ALL users
-Description:        This script creates URL shortcut on desktop for ALL users. Customize the script by editing the ShortcutURL variable
+Description:        This script creates URL shortcut on desktop for ALL users.
 Lastest version:    2022-09-20
 =================================================================================
 

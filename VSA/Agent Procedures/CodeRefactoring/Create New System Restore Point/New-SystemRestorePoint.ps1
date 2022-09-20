@@ -1,7 +1,7 @@
 ﻿<#
 =================================================================================
 Script Name:        Management: Create New System Restore Point
-Description:        This procedure enables system restore functionality and then creates new system restore point, if there is no any created within last 24 hours.
+Description:        Enables system restore functionality and then creates new system restore point, if there is no any created within last 24 hours.
 Lastest version:    2022-09-20
 =================================================================================
 

@@ -1,5 +1,19 @@
 ﻿<#
-    Disables local user accounts that are members of the local Administrators group
+=================================================================================
+Script Name:        Management: Disable Local Admins
+Description:        Disables local users’ accounts that are members of the local Administrators group.
+Lastest version:    2022-04-14
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
 #Create VSA X Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA X")) {

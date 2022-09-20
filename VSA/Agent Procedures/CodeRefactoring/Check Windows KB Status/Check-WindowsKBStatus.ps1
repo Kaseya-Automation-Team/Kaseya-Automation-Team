@@ -1,4 +1,21 @@
-﻿# Assign the KB number to the variable below
+﻿<#
+=================================================================================
+Script Name:        Audit: Check Windows KB Status
+Description:        Part of Upstream Fully Managed Workplace
+Lastest version:    2022-06-01
+=================================================================================
+
+
+
+Required variable inputs:
+The kb variable shoud be assigned
+
+
+
+Required variable outputs:
+None
+#>
+# Assign the KB number to the variable below
 
 $kb = "KB5013942"
 

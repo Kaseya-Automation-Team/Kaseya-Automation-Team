@@ -1,5 +1,19 @@
 <#
-    Collects information on the local Administrators group members
+=================================================================================
+Script Name:        Audit: Get DNS Entries Of An Endpoint.
+Description:        Get local admins from the windows computer.
+Lastest version:    2022-04-21
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
 # Set the variable $localUsersOnly = $false if you need also collect Domain's members of the Administrators group
 $localUsersOnly = $true

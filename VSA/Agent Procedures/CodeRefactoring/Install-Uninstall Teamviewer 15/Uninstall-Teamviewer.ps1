@@ -1,4 +1,20 @@
-## This script silently uninstalls Teamviewer 15 from the computer
+<#
+=================================================================================
+Script Name:        Software Management: Uninstall Teamviewer 15.
+Description:        Silently uninstalls Teamviewer 15 from the computer.
+Lastest version:    2022-05-25
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 #Define varibles
 $AppName = "Teamviewer"

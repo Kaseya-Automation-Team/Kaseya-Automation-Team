@@ -1,3 +1,20 @@
+<#
+=================================================================================
+Script Name:        Management: Get DNS Entries Of An Endpoint.
+Description:        Collects information about DNS servers configured for active network connections.
+Lastest version:    2022-04-19
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 $ifList = Get-NetAdapter -Physical | Where-Object Status -eq 'Up' | Select-Object -ExpandProperty 'ifIndex'
 
 if ($ifList -eq $null) {

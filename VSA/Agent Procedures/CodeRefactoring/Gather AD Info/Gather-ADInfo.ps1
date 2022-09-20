@@ -1,4 +1,22 @@
 ﻿<#
+=================================================================================
+Script Name:        Audit: Gather AD Info.
+Description:        Gathers Active Directory Information and saves repot as an HTML-file.
+Lastest version:    2022-07-28
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+
+<#
 .Synopsis
    Gathers Active Directory Information and saves repot as an HTML-file.
 .DESCRIPTION

@@ -1,4 +1,20 @@
-## This script downloads and silently installs Audacity 2.2.2
+<#
+=================================================================================
+Script Name:        Software Management: Install Audacity.
+Description:        Downloads and silently installs Audacity
+Lastest version:    2022-07-22
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 #Define variables
 $AppName = "Audacity"

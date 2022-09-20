@@ -1,11 +1,19 @@
 <#
-.Synopsis
-   Deletes named vpn connection
-.DESCRIPTION
-   This script is dedicated to delete VPN connection with a given name from the target system
-.NOTES
-   Version 0.1
-   Author: Proserv Team - VS
+=================================================================================
+Script Name:        Management: Remove VPN connection.
+Description:        Removes VPN connection
+Lastest version:    2022-07-29
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
 
 [string]$Name = "test"

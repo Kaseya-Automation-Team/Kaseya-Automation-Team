@@ -1,4 +1,20 @@
-## This script downloads and silently installs latest version of Dropbox Offline installer from the official website
+<#
+=================================================================================
+Script Name:        Software Management: Install Dropbox.
+Description:        Downloads and silently installs Dropbox.
+Lastest version:    2022-05-19
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 #Define variables
 $AppName = "Dropbox"

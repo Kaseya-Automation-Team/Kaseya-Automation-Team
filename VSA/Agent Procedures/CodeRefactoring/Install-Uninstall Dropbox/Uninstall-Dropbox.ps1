@@ -1,4 +1,20 @@
-## This script silently uninstalls Dropbox from the computer
+<#
+=================================================================================
+Script Name:        Software Management: Uninstall Dropbox.
+Description:        Silently installs Dropbox.
+Lastest version:    2022-05-02
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 #Define varibles
 $AppName = "Dropbox"

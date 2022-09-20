@@ -1,4 +1,21 @@
-﻿#region Get Cached Domain credentials
+﻿<#
+=================================================================================
+Script Name:        Management: Security: Credentials
+Description:        Clear Cached Domain Credentials
+Lastest version:    2022-06-17
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+#region Get Cached Domain credentials
 Write-Debug 'Collecting cached credentials'
 [string[]]$RawOutput = cmdkey /list
 

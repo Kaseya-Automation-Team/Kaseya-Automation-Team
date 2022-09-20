@@ -1,6 +1,21 @@
 ﻿<#
-    Uninstall Firefox ESR
+=================================================================================
+Script Name:        Software Management: Uninstall Firefox ESR.
+Description:        Silently uninstalls Firefox ESR.
+Lastest version:    2022-05-02
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
+
 #Create VSA X Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA X")) {
     [System.Diagnostics.EventLog]::CreateEventSource("VSA X", "Application")

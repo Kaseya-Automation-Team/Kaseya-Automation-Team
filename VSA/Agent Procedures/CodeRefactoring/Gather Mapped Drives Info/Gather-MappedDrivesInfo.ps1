@@ -1,4 +1,21 @@
 ﻿<#
+=================================================================================
+Script Name:        Audit: Gather Mapped Drives Info.
+Description:        Gathers Mapped Drive for all the computer's users.
+Lastest version:    2022-07-29
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+<#
 .Synopsis
    Gathers Mapped Drive for all the computer's users.
    Version 0.1

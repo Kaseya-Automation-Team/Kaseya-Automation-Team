@@ -1,5 +1,19 @@
 ﻿<#
-    Install Firefox ESR
+=================================================================================
+Script Name:        Software Management: Install Firefox ESR.
+Description:        Downloads and silently installs Firefox ESR.
+Lastest version:    2022-05-25
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
 
 $Language = 'lang=en-US'

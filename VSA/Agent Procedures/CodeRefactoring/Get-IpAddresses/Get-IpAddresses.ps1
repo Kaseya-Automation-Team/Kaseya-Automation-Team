@@ -1,4 +1,21 @@
-﻿$Results = @(); 
+﻿<#
+=================================================================================
+Script Name:        Audit: Get-IpAddresses.
+Description:        This script allows fetch information about IP addresses on all connected network adapters.
+Lastest version:    2022-06-03
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+$Results = @(); 
 
 $LocalIP = Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $(Get-NetConnectionProfile | Select-Object -ExpandProperty InterfaceIndex) | Select-Object -ExpandProperty IPAddress
 

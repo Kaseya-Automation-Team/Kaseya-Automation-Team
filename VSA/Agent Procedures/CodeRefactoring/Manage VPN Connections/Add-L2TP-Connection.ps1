@@ -1,11 +1,19 @@
 <#
-.Synopsis
-   Creates vpn connection
-.DESCRIPTION
-   This script is dedicated to create L2TP connection without setting credentials for the VPN connection
-.NOTES
-   Version 0.1
-   Author: Proserv Team - VS
+=================================================================================
+Script Name:        Management: Create L2TP connection.
+Description:        Creates VPN connection
+Lastest version:    2022-07-29
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
 
 #Name of the vpn connection

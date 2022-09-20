@@ -1,3 +1,20 @@
+'<#
+'=================================================================================
+'Script Name:        Software Management: Uninstall MS Office 2019.
+'Description:        Uninstall MS Office 2019.
+'Lastest version:    2022-06-29
+'=================================================================================
+'
+'
+'
+'Required variable inputs:
+'None
+'
+'
+'
+'Required variable outputs:
+'None
+'#>
 '*******************************************************************************
 ' Name: OffScrubC2R.vbs
 ' Author: Microsoft Customer Support Services

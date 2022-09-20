@@ -1,5 +1,19 @@
 ﻿<#
-    Disables MS Office 2016/2019/365 hardware acceleration for all users on the system, which switches graphics and text rendering duties from GPU to CPU.
+=================================================================================
+Script Name:        Disable MS Office Hardware Acceleration
+Description:        Disables MS Office 2016/2019/365 hardware acceleration for all users on the system, which switches graphics and text rendering duties from GPU to CPU.
+Lastest version:    2022-04-12
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
 #Create VSA X Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA X")) {

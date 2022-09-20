@@ -1,4 +1,20 @@
-## This script silently uninstalls Zoom from the computer
+<#
+=================================================================================
+Script Name:        Software Management: Uninstall Zoom.
+Description:        Silently uninstalls Zoom from the computer.
+Lastest version:    2022-05-25
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 #Define varibles
 $AppName = "Zoom"

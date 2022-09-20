@@ -1,4 +1,21 @@
-﻿$PageUri = 'https://www.citrix.com/downloads/workspace-app/windows/workspace-app-for-windows-latest.html'
+﻿<#
+=================================================================================
+Script Name:        Software Management: Install Citrix Receiver.
+Description:        Downloads and silently installs Citrix Receiver.
+Lastest version:    2022-05-10
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+$PageUri = 'https://www.citrix.com/downloads/workspace-app/windows/workspace-app-for-windows-latest.html'
 $AppName = 'CitrixWorkspaceApp.exe'
 $LogIt = 'TRUE'
 $OutputFilePath = "$env:TEMP\Citrix-installer.exe"

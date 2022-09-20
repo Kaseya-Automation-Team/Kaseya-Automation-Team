@@ -1,4 +1,21 @@
-﻿#Provide array of hostnames to block
+﻿<#
+=================================================================================
+Script Name:        Management: Unblock websites that were blocked with the hosts file
+Description:        Comments out entries in the hosts file for the webhosts listed in the UnblockHosts variable.
+Lastest version:    2022-05-25
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+#Provide array of hostnames to unblock
 [string[]] $UnblockHosts = @('example.com')
 
 #Create VSA X Event Source if it doesn't exist

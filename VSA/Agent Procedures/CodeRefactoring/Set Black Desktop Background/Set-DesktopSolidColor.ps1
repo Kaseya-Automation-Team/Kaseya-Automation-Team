@@ -15,9 +15,6 @@ None
 Required variable outputs:
 None
 #>
-<#
-    Sets desired solid color desktop background for all users.
-#>
 
 [int] $R = 0  #           Specifies level of Red color. Vaild Range 0-255
 [int] $G = 0 #            Specifies level of Green color. Vaild Range 0-255

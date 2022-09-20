@@ -1,4 +1,21 @@
-﻿$connectedIndexes = Get-NetAdapter -physical | Where-Object {$_.MediaConnectionState -EQ 'Connected'} | Select-Object -ExpandProperty ifIndex
+﻿<#
+=================================================================================
+Script Name:        Management: Set static IP.
+Description:        Assigns curent DHCP address as static IP.
+Lastest version:    2022-06-01
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+$connectedIndexes = Get-NetAdapter -physical | Where-Object {$_.MediaConnectionState -EQ 'Connected'} | Select-Object -ExpandProperty ifIndex
 Foreach ($connectedIndex in $connectedIndexes)
 {
    [hashtable] $adapterParameters = @{AddressFamily = 'IPv4'}

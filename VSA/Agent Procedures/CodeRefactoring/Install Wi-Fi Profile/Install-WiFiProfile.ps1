@@ -1,5 +1,20 @@
-#This script imports Wi-Fi profile, which is embedded into the body of script.
-#Please make sure to edit settings in it, to align with real configuration.
+<#
+=================================================================================
+Script Name:        Management: Install Wi-Fi Profile.
+Description:        Imports Wi-Fi profile, which is embedded into the body of script. Please make sure to edit settings in it, to align with real configuration.
+Lastest version:    2022-06-09
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 $Path = "$env:TEMP\WiFiProfile.xml"
 

@@ -1,4 +1,21 @@
-﻿#region Change Users' Hives
+﻿<#
+=================================================================================
+Script Name:        Software Management: Uninstall Python.
+Description:        Uninstall Python.
+Lastest version:    2022-05-13
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+#region Change Users' Hives
 [string] $SIDPattern = '^S-1-5-21-(\d+-?){4}$'
 [string] $RegKeyUserProfiles = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\*'
 [array] $ProfileList = Get-ItemProperty -Path Registry::$RegKeyUserProfiles | `

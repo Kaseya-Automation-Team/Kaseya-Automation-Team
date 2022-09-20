@@ -1,13 +1,21 @@
 <#
-.Synopsis
-   Gathers password settings.
-   Uses standard secedit.exe utility.
-.DESCRIPTION
-   Gathers password settings and outputs information to the console
-.NOTES
-   Version 0.1
-   Author: Proserv Team - VS
+=================================================================================
+Script Name:        Audit: Security: Gather Password Settings.
+Description:        Gather Password Settings.
+Lastest version:    2022-07-29
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
+
 
 $FileName = "$env:TEMP\sec_output.txt"
 

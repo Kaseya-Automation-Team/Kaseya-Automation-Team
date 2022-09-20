@@ -1,6 +1,21 @@
 ﻿<#
-    Removes history entries for the most popular browsers.
+=================================================================================
+Script Name:        Clear Browser History
+Description:        Removes history entries for the most popular browsers.
+Lastest version:    2022-04-12
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
+
 #Number of days to keep history. 0 - to keep nothing
 [int] $DaysToKeep = 7
 

@@ -1,4 +1,20 @@
-## This script downloads and silently installs latest version of Teamviewer 15 from the official website
+<#
+=================================================================================
+Script Name:        Software Management: Install Teamviewer 15.
+Description:        Downloads and silently installs Teamviewer 15.
+Lastest version:    2022-05-25
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 #Define variables
 $AppName = "Teamviewer"

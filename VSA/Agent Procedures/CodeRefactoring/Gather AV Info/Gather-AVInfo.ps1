@@ -1,4 +1,21 @@
 ﻿<#
+=================================================================================
+Script Name:        Audit: Gather Antivirus Info.
+Description:        Gathers Antivirus Information.
+Lastest version:    2022-07-28
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+<#
 .Synopsis
    Gathers Antivirus Information.
 .NOTES

@@ -1,4 +1,21 @@
-﻿function Set-FTA {
+﻿<#
+=================================================================================
+Script Name:        Management: Set Adobe Reader DC as Default PDF App.
+Description:        Set Adobe Reader DC as Default PDF App.
+Lastest version:    2022-06-01
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+function Set-FTA {
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true)]

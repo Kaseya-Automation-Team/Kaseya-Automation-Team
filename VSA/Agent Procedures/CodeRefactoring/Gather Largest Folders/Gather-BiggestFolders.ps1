@@ -1,9 +1,19 @@
 ﻿<#
-.Synopsis
-   Gather list of Top 10 Largest Folders on Local Drives
-.NOTES
-   Version 0.1
-   Author: Proserv Team - VS
+=================================================================================
+Script Name:        Audit: Gather Largest Folders.
+Description:        Gather list of Top 10 Largest Folders on Local Drives.
+Lastest version:    2022-06-16
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
 
 #Create VSA Event Source if it doesn't exist

@@ -1,11 +1,19 @@
 <#
-.Synopsis
-   Displays screen lock settings
-.DESCRIPTION
-   Checks screen lock parameters in applied GPOs and local registry for each user found in the system. Outputs parameters to the console.
-.NOTES
-   Version 0.1
-   Author: Proserv Team - VS
+=================================================================================
+Script Name:        Audit: Gather Screenlock settings.
+Description:        Checks screen lock parameters in applied GPOs and local registry for each user found in the system. Outputs parameters to the console.
+Lastest version:    2022-07-29
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
 
 function Convert-Uint8ArrayToString

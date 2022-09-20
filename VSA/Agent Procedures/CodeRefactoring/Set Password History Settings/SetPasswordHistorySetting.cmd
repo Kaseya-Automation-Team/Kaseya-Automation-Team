@@ -1,5 +1,21 @@
-::Sets number of passwords to be remembered. The value must be between 0 and 24 passwords.
 ::
+::=================================================================================
+::Script Name:        Management: Set Password history
+::Description:        Sets number of passwords to be remembered. The value must be between 0 and 24 passwords.
+::Lastest version:    2022-04-11
+::=================================================================================
+::
+::
+::
+::Required variable inputs:
+::None
+::
+::
+::
+::Required variable outputs:
+::None
+
+
 ::Custom Number of passwords to remember
 SET PWD_NUM=24
 ::Minimum and maximum allowed number of passwords. For double-checking

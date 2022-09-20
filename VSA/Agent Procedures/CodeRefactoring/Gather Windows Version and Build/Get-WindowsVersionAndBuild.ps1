@@ -1,3 +1,20 @@
+<#
+=================================================================================
+Script Name:        Audit: Gather Windows Version and Build.
+Description:        Gather Windows Version and Build.
+Lastest version:    2022-06-03
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 #This script requires custom field WindowsVersion to be created and assigned to the machine before execution
 
 # Outputs

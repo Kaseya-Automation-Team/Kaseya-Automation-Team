@@ -1,3 +1,20 @@
+<#
+=================================================================================
+Script Name:        Management: Clear Temp folders.
+Description:        Clear Temp folders.
+Lastest version:    2022-08-31
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 function Clear-Folder {
 [CmdletBinding()]
 param (

@@ -1,5 +1,21 @@
-::Sets password age in days.
 ::
+::=================================================================================
+::Script Name:        Management: Set Password age
+::Description:        Sets Password age in days
+::Lastest version:    2022-04-11
+::=================================================================================
+::
+::
+::
+::Required variable inputs:
+::None
+::
+::
+::
+::Required variable outputs:
+::None
+
+
 ::Custom Number of passwords age
 SET PWD_AGE=42
 

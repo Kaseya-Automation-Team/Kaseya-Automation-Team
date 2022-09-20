@@ -15,9 +15,6 @@ None
 Required variable outputs:
 None
 #>
-<#
-    Enables User Notification Center on Windows 10 1709 & newer.
-#>
 [string] $Set = 'On'
 
 #Create VSA X Event Source if it doesn't exist

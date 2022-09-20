@@ -15,12 +15,6 @@ None
 Required variable outputs:
 None
 #>
-<#
-.Synopsis
-   Gathers Mapped Drive for all the computer's users.
-   Version 0.1
-   Author: Proserv Team - VS
-#>
 
 #Create VSA Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA X")) {

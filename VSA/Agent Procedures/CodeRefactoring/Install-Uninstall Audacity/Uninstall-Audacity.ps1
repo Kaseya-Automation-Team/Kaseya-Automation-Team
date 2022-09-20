@@ -1,4 +1,20 @@
-## This script silently uninstalls Audacity from the computer
+<#
+=================================================================================
+Script Name:        Software Management: Uninstall Audacity.
+Description:        Silently uninstalls Audacity from the computer
+Lastest version:    2022-07-22
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 #Define varibles
 $AppName = "Audacity"

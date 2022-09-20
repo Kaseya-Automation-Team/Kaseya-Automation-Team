@@ -1,6 +1,6 @@
 <#
 =================================================================================
-Script Name:        Management: Get DNS Entries Of An Endpoint.
+Script Name:        Audit: Get DNS Entries Of An Endpoint.
 Description:        Collects information about DNS servers configured for active network connections.
 Lastest version:    2022-04-19
 =================================================================================

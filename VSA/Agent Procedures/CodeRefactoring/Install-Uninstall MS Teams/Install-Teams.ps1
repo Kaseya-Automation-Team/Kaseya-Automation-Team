@@ -1,4 +1,20 @@
-## This script downloads and silently installs latest version of Microsoft Teams from the official website
+<#
+=================================================================================
+Script Name:        Software Management: Install Microsoft Teams.
+Description:        Downloads and silently installs Microsoft Teams.
+Lastest version:    2022-06-01
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 #Define variables
 $AppName = "Microsoft Teams"

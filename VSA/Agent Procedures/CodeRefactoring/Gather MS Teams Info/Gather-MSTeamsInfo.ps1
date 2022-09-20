@@ -1,4 +1,21 @@
-﻿#Create VSA Event Source if it doesn't exist
+﻿<#
+=================================================================================
+Script Name:        Audit: Gather MS Teams Info.
+Description:        Gather MS Teams Info for all the computer's users.
+Lastest version:    2022-07-29
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+#Create VSA Event Source if it doesn't exist
 if ( -not [System.Diagnostics.EventLog]::SourceExists("VSA X")) {
     [System.Diagnostics.EventLog]::CreateEventSource("VSA X", "Application")
 }

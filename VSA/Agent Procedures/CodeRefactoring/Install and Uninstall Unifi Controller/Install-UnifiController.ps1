@@ -1,4 +1,21 @@
-﻿Function Get-JavaInstallStatus {
+﻿<#
+=================================================================================
+Script Name:        Software Management: Unifi Controller.
+Description:        Install Unifi Controller.
+Lastest version:    2022-05-10
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+Function Get-JavaInstallStatus {
 
     Return  (Get-Command java -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version)
 

@@ -1,3 +1,20 @@
+<#
+=================================================================================
+Script Name:        Software Management: Box Drive.
+Description:        Downloads and silently Box Drive
+Lastest version:    2022-07-22
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 ## This script downloads and silently installs Box Drive
 
 #Define variables

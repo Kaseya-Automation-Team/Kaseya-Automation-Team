@@ -1,3 +1,20 @@
+<#
+=================================================================================
+Script Name:        Management: Set Terminal Server Shadow Policy.
+Description:        Set Terminal Server Shadow Policy.
+Lastest version:    2022-06-03
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 $ValueToSet = 0
 
 <#

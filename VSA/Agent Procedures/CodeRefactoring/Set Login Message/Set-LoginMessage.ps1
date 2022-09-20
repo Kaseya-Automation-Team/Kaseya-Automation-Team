@@ -1,3 +1,20 @@
+<#
+=================================================================================
+Script Name:        Management: Set Login Message.
+Description:        Set Login Message.
+Lastest version:    2022-04-11
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 # Inputs
 $Caption = "Caption goes here"
 $Text = "Text goes here"

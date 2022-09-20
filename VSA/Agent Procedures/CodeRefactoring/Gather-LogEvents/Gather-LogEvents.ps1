@@ -1,4 +1,21 @@
-﻿#Creating the default variables, but these can be changed as per the requirement
+﻿<#
+=================================================================================
+Script Name:        Audit: Gather Log Events.
+Description:        Gather Log Events.
+Lastest version:    2022-06-16
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+#Creating the default variables, but these can be changed as per the requirement
 $Path = "$ENV:temp\EventLogs.csv"
 $LogName = "System"
 $Days = "30"

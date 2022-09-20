@@ -1,4 +1,21 @@
 ﻿<#
+=================================================================================
+Script Name:        Management: Set solid color desktop background.
+Description:        Sets desired solid color desktop background for all users.
+Lastest version:    2022-05-13
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+<#
     Sets desired solid color desktop background for all users.
 #>
 

@@ -14,3 +14,4 @@
 ::Required variable outputs:
 ::None
 rd /s /q %systemdrive%\$Recycle.Bin
+eventcreate /L Application /T INFORMATION /SO "VSA X" /ID 200 /D "Recycle Bin cleared" > nul

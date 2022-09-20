@@ -1,4 +1,21 @@
-﻿$ifList = Get-NetAdapter -physical | where status -eq 'Up' | select-object -ExpandProperty 'ifIndex'
+﻿<#
+=================================================================================
+Script Name:        Management: Set DNS Server.
+Description:        Set DNS Server.
+Lastest version:    2022-06-03
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+$ifList = Get-NetAdapter -physical | where status -eq 'Up' | select-object -ExpandProperty 'ifIndex'
 
 
 #Please enter the DNS server address below

@@ -1,4 +1,20 @@
-## This script silently uninstalls Microsoft Teams from the computer
+<#
+=================================================================================
+Script Name:        Software Management: Uninstall Microsoft Teams.
+Description:        Silently uninstalls Microsoft Teams from the computer.
+Lastest version:    2022-06-01
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 #Define varibles
 $AppName = "Microsoft Teams"

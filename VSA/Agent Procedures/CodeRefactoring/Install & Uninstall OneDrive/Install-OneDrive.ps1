@@ -1,5 +1,19 @@
 ﻿<#
-    Install Microsoft OneDrive
+=================================================================================
+Script Name:        Software Management: Install Microsoft OneDrive.
+Description:        Install Microsoft OneDrive.
+Lastest version:    2022-05-04
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
 $Language = 'culture=en-us'
 

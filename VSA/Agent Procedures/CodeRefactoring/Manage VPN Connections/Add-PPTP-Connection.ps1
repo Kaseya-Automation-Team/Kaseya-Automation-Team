@@ -1,12 +1,21 @@
 <#
-.Synopsis
-   Creates vpn connection
-.DESCRIPTION
-   This script is dedicated to create PPTP connection without setting credentials for the VPN connection
-.NOTES
-   Version 0.1
-   Author: Proserv Team - VS
+=================================================================================
+Script Name:        Management: Create PPTP connection.
+Description:        Creates VPN connection
+Lastest version:    2022-07-29
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
+
 
 #Name of the vpn connection
 [string]$Name = ""

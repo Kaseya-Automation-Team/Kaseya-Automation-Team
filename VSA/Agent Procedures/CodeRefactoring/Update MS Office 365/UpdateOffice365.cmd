@@ -1,6 +1,6 @@
 ::
 ::=================================================================================
-::Script Name:        Management: Update MS Office 365
+::Script Name:        Software Management: Update MS Office 365
 ::Description:        Switches the Office 365 update to the monthly update channel and triggers update. All the Office 365 applications will be forced to shutdown.
 ::Lastest version:    2022-05-17
 ::=================================================================================

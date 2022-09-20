@@ -1,4 +1,21 @@
-﻿#Provide array of hostnames to block
+﻿<#
+=================================================================================
+Script Name:        Management: Block unapproved websites
+Description:        Blocks provided webhosts by adding entries to the hosts file that point to 0.0.0.0 address.
+Lastest version:    2022-05-25
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+#Provide array of hostnames to block
 [string[]] $BlockHosts = @('example.com')
 
 #Create VSA X Event Source if it doesn't exist

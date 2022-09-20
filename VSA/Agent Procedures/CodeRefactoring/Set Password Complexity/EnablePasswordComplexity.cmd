@@ -1,3 +1,19 @@
+::
+::=================================================================================
+::Script Name:        Management: Enable Password Complexity
+::Description:        Enable Password Complexity requirement
+::Lastest version:    2022-05-25
+::=================================================================================
+::
+::
+::
+::Required variable inputs:
+::None
+::
+::
+::
+::Required variable outputs:
+::None
 SETLOCAL ENABLEDELAYEDEXPANSION
 ::Export current security parameters to file
 SecEdit.exe /export /cfg "%TEMP%\GetSecParams.cfg" >nul 2>&1

@@ -13,7 +13,8 @@ None
 
 
 Required variable outputs:
-None
+ShortcutName
+ShortcutURL
 #>
 # Outputs
 $ShortcutName = "Google"

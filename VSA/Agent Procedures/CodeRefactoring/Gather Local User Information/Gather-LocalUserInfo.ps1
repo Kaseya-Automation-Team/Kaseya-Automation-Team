@@ -1,9 +1,19 @@
 ﻿<#
-.Synopsis
-   Gathers domain users accounts that have logged on the computer.
-.NOTES
-   Version 0.2.2
-   Author: Proserv Team - VS
+=================================================================================
+Script Name:        Audit: Gather Local User Information.
+Description:        Gathers domain users accounts that have logged on the computer.
+Lastest version:    2022-07-29
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
 #>
 
 

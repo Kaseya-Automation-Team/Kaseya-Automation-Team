@@ -1,4 +1,20 @@
-## This script downloads and silently installs Google Chrome
+<#
+=================================================================================
+Script Name:        Software Management: Install Google Chrome.
+Description:        Downloads and silently installs Google Chrome.
+Lastest version:    2022-07-22
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
 
 #Define variables
 $AppName = "Google Chrome"

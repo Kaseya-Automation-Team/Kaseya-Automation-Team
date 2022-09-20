@@ -1,4 +1,21 @@
-﻿$Query = "Select LicenseStatus from  SoftwareLicensingProduct Where PartialProductKey LIKE '%' and Name LIKE 'Office%'"
+﻿<#
+=================================================================================
+Script Name:        Audit: Office License Status.
+Description:        Office License Status.
+Lastest version:    2022-06-03
+=================================================================================
+
+
+
+Required variable inputs:
+None
+
+
+
+Required variable outputs:
+None
+#>
+$Query = "Select LicenseStatus from  SoftwareLicensingProduct Where PartialProductKey LIKE '%' and Name LIKE 'Office%'"
 $LicenseInfo = Get-CimInstance -Query $Query
 
 Switch ($LicenseInfo.LicenseStatus) {

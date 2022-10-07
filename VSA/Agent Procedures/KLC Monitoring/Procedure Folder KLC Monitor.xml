@@ -1,52 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="KLC Monitor" treePres="3">
-    <Procedure name="KLC-Monitor-ReRunCheck" treePres="3" id="1903509386" folderId="630675348467507" treeFullPath="myProcedures - vlad.KLC Monitor">
+    <Procedure name="KLC-Monitor-Executer" treePres="3" id="1633571396" folderId="630675348467507" treeFullPath="myProcedures - vlad.KLC Monitor">
       <Body description="This procedure checks  if the application is running. If so it  asks user whether to continue KLC and (if user disagreed) it terminates KLC/KRC session&#xA;Author: Proserv Team - VS">
         <Statement description="This procedure checks  if the application is running. If so it  asks user whether to continue KLC and (if user disagreed) it terminates KLC/KRC session&quot;" name="GetVariable" continueOnFail="false">
-          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="KaseyaRemoteControl is running on your computer. Would you want this to continue?" />
-          <Parameter xsi:type="StringParameter" name="VariableName" value="TheMessage" />
-        </Statement>
-        <Statement name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="kaseyaremotecontrolhost.exe" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="App" />
         </Statement>
-        <If description="">
-          <Condition name="ApplicationRunning">
-            <Parameter xsi:type="StringParameter" name="ApplicationName" value="#App#" />
-          </Condition>
-          <Then>
-            <Statement name="ScheduleScript" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="ScriptName" value="1633571396" />
-              <Parameter xsi:type="StringParameter" name="TimeDelay" value="" />
-              <Parameter xsi:type="StringParameter" name="MachineID" value="" />
-            </Statement>
-          </Then>
-          <Else>
-            <Statement name="WriteScriptLogEntry" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Comment" value="#App# is NOT running" />
-            </Statement>
-            <Statement name="SendMessage" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Message" value="The KaseyaRemoteControl session was disconnected" />
-              <Parameter xsi:type="BooleanParameter" name="Immediate" value="True" />
-            </Statement>
-          </Else>
-        </If>
-      </Body>
-    </Procedure>
-    <Procedure name="KLC-Monitor-RunCheck" treePres="3" id="1633571396" folderId="630675348467507" treeFullPath="myProcedures - vlad.KLC Monitor">
-      <Body description="This procedure checks  if the application is running. If so it  asks user whether to continue KLC and (if user disagreed) it terminates KLC/KRC session&#xA;Author: Proserv Team - VS">
-        <Statement description="This procedure checks  if the application is running. If so it  asks user whether to continue KLC and (if user disagreed) it terminates KLC/KRC session&quot;" name="GetVariable" continueOnFail="false">
-          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="KaseyaRemoteControl is running on your computer. Would you want this to continue?" />
-          <Parameter xsi:type="StringParameter" name="VariableName" value="TheMessage" />
-        </Statement>
         <Statement name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="kaseyaremotecontrolhost.exe" />
-          <Parameter xsi:type="StringParameter" name="VariableName" value="App" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Close-KRC.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="TheScript" />
         </Statement>
         <If description="">
           <Condition name="ApplicationRunning">
@@ -56,27 +21,30 @@
             <Statement name="WriteScriptLogEntry" continueOnFail="false">
               <Parameter xsi:type="StringParameter" name="Comment" value="#App# is running" />
             </Statement>
+            <Statement name="WriteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+              <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#TheScript#" />
+              <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+            </Statement>
             <If description="">
-              <Condition name="UserResponseIsYes">
-                <Parameter xsi:type="StringParameter" name="Message" value="+++YES:Close Session+++NO:OK+++#TheMessage#" />
-                <Parameter xsi:type="IntegerParameter" name="Timeout" value="1" />
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
               </Condition>
               <Then>
-                <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Comment" value="The user decided to close the #App#&quot;" />
+                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command '#vAgentConfiguration.agentTempSecureDir#/#TheScript#'" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="User" />
                 </Statement>
-                <Statement name="CloseApplication" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="ApplicationName" value="#App#" />
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
                 </Statement>
               </Then>
               <Else>
-                <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Comment" value="Timeout / Customer wanted the session to be going" />
-                </Statement>
-                <Statement name="ScheduleScript" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="ScriptName" value="1903509386" />
-                  <Parameter xsi:type="StringParameter" name="TimeDelay" value="" />
-                  <Parameter xsi:type="StringParameter" name="MachineID" value="" />
+                <Statement description="If the selection times out or the machine user selects to continue the session" name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="FAILED to download the script #TheScript#" />
                 </Statement>
               </Else>
             </If>

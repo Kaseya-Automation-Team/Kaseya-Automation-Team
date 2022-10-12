@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Create &amp; Restore System Restore Point" treePres="3">
+    <Procedure name="Create System Restore Point" treePres="3" id="1417815805" folderId="334927195559687" treeFullPath="myProcedures - vlad.Create &amp; Restore System Restore Point">
+      <Body description="">
+        <Statement description="This procedure creates a System Restore Point&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Create-SystemRestorePoint.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="TheScript" />
+        </Statement>
+        <Statement name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#TheScript#" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command '#vAgentConfiguration.agentTempSecureDir#/#TheScript#'" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement description="If the selection times out or the machine user selects to continue the session" name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="FAILED to download the script #TheScript#" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Revert to Restore Point" treePres="3" id="815388215" folderId="334927195559687" treeFullPath="myProcedures - vlad.Create &amp; Restore System Restore Point">
+      <Body description="">
+        <Statement description="This procedure reverts the computer to the latest System Restore Point&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Reverting restore point requires the System reboot. Type &quot;YES&quot; to continue" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="RebootNow" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#RebootNow#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+            <Parameter xsi:type="StringParameter" name="Value" value="YES" />
+          </Condition>
+          <Then>
+            <Statement name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="Restore-LastRestorePoint.ps1" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="TheScript" />
+            </Statement>
+            <Statement name="WriteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+              <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#TheScript#" />
+              <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+            </Statement>
+            <If description="">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command '#vAgentConfiguration.agentTempSecureDir#/#TheScript#'" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement description="If the selection times out or the machine user selects to continue the session" name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="FAILED to download the script #TheScript#" />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="The user refused to revert to restore point &amp; reboot" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

@@ -1,86 +1,144 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Install &amp; Uninstall Google Drive" treePres="3">
-    <Procedure name="Install Google Drive" treePres="3" id="1195339855" folderId="425746625208178" treeFullPath="myProcedures - kadmin.Install &amp; Uninstall Google Drive">
+    <Procedure name="Install Google Drive" treePres="3" id="1343482988" folderId="162854231457624" treeFullPath="myProcedures - vlad.Test.Install &amp; Uninstall Google Drive">
       <Body description="The procedure leverages PowerShell script that installs Google Drive. ">
-        <Statement description="The procedure leverages PowerShell script that installs Google Drive. &#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
-          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempSystemDirectory" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
-          <Parameter xsi:type="StringParameter" name="VariableName" value="agenttemp" />
+        <Statement description="The procedure downloads &amp; installs Google Drive if it is not already installed. &#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Check if Google Drive already installed" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Google Drive" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="SoftwareName" />
         </Statement>
         <Statement name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="Install-GoogleDrive.ps1" />
-          <Parameter xsi:type="StringParameter" name="VariableName" value="TheScript" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="[array](Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' | Select-Object -ExpandProperty DisplayName -ErrorAction SilentlyContinue).Contains('#SoftwareName#')" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptDetect" />
         </Statement>
-        <Statement description="Copy the files" name="WriteDirectory" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Path" value="#agenttemp#\GoogleDrive" />
-          <Parameter xsi:type="StringParameter" name="SourceDirectory" value="VSASharedFiles\GoogleDrive\" />
-          <Parameter xsi:type="StringParameter" name="Param3" value="NoShow" />
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command  &quot;#ScriptDetect#&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
         </Statement>
         <If description="">
-          <Condition name="TestFile">
-            <Parameter xsi:type="StringParameter" name="Path" value="#agenttemp#\GoogleDrive\Install-GoogleDrive.ps1" />
-            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
-            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+            <Parameter xsi:type="StringParameter" name="Value" value="True" />
           </Condition>
           <Then>
-            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#agenttemp#\GoogleDrive\Install-GoogleDrive.ps1&quot; -Path #agenttemp#\GoogleDrive\googledrivefilestream.exe" />
-              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
-              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
-            </Statement>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
-            </Statement>
-            <Statement description="Cleanup" name="Delete Directory" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="#agenttemp#\GoogleDrive" />
-              <Parameter xsi:type="StringParameter" name="Parameter2" value="true" />
+              <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #SoftwareName# already installed. No action needed" />
             </Statement>
           </Then>
           <Else>
-            <Statement name="WriteScriptLogEntry" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. The files couldn't be downloaded, please try again later!" />
+            <Statement description="Download &amp; install the latest Google Drive" name="GetURL" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="URL" value="https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe" />
+              <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempDir#/GoogleDriveSetup.exe" />
+              <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
             </Statement>
+            <If description="">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/GoogleDriveSetup.exe" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="ExecuteShellCommand" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Command" value="#vAgentConfiguration.agentTempDir#/GoogleDriveSetup.exe --silent --desktop_shortcut --skip_launch_new --gsuite_shortcuts=false" />
+                  <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                  <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                </Statement>
+                <Statement description="Check if installation performed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command  &quot;#ScriptDetect#&quot;" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="True" />
+                  </Condition>
+                  <Then>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #SoftwareName# installed successfully" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: could not detect #SoftwareName#" />
+                    </Statement>
+                  </Else>
+                </If>
+                <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/GoogleDriveSetup.exe" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: The installer was not downloaded from https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe" />
+                </Statement>
+              </Else>
+            </If>
           </Else>
         </If>
       </Body>
     </Procedure>
-    <Procedure name="Uninstall Google Drive" treePres="3" id="1846377141" folderId="425746625208178" treeFullPath="myProcedures - kadmin.Install &amp; Uninstall Google Drive">
+    <Procedure name="Uninstall Google Drive" treePres="3" id="685354802" folderId="162854231457624" treeFullPath="myProcedures - vlad.Test.Install &amp; Uninstall Google Drive">
       <Body description="The procedure leverages PowerShell script that uninstalls Google Drive. ">
-        <Statement description="The procedure leverages PowerShell script that uninstalls Google Drive. &#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+        <Statement description="The procedure uninstalls Google Drive. &#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="Uninstall-GoogleDrive.ps1" />
-          <Parameter xsi:type="StringParameter" name="VariableName" value="TheScript" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Google Drive" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="SoftwareName" />
         </Statement>
-        <Statement description="Copy the script" name="WriteFile" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-GoogleDrive.ps1" />
-          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\GoogleDrive\Uninstall-GoogleDrive.ps1" />
-          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' | Where-Object { $_.DisplayName -eq '#SoftwareName#'} | Select-Object -ExpandProperty UninstallString" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptDetect" />
+        </Statement>
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command  &quot;#ScriptDetect#&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
         </Statement>
         <If description="">
-          <Condition name="TestFile">
-            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-GoogleDrive.ps1" />
-            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
-            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="DoesNotContain" />
+            <Parameter xsi:type="StringParameter" name="Value" value="uninstall" />
           </Condition>
           <Then>
-            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell -ExecutionPolicy Bypass -File &quot;#vAgentConfiguration.agentTempSecureDir#/Uninstall-GoogleDrive.ps1" />
-              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
-              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
-            </Statement>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
-            </Statement>
-            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-GoogleDrive.ps1" />
+              <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #SoftwareName# is absent. No action needed" />
             </Statement>
           </Then>
           <Else>
-            <Statement name="WriteScriptLogEntry" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. The file couldn't be downloaded, please try again later!" />
+            <Statement name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="&quot;#global:cmdresults#&quot; --silent --force_stop" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
             </Statement>
+            <Statement description="Check if uninstalled" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command  &quot;#ScriptDetect#&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="DoesNotContain" />
+                <Parameter xsi:type="StringParameter" name="Value" value="uninstall" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #SoftwareName# was uninstalled successfully" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="WARNIG: Please uninstall #SoftwareName# manually" />
+                </Statement>
+              </Else>
+            </If>
           </Else>
         </If>
       </Body>

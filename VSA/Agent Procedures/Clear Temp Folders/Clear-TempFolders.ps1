@@ -29,7 +29,7 @@ Get-ItemProperty -Path Registry::'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Co
 
 #Clear users' temp folders
 [string] $SIDPattern = 'S-1-5-21-(\d+-?){4}$'
-Get-WmiObject Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Select-Object LocalPath, SID | `
+Get-CimInstance Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Select-Object LocalPath, SID | `
     ForEach-Object {
         $UserProfilePath = $_.LocalPath
 

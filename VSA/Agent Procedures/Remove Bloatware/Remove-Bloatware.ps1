@@ -74,33 +74,25 @@ function Set-RegParam {
 #endregion function Set-RegParam
 
 #Disable Cortana
-Set-RegParam -RegPath 'HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search\AllowCortana' -RegValue 0 -UpdateExisting
+[string] $PolicyPath = 'HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows'
+#region Disable Cortana
+Set-RegParam -RegPath $(Join-Path -Path $PolicyPath -ChildPath 'Windows Search\AllowCortana') -RegValue 0 -UpdateExisting
+#endregion Disable Cortana
 
+#region Disable Upgrade to Windows 11
+Set-RegParam -RegPath 'WindowsUpdate\SetUpdateNotificationLevel' -RegValue 0 -UpdateExisting
+Set-RegParam -RegPath 'WindowsUpdate\ProductVersion' -ValueType String -RegValue 'Windows 10' -UpdateExisting
+Set-RegParam -RegPath 'WindowsUpdate\TargetReleaseVersion' -RegValue 1 -UpdateExisting
+Set-RegParam -RegPath 'WindowsUpdate\TargetReleaseVersionInfo' -ValueType String -RegValue '22H2' -UpdateExisting
+#endregion Disable Upgrade to Windows 11
 
 [array] $ItemsToClear = Get-ItemProperty -Path Registry::'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name "TEMP" | Select-Object -ExpandProperty "TEMP"
-
-
-[array] $RegParameters = @()
-
-#region keys & values
-#depending on the reistry key different values are used to enable/disable controlled property
-$RegParameters +=  New-Object PSObject -Property @{
-ChildPath = 'Software\Policies\Microsoft\Windows\Explorer\DisableNotificationCenter'
-On = 0
-Off = 1
-}
-$RegParameters += New-Object PSObject -Property @{
-ChildPath = 'Software\Microsoft\Windows\CurrentVersion\PushNotifications\ToastEnabled'
-On = 1
-Off = 0
-}
-#endregion keys & values
 
 [string] $SIDPattern = '^S-1-5-21-(\d+-?){4}$'
 Get-CimInstance Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | Select-Object LocalPath, SID | `
     ForEach-Object {
         
-        $UserProfilePath = $_.LocalPath
+        [string] $UserProfilePath = $_.LocalPath
 
         [bool] $IsUserLoggedIn = Test-Path Registry::HKEY_USERS\$($_.SID)
         if ( -Not $IsUserLoggedIn ) {
@@ -126,11 +118,10 @@ Get-CimInstance Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | S
                 | Select-Object -ExpandProperty "Cache").Replace($RunningProcessProfilePath, $UserProfilePath)
         #endregion Collect Browser Cache containers
 
-        foreach($item in $RegParameters) {
-            [string] $RegPath = Join-Path -Path $($_.SID) -ChildPath $($item.ChildPath)
-            $Value = $item | Select-Object -ExpandProperty $Set
-            Set-RegParam -RegPath $RegPath -RegValue $Value
-        }
+        #region Disable Notification Center
+        Set-RegParam -RegPath $(Join-Path -Path "HKU\$($Profile.SID)" -ChildPath 'Software\Policies\Microsoft\Windows\Explorer\DisableNotificationCenter') -RegValue 1 -UpdateExisting
+        Set-RegParam -RegPath $(Join-Path -Path "HKU\$($Profile.SID)" -ChildPath 'Software\Microsoft\Windows\CurrentVersion\PushNotifications\ToastEnabled') -RegValue 0 -UpdateExisting
+        #endregion Disable Notification Center
 
         [gc]::Collect()
         If ( -Not $IsUserLoggedIn ) {

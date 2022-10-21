@@ -45,7 +45,7 @@ param (
     [ValidateNotNullOrEmpty()]
     [string] $TheFolder)
     if ( Test-Path -Path $TheFolder -PathType Container) {
-        Get-ChildItem -Path $TheFolder -Recurse -Force | Remove-Item -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue
+        Get-ChildItem -Path $TheFolder -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue
     }
 }
 #endregion function Clear-Folder
@@ -122,10 +122,10 @@ Set-RegParam -RegPath $(Join-Path -Path $PolicyPath -ChildPath 'Windows Search\A
 #endregion Disable Cortana
 
 #region Disable Upgrade to Windows 11
-Set-RegParam -RegPath 'WindowsUpdate\SetUpdateNotificationLevel' -RegValue 0 -UpdateExisting
-Set-RegParam -RegPath 'WindowsUpdate\ProductVersion' -ValueType String -RegValue 'Windows 10' -UpdateExisting
-Set-RegParam -RegPath 'WindowsUpdate\TargetReleaseVersion' -RegValue 1 -UpdateExisting
-Set-RegParam -RegPath 'WindowsUpdate\TargetReleaseVersionInfo' -ValueType String -RegValue $TargetReleaseVersion -UpdateExisting
+Set-RegParam -RegPath $(Join-Path -Path $PolicyPath -ChildPath 'WindowsUpdate\SetUpdateNotificationLevel') -RegValue 0 -UpdateExisting
+Set-RegParam -RegPath $(Join-Path -Path $PolicyPath -ChildPath 'WindowsUpdate\ProductVersion') -ValueType String -RegValue 'Windows 10' -UpdateExisting
+Set-RegParam -RegPath $(Join-Path -Path $PolicyPath -ChildPath 'WindowsUpdate\TargetReleaseVersion') -RegValue 1 -UpdateExisting
+Set-RegParam -RegPath $(Join-Path -Path $PolicyPath -ChildPath 'WindowsUpdate\TargetReleaseVersionInfo') -ValueType String -RegValue $TargetReleaseVersion -UpdateExisting
 #endregion Disable Upgrade to Windows 11
 
 [array] $ItemsToClear = Get-ItemProperty -Path Registry::'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name "TEMP" | Select-Object -ExpandProperty "TEMP"
@@ -140,7 +140,7 @@ Get-CimInstance Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | S
         if ( -Not $IsUserLoggedIn ) {
             reg load "HKU\$($_.SID)" "$UserProfilePath\ntuser.dat"
         }
-
+        [string] $TempFolderPath = Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "Environment") -Name "TEMP" | Select-Object -ExpandProperty "TEMP"
         [string] $AppDataPath = Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") -Name "Local AppData" | Select-Object -ExpandProperty "Local AppData"
 
         $RunningProcessProfilePath = $env:USERPROFILE
@@ -151,7 +151,7 @@ Get-CimInstance Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | S
         #Mozilla
         $ItemsToClear += Join-Path -Path $AppDataPath -ChildPath "Mozilla\Firefox\Profiles\*.default*\cache*" -Resolve -ErrorAction SilentlyContinue
         #Chrome
-        $ItemsToClear += Join-Path -Path $AppDataPath -ChildPath "Google\Chrome\User Data\Default\cache*" -Resolve -ErrorAction SilentlyContinue
+        $ItemsToClear += Join-Path -Path $AppDataPath -ChildPath "Google\Chrome\User Data\Default\Cache\Cache_Data*" -Resolve -ErrorAction SilentlyContinue
         $ItemsToClear += Join-Path -Path $AppDataPath -ChildPath "Google\Chrome\User Data\Default\Media Cache*" -Resolve -ErrorAction SilentlyContinue
         #MS Edge
         $ItemsToClear += Join-Path -Path $AppDataPath -ChildPath "Microsoft\Edge\User Data\Default\Cache\Cache_Data*" -Resolve -ErrorAction SilentlyContinue
@@ -159,10 +159,11 @@ Get-CimInstance Win32_UserProfile | Where-Object {$_.SID -match $SIDPattern} | S
         $ItemsToClear += $(Get-ItemProperty -Path Registry::$(Join-Path -Path "HKEY_USERS\$($_.SID)" -ChildPath "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") -Name "Cache" `
                 | Select-Object -ExpandProperty "Cache").Replace($RunningProcessProfilePath, $UserProfilePath)
         #endregion Collect Browser Cache containers
+        $ItemsToClear += $($TempFolderPath.Replace($RunningProcessProfilePath, $UserProfilePath))
 
         #region Disable Notification Center
-        Set-RegParam -RegPath $(Join-Path -Path "HKU\$($Profile.SID)" -ChildPath 'Software\Policies\Microsoft\Windows\Explorer\DisableNotificationCenter') -RegValue 1 -UpdateExisting
-        Set-RegParam -RegPath $(Join-Path -Path "HKU\$($Profile.SID)" -ChildPath 'Software\Microsoft\Windows\CurrentVersion\PushNotifications\ToastEnabled') -RegValue 0 -UpdateExisting
+        Set-RegParam -RegPath $(Join-Path -Path "HKU\$($_.SID)" -ChildPath 'Software\Policies\Microsoft\Windows\Explorer\DisableNotificationCenter') -RegValue 1 -UpdateExisting
+        Set-RegParam -RegPath $(Join-Path -Path "HKU\$($_.SID)" -ChildPath 'Software\Microsoft\Windows\CurrentVersion\PushNotifications\ToastEnabled') -RegValue 0 -UpdateExisting
         #endregion Disable Notification Center
 
         [gc]::Collect()

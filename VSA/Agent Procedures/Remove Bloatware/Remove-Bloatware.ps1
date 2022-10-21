@@ -1,4 +1,42 @@
-﻿#region function Clear-Folder
+﻿# Requires -Version 5.1 
+<#
+.Synopsis
+   Disables Windows 10 bloatware.
+.DESCRIPTION
+   Used by Agent Procedure
+   - Disables 'Upgrade to Windows 11' pop-ups
+   - Disables Cortana
+   - Disables the Notification Center
+   - Clears browsers' caches
+   - Clears temp folders
+   Designed for Windows 10.
+.EXAMPLE
+   .\Set-Notification.ps1 Off -LogIt 0
+.NOTES
+   Version 0.1
+   Author: Proserv Team - VS
+#>
+param (
+    
+[parameter(Mandatory=$true, 
+            ValueFromPipeline=$true,
+            ValueFromPipelineByPropertyName=$true, 
+            ValueFromRemainingArguments=$false, 
+            Position=0)]
+            [ValidateScript({
+                if( $_ -notmatch "(\d){2}H\d" ) {
+                    throw "The Target Release provided does not match Windows 10 release pattern"
+                }
+                return $true
+            })]
+    [string] $TargetReleaseVersion
+)
+
+#region function Clear-Folder
+<#
+.Synopsis
+   Removes folder's content
+#>
 function Clear-Folder {
 [CmdletBinding()]
 param (
@@ -13,6 +51,10 @@ param (
 #endregion function Clear-Folder
 
 #region function Set-RegParam
+<#
+.Synopsis
+   Sets Registry parameter
+#>
 function Set-RegParam {
     [CmdletBinding()]
     param (
@@ -83,7 +125,7 @@ Set-RegParam -RegPath $(Join-Path -Path $PolicyPath -ChildPath 'Windows Search\A
 Set-RegParam -RegPath 'WindowsUpdate\SetUpdateNotificationLevel' -RegValue 0 -UpdateExisting
 Set-RegParam -RegPath 'WindowsUpdate\ProductVersion' -ValueType String -RegValue 'Windows 10' -UpdateExisting
 Set-RegParam -RegPath 'WindowsUpdate\TargetReleaseVersion' -RegValue 1 -UpdateExisting
-Set-RegParam -RegPath 'WindowsUpdate\TargetReleaseVersionInfo' -ValueType String -RegValue '22H2' -UpdateExisting
+Set-RegParam -RegPath 'WindowsUpdate\TargetReleaseVersionInfo' -ValueType String -RegValue $TargetReleaseVersion -UpdateExisting
 #endregion Disable Upgrade to Windows 11
 
 [array] $ItemsToClear = Get-ItemProperty -Path Registry::'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' -Name "TEMP" | Select-Object -ExpandProperty "TEMP"

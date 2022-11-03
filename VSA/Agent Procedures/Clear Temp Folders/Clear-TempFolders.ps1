@@ -18,9 +18,8 @@ param (
         ValueFromPipeline=$true)]
     [ValidateNotNullOrEmpty()]
     [string] $TheFolder)
-    if(Test-Path -Path $TheFolder)
-    {
-        Get-ChildItem -Path $TheFolder -Recurse -Force | Remove-Item -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue
+    if(Test-Path -Path $TheFolder) {
+        Get-ChildItem -Path $TheFolder -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue
     }
 }
 

@@ -1,6 +1,10 @@
-﻿[int]$CurrentPage = 1
-$ProgressPreference = 'SilentlyContinue'
+﻿$ProgressPreference = 'SilentlyContinue'
+
+[int]$CurrentPage = 1
 [bool]$GoNextPage = $true
+[string] $ModuleName = 'ImportExcel'
+$OutputFile = 'c:\temp\AutomationExchange'
+[array]$Collected=@()
 
 while ($GoNextPage) {
 
@@ -26,11 +30,22 @@ while ($GoNextPage) {
 
     if ( 200 -eq $Request.StatusCode) {
         Write-Host "Processing $URL" -ForegroundColor Green
-        $Request.Links | Where-Object {$_.class -eq "title"} | Select-Object -Property innerHTML,href | Export-Excel -Path c:\temp\AutomationExchange.xlsx -TableName AutomationExchange -Append
+        $Collected += $Request.Links | Where-Object {$_.class -eq "title"} | Select-Object -Property innerHTML,href
         $CurrentPage++
     } else {
         $GoNextPage = $false
         Write-Host "Can't get URL $URL" -ForegroundColor Red -BackgroundColor White
         Write-Host 'Stop now'
     }
+}
+if (0 -gt $Collected.Count) {
+    if ( $null -ne $(try {Get-Module -Name $ModuleName -ErrorAction Stop} catch {$null}) ) {
+        Import-Module -Name $ModuleName
+        $OutputFile += '.xlsx'
+        $Collected | Export-Excel -Path $OutputFile -TableName AutomationExchange
+    } else {
+        $OutputFile += '.csv'
+        $Collected | Export-Csv -Path $OutputFile -Encoding UTF8 -NoTypeInformation -Force
+    }
+
 }

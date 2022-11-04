@@ -9,17 +9,10 @@ $OutputFile = 'c:\temp\AutomationExchange'
 while ($GoNextPage) {
 
     Write-Host "Working on the page number $CurrentPage"
+    [string] $URL = "https://www.community.connectit.com/automation-exchange/categories/product"
 
-    if ($CurrentPage -eq 1) {
-        $URL = "https://www.community.connectit.com/automation-exchange/categories/product"
-    } else {
-        $URL = "https://www.community.connectit.com/automation-exchange/categories/product/p$CurrentPage"
-    }
-
-    $ResponseCode = try {
-        (Invoke-WebRequest -Uri $DownloadUrl -OutFile $SaveTo -UseBasicParsing -TimeoutSec 600 -PassThru -ErrorAction Stop).StatusCode
-    } catch {
-        $_.Exception.Response.StatusCode.value__
+    if ( 1 -lt $CurrentPage ) {
+        $URL += "/p$CurrentPage"
     }
 
     $Request = try {
@@ -47,5 +40,4 @@ if (0 -gt $Collected.Count) {
         $OutputFile += '.csv'
         $Collected | Export-Csv -Path $OutputFile -Encoding UTF8 -NoTypeInformation -Force
     }
-
 }

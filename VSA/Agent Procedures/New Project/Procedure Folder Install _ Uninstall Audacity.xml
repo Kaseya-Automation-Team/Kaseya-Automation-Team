@@ -1,21 +1,91 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Install &amp; Uninstall Audacity" treePres="3">
-    <Procedure name="Install Audacity" treePres="3" id="1602401957" folderId="453975272902276" treeFullPath="myProcedures - vlad.TMP.Install &amp; Uninstall Audacity">
+    <Procedure name="Install Audacity" treePres="3" id="1602401957" folderId="760911345417104" treeFullPath="myProcedures - vlad.Install &amp; Uninstall Audacity">
       <Body description="The procedure runs a PowerShell script that installs Audacity on the target computer.">
-        <Statement description="The procedure installs Audacity on the target computer.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Copy the files to the endpoint" name="WriteDirectory" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\Audacity" />
-          <Parameter xsi:type="StringParameter" name="SourceDirectory" value="VSASharedFiles\Audacity\" />
-          <Parameter xsi:type="StringParameter" name="Param3" value="NoShow" />
+        <Statement description="The procedure installs Audacity on the target computer.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe -ExecutionPolicy Bypass -Command &quot;Get-ItemProperty -Path @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*') -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like 'Audacity*' } | Sort-Object -Property @{Expression = {$_.DisplayVersion}; Descending = $True} | Select-Object -ExpandProperty DisplayVersion -First 1 | Write-Output&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="https://www.audacityteam.org/download/windows/" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PageURI" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="AudacityInstaller.exe" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="installer" />
         </Statement>
         <If description="">
-          <Condition name="TestFile">
-            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\Audacity\audacity-win-3.1.3-64bit.exe" />
-            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
-            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="LessThan" />
+            <Parameter xsi:type="StringParameter" name="Value" value="0" />
           </Condition>
           <Then>
+            <If description="">
+              <Condition name="Windows 32 or 64 Bit Check">
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="64 bit installer" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:Match" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="32 bit installer" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:Match" />
+                </Statement>
+              </Else>
+            </If>
             <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe -ExecutionPolicy Bypass -Command &quot;try { Set-Variable ProgressPreference SilentlyContinue; $Page = Invoke-WebRequest -Uri '#PageUri#' -UseBasicParsing -ErrorAction Stop } catch {$null}; $DownloadUri = 'Failed'; if ($null -ne $Page) { $href = $Page.Links | Where-Object outerHTML -Match '#global:Match#' | Select-Object -ExpandProperty href -Unique; if ( -not [string]::IsNullOrWhiteSpace($href) ){ $DownloadUri = $href }};$DownloadUri | Write-Output&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="NotEquals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="Failed" />
+              </Condition>
+              <Then>
+                <Statement name="GetURL" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="URL" value="#global:cmdresults#" />
+                  <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempSecureDir#/#installer#" />
+                  <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+                </Statement>
+                <If description="">
+                  <Condition name="TestFile">
+                    <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#installer#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="" />
+                  </Condition>
+                  <Then>
+                    <Statement name="ExecuteShellCommand" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Command" value="#vAgentConfiguration.agentTempSecureDir#/#installer# /VERYSILENT /NORESTART /SP-" />
+                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                    </Statement>
+                    <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#installer#" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Failed to download installer from #PageURI#" />
+                    </Statement>
+                  </Else>
+                </If>
+              </Then>
+            </If>
+            <Statement description="Check if Audacity was installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
               <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe -ExecutionPolicy Bypass -Command &quot;Get-ItemProperty -Path @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*') -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like 'Audacity*' } | Sort-Object -Property @{Expression = {$_.DisplayVersion}; Descending = $True} | Select-Object -ExpandProperty DisplayVersion -First 1 | Write-Output&quot;" />
               <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
               <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
@@ -23,72 +93,30 @@
             <If description="">
               <Condition name="CheckVariable">
                 <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
-                <Parameter xsi:type="EnumParameter" name="Condition" value="LessThan" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThan" />
                 <Parameter xsi:type="StringParameter" name="Value" value="0" />
               </Condition>
               <Then>
-                <If description="">
-                  <Condition name="Windows 32 or 64 Bit Check">
-                    <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
-                  </Condition>
-                  <Then>
-                    <Statement name="ExecuteShellCommand" continueOnFail="false">
-                      <Parameter xsi:type="StringParameter" name="Command" value="#vAgentConfiguration.agentTempSecureDir#\Audacity\audacity-win-3.1.3-64bit.exe /VERYSILENT /NORESTART /SP-" />
-                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
-                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
-                    </Statement>
-                  </Then>
-                  <Else>
-                    <Statement name="ExecuteShellCommand" continueOnFail="false">
-                      <Parameter xsi:type="StringParameter" name="Command" value="#vAgentConfiguration.agentTempSecureDir#\Audacity\audacity-win-3.1.3-32bit.exe /VERYSILENT /NORESTART /SP-" />
-                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
-                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
-                    </Statement>
-                  </Else>
-                </If>
-                <Statement description="Check if Audacity was installed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe -ExecutionPolicy Bypass -Command &quot;Get-ItemProperty -Path @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*') -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like 'Audacity*' } | Sort-Object -Property @{Expression = {$_.DisplayVersion}; Descending = $True} | Select-Object -ExpandProperty DisplayVersion -First 1 | Write-Output&quot;" />
-                  <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
-                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Audacity installed: #global:cmdresults#" />
                 </Statement>
-                <If description="">
-                  <Condition name="CheckVariable">
-                    <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
-                    <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThan" />
-                    <Parameter xsi:type="StringParameter" name="Value" value="0" />
-                  </Condition>
-                  <Then>
-                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                      <Parameter xsi:type="StringParameter" name="Comment" value="Audacity installed: #global:cmdresults#" />
-                    </Statement>
-                  </Then>
-                  <Else>
-                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                      <Parameter xsi:type="StringParameter" name="Comment" value="Could not detect Audacity after installation" />
-                    </Statement>
-                  </Else>
-                </If>
               </Then>
               <Else>
                 <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Comment" value="Audacity already installed: #global:cmdresults#" />
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Could not detect Audacity after installation" />
                 </Statement>
               </Else>
             </If>
-            <Statement description="Cleanup" name="Delete Directory" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="#vAgentConfiguration.agentTempSecureDir#\Audacity" />
-              <Parameter xsi:type="StringParameter" name="Parameter2" value="false" />
-            </Statement>
           </Then>
           <Else>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. Couldn't copy the files to the endpoint. Please try again later!" />
+              <Parameter xsi:type="StringParameter" name="Comment" value="Audacity already installed: #global:cmdresults#" />
             </Statement>
           </Else>
         </If>
       </Body>
     </Procedure>
-    <Procedure name="Uninstall Audacity" treePres="3" id="637515839" folderId="453975272902276" treeFullPath="myProcedures - vlad.TMP.Install &amp; Uninstall Audacity">
+    <Procedure name="Uninstall Audacity" treePres="3" id="637515839" folderId="760911345417104" treeFullPath="myProcedures - vlad.Install &amp; Uninstall Audacity">
       <Body description="The procedure leverages PowerShell script that uninstalls Audacity.">
         <Statement description="The procedure uninstalls Audacity.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
           <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell.exe -ExecutionPolicy Bypass -Command &quot;Get-ItemProperty -Path @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*') -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like 'Audacity*' } | Sort-Object -Property @{Expression = {$_.DisplayVersion}; Descending = $True} | Select-Object -ExpandProperty UninstallString -First 1 | Select-String -Pattern '(?&lt;&lt;=\&quot;).+?(?=\&quot;)' -AllMatches | % { $_.Matches } | % { $_.Value }&quot;" />

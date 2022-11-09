@@ -28,10 +28,12 @@
 param (
     [parameter(Mandatory=$true, 
         ValueFromPipelineByPropertyName = $true)]
-    [ValidateScript(
-            {if ($_ -match "(^|[\s.:;?\-\]<\(])(https?:\/\/[-\w;\/?:@&=+$\|_.!~*\|'()\[\]%#,☺]+[\w\/#](\(\))?)(?=$|[\s',\|\(\).:;?\-\[\]>\)|localhost])") {$true}
-            else {Throw "$_ is an invalid address. Enter a valid address that begins with https://"}}
-            )]
+    [ValidateScript({
+        if ($_ -notmatch '^http(s)?:\/\/([\w.-]+(?:\.[\w\.-]+)+|((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}|localhost)(\/)?$') {
+            throw "$_ is an invalid address. Enter a valid address that begins with https://"
+        }
+        return $true
+        })]
     [string] $VSAAddress,
 
 

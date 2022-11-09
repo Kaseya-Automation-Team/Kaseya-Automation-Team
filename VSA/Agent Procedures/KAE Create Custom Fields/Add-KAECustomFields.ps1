@@ -29,7 +29,7 @@ param (
     [parameter(Mandatory=$true, 
         ValueFromPipelineByPropertyName = $true)]
     [ValidateScript({
-        if ($_ -notmatch '^http(s)?:\/\/([\w.-]+(?:\.[\w\.-]+)+|((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}|localhost)(\/)?$') {
+        if ($_ -notmatch '^http(s)?:\/\/([\w.-]+(?:\.[\w\.-]+)+|((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}|((([0-9a-fA-F]){1,4})\:){7}([0-9a-fA-F]){1,4}|localhost)(\/)?$') {
             throw "$_ is an invalid address. Enter a valid address that begins with https://"
         }
         return $true

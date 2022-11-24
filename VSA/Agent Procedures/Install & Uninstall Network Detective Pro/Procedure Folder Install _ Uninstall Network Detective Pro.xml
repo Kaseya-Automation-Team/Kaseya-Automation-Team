@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Install &amp; Uninstall Network Detective Pro" treePres="3">
+    <Procedure name="Install Network Detective Pro" treePres="3" id="2072885001" folderId="292307635253438" treeFullPath="myProcedures - vlad.Install &amp; Uninstall Network Detective Pro">
+      <Body description="The procedure installs Network Detective Pro on the target computer.">
+        <Statement description="The procedure silently installs Network Detective Pro on the target computer.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Provide the KEY to Network Detective Pro, please" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="KEY" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="DiscoveryAgent.msi" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PackageName" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Network Detective Pro" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="SoftwareName" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#vAgentConfiguration.agentTempDir#/#PackageName#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="InstallerMSI" />
+        </Statement>
+        <If description="">
+          <Condition name="Windows 32 or 64 Bit Check">
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          </Condition>
+          <Then>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;PackageName = '#PackageName#'&quot; get PackageName | find /v &quot;PackageName&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                <Parameter xsi:type="StringParameter" name="Value" value="#PackageName#" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #SoftwareName# already installed. No action needed" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="https://s3.amazonaws.com/networkdetective/download/DiscoveryAgent.msi" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="DownloadURL" />
+                </Statement>
+                <Statement name="GetURL" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="URL" value="#DownloadURL#" />
+                  <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempDir#/#PackageName#" />
+                  <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+                </Statement>
+                <If description="">
+                  <Condition name="TestFile">
+                    <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/#PackageName#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="" />
+                  </Condition>
+                  <Then>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: The installer was not downloaded from #DownloadURL#" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="ExecuteShellCommand" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Command" value="CD #vAgentConfiguration.agentTempDir# &amp;&amp; msiexec /qn /i #PackageName# /L*V install-silent.log" />
+                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                    </Statement>
+                    <Statement description="Check if installation performed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;PackageName = '#PackageName#'&quot; get PackageName | find /v &quot;PackageName&quot;" />
+                      <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+                      <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                    </Statement>
+                    <If description="">
+                      <Condition name="CheckVariable">
+                        <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                        <Parameter xsi:type="StringParameter" name="Value" value="#PackageName#" />
+                      </Condition>
+                      <Then>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #SoftwareName# installed successfully. Adding the Key provided" />
+                        </Statement>
+                        <Statement name="ExecuteShellCommand" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Command" value="&quot;%PROGRAMFILES(X86)%\DiscoveryAgent\Agent\bin\register-device.exe&quot; -installkey #KEY#" />
+                          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                        </Statement>
+                      </Then>
+                      <Else>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: could not detect #SoftwareName#" />
+                        </Statement>
+                      </Else>
+                    </If>
+                    <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/#PackageName#" />
+                    </Statement>
+                  </Else>
+                </If>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Designed for 64-bit OS only" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Uninstall Network Detective Pro" treePres="3" id="1527152967" folderId="292307635253438" treeFullPath="myProcedures - vlad.Install &amp; Uninstall Network Detective Pro">
+      <Body description="The procedure uninstalls Network Detective Pro. ">
+        <Statement description="The procedure silently uninstalls Network Detective Pro.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="DiscoveryAgent.msi" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PackageName" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Network Detective Pro" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="SoftwareName" />
+        </Statement>
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;PackageName = '#PackageName#'&quot; get PackageName | find /v &quot;PackageName&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+            <Parameter xsi:type="StringParameter" name="Value" value="#PackageName#" />
+          </Condition>
+          <Then>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;PackageName = '#PackageName#'&quot; call uninstall" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <Statement description="Check if uninstalled" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;PackageName = '#PackageName#'&quot; get PackageName | find /v &quot;PackageName&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="DoesNotContain" />
+                <Parameter xsi:type="StringParameter" name="Value" value="#PackageName#" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #SoftwareName# was uninstalled successfully" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="WARNIG: Please uninstall #SoftwareName# manually" />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #SoftwareName# is absent. No action needed" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

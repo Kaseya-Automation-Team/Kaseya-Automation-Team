@@ -68,7 +68,7 @@
                   </Then>
                   <Else>
                     <Statement name="ExecuteShellCommand" continueOnFail="false">
-                      <Parameter xsi:type="StringParameter" name="Command" value="CD #vAgentConfiguration.agentTempDir# &amp;&amp; msiexec /qn /i #PackageName# /L*V install-silent.log" />
+                      <Parameter xsi:type="StringParameter" name="Command" value="CD #vAgentConfiguration.agentTempDir# &amp;&amp; msiexec /qn /i #PackageName# /L*V install-silent.log ALLUSERS=1 ACCEPT_EULA=YES" />
                       <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
                       <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
                     </Statement>

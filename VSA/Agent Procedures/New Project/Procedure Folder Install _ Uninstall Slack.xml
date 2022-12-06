@@ -5,7 +5,7 @@
       <Body description="The procedure leverages PowerShell script that installs Slack on the target computer.">
         <Statement description="The procedure installs Slack on the target computer for all users.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="#vAgentConfiguration.agentTempDir#/SlackSetup.msi" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="SlackSetup.msi" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="InstallerMSI" />
         </Statement>
         <Statement name="GetVariable" continueOnFail="false">
@@ -49,12 +49,12 @@
             </If>
             <Statement name="GetURL" continueOnFail="false">
               <Parameter xsi:type="StringParameter" name="URL" value="#global:URL#" />
-              <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#InstallerMSI#" />
+              <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempDir#/#InstallerMSI#" />
               <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
             </Statement>
             <If description="">
               <Condition name="TestFile">
-                <Parameter xsi:type="StringParameter" name="Path" value="#InstallerMSI#" />
+                <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\#InstallerMSI#" />
                 <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
                 <Parameter xsi:type="StringParameter" name="Value" value="" />
               </Condition>
@@ -64,15 +64,10 @@
                 </Statement>
               </Then>
               <Else>
-                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command  &quot;('#InstallerMSI#').Replace('/', '\')&quot;" />
-                  <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
-                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
-                </Statement>
-                <Statement name="Install MSI" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Parameter1" value="#global:cmdresults#" />
-                  <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
-                  <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+                <Statement name="ExecuteShellCommand" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Command" value="msiexec /i #vAgentConfiguration.agentTempDir#\#InstallerMSI# /qn /norestart" />
+                  <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                  <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
                 </Statement>
                 <Statement description="Check if installation performed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
                   <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name like '%%#SoftwareName#%%'&quot; get Name | find /v &quot;Name&quot;" />
@@ -97,7 +92,7 @@
                   </Else>
                 </If>
                 <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Path" value="#InstallerMSI#" />
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/#InstallerMSI#" />
                 </Statement>
               </Else>
             </If>

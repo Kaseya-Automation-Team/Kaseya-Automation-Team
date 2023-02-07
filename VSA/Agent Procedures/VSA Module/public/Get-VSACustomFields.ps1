@@ -25,7 +25,7 @@ function Get-VSACustomFields
 .INPUTS
    Accepts piped non-persistent VSAConnection 
 .OUTPUTS
-   Array of objects that represent existing VSA users
+   Array of objects that represent existing VSA Custom Fields
 #>
     [CmdletBinding()]
     param ( 

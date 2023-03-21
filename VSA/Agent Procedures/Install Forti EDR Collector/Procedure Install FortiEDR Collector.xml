@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Install FortiEDR Collector" treePres="3" id="32028274" folderId="319509160341466" treeFullPath="myProcedures - kadmin.Test">
+    <Body description="">
+      <If description="The procedure installs customized FortiEDR Collector on Linux hosts&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#vMachine.OsType#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+          <Parameter xsi:type="StringParameter" name="Value" value="Linux" />
+        </Condition>
+        <Then>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="FortiEDRSilentInstall_5.1.1.121_FortiEDRConnect_Canada_Brookfield_Properties" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="BaseName" />
+          </Statement>
+          <Statement name="WriteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/#BaseName#.zip" />
+            <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\FortiEDR\#BaseName#.zip" />
+            <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+          </Statement>
+          <If description="">
+            <Condition name="TestFile">
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/#BaseName#.zip" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              <Parameter xsi:type="StringParameter" name="Value" value="" />
+            </Condition>
+            <Then>
+              <Statement name="Unzip file" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Parameter1" value="#vAgentConfiguration.agentTempDir#/#BaseName#.zip" />
+                <Parameter xsi:type="StringParameter" name="Parameter2" value="#vAgentConfiguration.agentTempDir#" />
+                <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+              </Statement>
+              <Statement name="ExecuteShellCommand" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Command" value="gunzip #vAgentConfiguration.agentTempDir#/#BaseName#.sh.gz" />
+                <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+              </Statement>
+              <If description="">
+                <Condition name="TestFile">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/#BaseName#.sh" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="" />
+                </Condition>
+                <Then>
+                  <Statement name="ExecuteShellCommand" continueOnFail="false">
+                    <Parameter xsi:type="StringParameter" name="Command" value="#vAgentConfiguration.agentTempDir#/#BaseName#.sh" />
+                    <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                    <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                  </Statement>
+                  <If description="">
+                    <Condition name="TestFile">
+                      <Parameter xsi:type="StringParameter" name="Path" value="/opt/FortiEDRCollector" />
+                      <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                      <Parameter xsi:type="StringParameter" name="Value" value="" />
+                    </Condition>
+                    <Then>
+                      <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                        <Parameter xsi:type="StringParameter" name="Comment" value="INFO. FortiEDR Collector installed successfully." />
+                      </Statement>
+                    </Then>
+                    <Else>
+                      <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                        <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. Could not detect FortiEDR Collector after  installation." />
+                      </Statement>
+                    </Else>
+                  </If>
+                </Then>
+                <Else>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. Could not find #BaseName#.sh file" />
+                  </Statement>
+                </Else>
+              </If>
+              <Statement description="Cleanup" name="ExecuteShellCommand" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Command" value="rm #vAgentConfiguration.agentTempDir#/FortiEDR*" />
+                <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+              </Statement>
+            </Then>
+            <Else>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. Could not dowlnload #BaseName#.zip file" />
+              </Statement>
+            </Else>
+          </If>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. The Agent procedure is designed for Linux hosts only" />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

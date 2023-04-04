@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Manage AD Users" treePres="3">
+    <Procedure name="Create AD User" treePres="3" id="1721434685" folderId="454638814951597" treeFullPath="myProcedures - vlad.Test.Manage AD Users">
+      <Body description="">
+        <Statement description="The procedure leverages PowerShell scripts that creates AD User. The procedure should be executed on a Domain Controller&#xD;&#xA;Version: 0.2&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;################################&#xD;&#xA;Set the script name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Add-User.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptName" />
+        </Statement>
+        <Statement description="Get user input" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Please enter the first name of the new AD user:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="GivenName" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="The last name:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="Surname" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Password:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="Password" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="CompanyName:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="CompanyName" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Department:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="Department" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Job Title:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="JobTitle" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Manager:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="Manager" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Employee ID:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="EmployeeID" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="City:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="City" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="State:" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="State" />
+        </Statement>
+        <Statement description="Default domain name" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="rtix.com" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="Domain" />
+        </Statement>
+        <Statement description="Check if the procedure runs on a Domain Controller" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic path win32_operatingsystem get producttype | find /v &quot;ProductType&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#GLOBAL:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="NotEquals" />
+            <Parameter xsi:type="StringParameter" name="Value" value="2" />
+          </Condition>
+          <Then>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: the procedure is executed not on a Domain Controller" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement description="Download the script file" name="WriteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#ScriptName#" />
+              <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\ManageAD\#ScriptName#" />
+              <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+            </Statement>
+            <If description="">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#ScriptName#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="&quot;&amp; '#vAgentConfiguration.agentTempSecureDir#\#ScriptName#' -GivenName '#GivenName#' -Surname '#Surname#' -Password '#Password#' -CompanyName '#CompanyName#' -Department '#Department#' -JobTitle '#JobTitle#' -Manager '#Manager#' -EmployeeID '#EmployeeID#' -City '#City#' -State '#State#' -Domain '#Domain#'&quot;" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptCommandParameters" />
+                </Statement>
+                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command #ScriptCommandParameters#" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+                <Statement description="Log the result" name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#GLOBAL:cmdresults#" />
+                </Statement>
+                <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\#ScriptName#" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: script #ScriptName# was not downloaded" />
+                </Statement>
+              </Else>
+            </If>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

@@ -1,0 +1,211 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Universal-Installer/Uninstaller" treePres="3">
+    <Procedure name="Universal Installer" treePres="3" id="2131169538" folderId="794908324580132" treeFullPath="myProcedures - kadmin.Universal-Installer/Uninstaller">
+      <Body description="This procedure installs .exe and .msi based applications.&#xA;&#xA;It will automatically detect type of installed, however, you still need to supply arguments and switches.">
+        <Statement description="This procedure installs .exe and .msi based applications.  It will automatically detect type of installed, however, you still need to supply arguments and switches.&#xD;&#xA;Author: Automation Team - SM" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Enter the application name to be installed" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="app" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Enter the download file URL" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="url" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Please enter arguments or switches" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="arguments" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ktemp" />
+        </Statement>
+        <Statement name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Get-SoftwareInstalled.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\UniversalUninstaller\Get-SoftwareInstalled.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -File #vAgentConfiguration.agentTempSecureDir#/Get-SoftwareInstalled.ps1 -SoftwareName &quot;#app#&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="App is not installed on the computer, will attempt to install now" />
+            </Statement>
+            <If description="Check type of installer - .msi or .exe">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#url#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="EndsWith" />
+                <Parameter xsi:type="StringParameter" name="Value" value=".msi" />
+              </Condition>
+              <Then>
+                <Statement description="Download .msi installer" name="GetURL" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="URL" value="#url#" />
+                  <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ktemp#\installer.msi" />
+                  <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="MSI installer have been provided" />
+                </Statement>
+                <Statement description="Execute installer with supplied arguments and switches" name="ExecuteShellCommand" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Command" value="msiexec /i #ktemp#\installer.msi #arguments#" />
+                  <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                  <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                </Statement>
+                <Statement name="DeleteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\installer.exe" />
+                </Statement>
+              </Then>
+              <Else>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#url#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="EndsWith" />
+                    <Parameter xsi:type="StringParameter" name="Value" value=".exe" />
+                  </Condition>
+                  <Then>
+                    <Statement description="Download .exe installer" name="GetURL" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="URL" value="#url#" />
+                      <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#ktemp#\installer.exe" />
+                      <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+                    </Statement>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="EXE installer have been provided" />
+                    </Statement>
+                    <Statement description="Execute installer with supplied arguments and switches" name="ExecuteShellCommand" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Command" value="#ktemp#\installer.exe #arguments#" />
+                      <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                      <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                    </Statement>
+                    <Statement name="DeleteFile" continueOnFail="true">
+                      <Parameter xsi:type="StringParameter" name="Path" value="#ktemp#\installer.exe" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="This type of installer is not supported. Supported types are: .MSI and .EXE" />
+                    </Statement>
+                  </Else>
+                </If>
+              </Else>
+            </If>
+            <Statement name="PauseScript" continueOnFail="false">
+              <Parameter xsi:type="IntegerParameter" name="Seconds" value="60" />
+            </Statement>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -File #vAgentConfiguration.agentTempSecureDir#/Get-SoftwareInstalled.ps1 -SoftwareName &quot;#app#&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Installation process has been completed." />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Installation hasn't been successful!" />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="App is already installed on the computer!" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Universal Uninstaller" treePres="3" id="314972235" folderId="794908324580132" treeFullPath="myProcedures - kadmin.Universal-Installer/Uninstaller">
+      <Body description="This procedure checks for the status of installation of a named application on endpoint using a powershell script and runs the installation or uninstallation based on the result.">
+        <Statement description="This procedure checks for the status of installation of a named application on endpoint using a powershell script and runs the uninstallation based on the result.&#xD;&#xA;Note: Silent switch in this procedure is optional. However, if your application uses an exe installer, please make sure to supply the correct silent switch to uninstall the application. &#xD;&#xA;Otherwise, it might show the pop-ups on the endpoint while uninstalling the app or at the least it won't take any action.&#xD;&#xA;Author: Automation Team - SM" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-App.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\UniversalUninstaller\Uninstall-App.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Get-SoftwareInstalled.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\UniversalUninstaller\Get-SoftwareInstalled.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Enter the name of the application to be checked" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="app" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="[Optional]Enter the silent Switch to uninstall" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="silent" />
+        </Statement>
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -File #vAgentConfiguration.agentTempSecureDir#/Get-SoftwareInstalled.ps1 -SoftwareName &quot;#app#&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -File #vAgentConfiguration.agentTempSecureDir#/Uninstall-App.ps1 -SoftwareName &quot;#app#&quot; -SilentSwitch &quot;#silent#&quot;" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="True" />
+            </Statement>
+            <Statement name="PauseScript" continueOnFail="false">
+              <Parameter xsi:type="IntegerParameter" name="Seconds" value="60" />
+            </Statement>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -File #vAgentConfiguration.agentTempSecureDir#/Get-SoftwareInstalled.ps1 -SoftwareName &quot;#app#&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Uninstall Procedure is now complete for the mentioned application!" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="Uninstall Procedure failed, please check the silent switch provided!" />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="Mentioned application is not installed on the computer!" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

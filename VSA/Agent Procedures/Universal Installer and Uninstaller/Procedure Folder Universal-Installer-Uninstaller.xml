@@ -132,6 +132,9 @@
             </Statement>
           </Else>
         </If>
+        <Statement description="File Cleanup" name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Get-SoftwareInstalled.ps1" />
+        </Statement>
       </Body>
     </Procedure>
     <Procedure name="Universal Uninstaller" treePres="3" id="314972235" folderId="794908324580132" treeFullPath="myProcedures - kadmin.Universal-Installer/Uninstaller">
@@ -205,6 +208,12 @@
             </Statement>
           </Else>
         </If>
+        <Statement description="File Cleanup" name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Get-SoftwareInstalled.ps1" />
+        </Statement>
+        <Statement name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Uninstall-App.ps1" />
+        </Statement>
       </Body>
     </Procedure>
   </Folder>

@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Install GlobalProtect" treePres="3" id="932192186" folderId="292207468157737" treeFullPath="myProcedures - vlad">
+    <Body description="">
+      <Statement description="The procedure performs unattended install GlobalProtect VPN on Windows hosts.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="GlobalProtect" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="SoftwareName" />
+      </Statement>
+      <If description="">
+        <Condition name="Windows 32 or 64 Bit Check">
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+        </Condition>
+        <Then>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="#SoftwareName#64.msi" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="MSIFile" />
+          </Statement>
+          <Statement name="WriteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/#MSIFile#" />
+            <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\GlobalProtectVPN\#MSIFile#" />
+            <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+          </Statement>
+          <If description="">
+            <Condition name="TestFile">
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\#MSIFile#" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              <Parameter xsi:type="StringParameter" name="Value" value="" />
+            </Condition>
+            <Then>
+              <Statement name="Install MSI" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Parameter1" value="#vAgentConfiguration.agentTempDir#\#MSIFile#" />
+                <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+                <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+              </Statement>
+              <Statement description="Check if installation performed" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name = '#SoftwareName#'&quot; get Name | find /v &quot;Name&quot;" />
+                <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+                <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+              </Statement>
+              <If description="">
+                <Condition name="CheckVariable">
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="#SoftwareName#" />
+                </Condition>
+                <Then>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #SoftwareName# installed successfully." />
+                  </Statement>
+                </Then>
+                <Else>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: could not detect #SoftwareName# after installation" />
+                  </Statement>
+                </Else>
+              </If>
+              <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\#MSIFile#" />
+              </Statement>
+            </Then>
+            <Else>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="Could not download #MSIFile# file" />
+              </Statement>
+            </Else>
+          </If>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Designed for 64-bit Windows only" />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

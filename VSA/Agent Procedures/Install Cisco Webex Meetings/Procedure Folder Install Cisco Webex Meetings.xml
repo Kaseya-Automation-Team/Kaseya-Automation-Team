@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Install Cisco Webex Meetings" treePres="3">
+    <Procedure name="Install Cisco Webex Meetings" treePres="3" id="375032507" folderId="688089325785678" treeFullPath="Install Cisco Webex Meetings">
+      <Body description="This procedure downloads the latest version of Cisco Webex Meetings from its official website and installs it on the computer.">
+        <Statement description="This procedure downloads the latest version of Cisco Webex Meetings from its official website and installs it on the computer.&#xD;&#xA;Author: Kaseya Automation Team - SM" name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Install Cisco Webex Meetings.ps1" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\Cisco Webex Meetings\Install Cisco Webex Meetings.ps1" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <Statement name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;#vAgentConfiguration.agentTempSecureDir#/Install Cisco Webex Meetings.ps1&quot;" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <Statement name="PauseScript" continueOnFail="false">
+          <Parameter xsi:type="IntegerParameter" name="Seconds" value="180" />
+        </Statement>
+        <Statement name="DeleteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/Install Cisco Webex Meetings.ps1" />
+        </Statement>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

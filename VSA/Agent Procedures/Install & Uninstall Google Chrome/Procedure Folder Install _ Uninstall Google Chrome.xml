@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Install &amp; Uninstall Google Chrome" treePres="3">
+    <Procedure name="Install Google Chrome" treePres="3" id="1163108876" folderId="661015822114895" treeFullPath="myProcedures - vlad.Install &amp; Uninstall Google Chrome">
+      <Body description="The procedure downloads and installs Google Chrome for all users on the computer">
+        <Statement description="The procedure downloads and installs Google Chrome for all users on the computer &#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;detect if Adobe Reader is already installed" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Google Chrome" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="Software" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BF2252195-90FF-D123-3DFD-07A6641752FC%7D%26lang%3Den%26browser%3D3%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="DownloadLink64" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BF2252195-90FF-D123-3DFD-07A6641752FC%7D%26lang%3Den%26browser%3D3%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dstable-arch_x86-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup.exe" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="DownloadLink32" />
+        </Statement>
+        <Statement name="ExecuteShellCommand" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Command" value="del %windir%\SoftwareDistribution\DataStore\*.* /s /f /q" />
+          <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+          <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+        </Statement>
+        <Statement description="Check if  the app already installed" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="$RegKeys=@('HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall','HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall');$null=New-PSDrive -Name HKU -PSProvider Registry -Root Registry::HKEY_USERS;$RegKeys+=gci HKU: -EA 0 | ?{$_.Name -match 'S-\d-\d+-(\d+-){1,14}\d+$'} | %{&quot;&quot;&quot;HKU:\$($_.PSChildName)\Software\Microsoft\Windows\CurrentVersion\Uninstall&quot;&quot;&quot; };$Found=@();foreach($Key in $RegKeys) {$Found+= gci $Key -EA 0 | ? {$_.GetValue('DisplayName') -match 'Google Chrome'} | Select @{n='Rem'; e={$_.GetValue('UninstallString')}} | Select -ExpandProperty 'Rem' }; Remove-PSDrive HKU;echo $($Found.Count)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptDetect" />
+        </Statement>
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#ScriptDetect#&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThan" />
+            <Parameter xsi:type="StringParameter" name="Value" value="0" />
+          </Condition>
+          <Then>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#Software# is already installed" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="ChromeSetup.exe" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="TheInstaller" />
+            </Statement>
+            <If description="">
+              <Condition name="Windows 32 or 64 Bit Check">
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              </Condition>
+              <Then>
+                <Statement description="Actual 64-bit installer URL" name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#DownloadLink64#" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:DownloadLink" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement description="Actual 32-bit installer URL" name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#DownloadLink32#" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:DownloadLink" />
+                </Statement>
+              </Else>
+            </If>
+            <Statement name="GetURL" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="URL" value="#global:DownloadLink#" />
+              <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempDir#/#TheInstaller#" />
+              <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+            </Statement>
+            <If description="Check if the installer downloaded successfully">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\#TheInstaller#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: The installer file was not downloaded" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement description="Run the installer" name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+                  <Parameter xsi:type="StringParameter" name="Command" value="#vAgentConfiguration.agentTempDir#\#TheInstaller#  /silent /install" />
+                  <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                  <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                </Statement>
+                <Statement description="Detect the software after installation" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#ScriptDetect#&quot;" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThan" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="0" />
+                  </Condition>
+                  <Then>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="#Software# installed successfully" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Could not detect #Software# after installation" />
+                    </Statement>
+                  </Else>
+                </If>
+                <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/#TheInstaller#" />
+                </Statement>
+              </Else>
+            </If>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Uninstall Google Chrome" treePres="3" id="2028752882" folderId="661015822114895" treeFullPath="myProcedures - vlad.Install &amp; Uninstall Google Chrome">
+      <Body description="">
+        <Statement description="The procedure silently uninstalls Google Chrome.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="$RegKeys=@('HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall','HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall');$null=New-PSDrive -Name HKU -PSProvider Registry -Root Registry::HKEY_USERS;$RegKeys+=gci HKU: -EA 0 | ?{$_.Name -match 'S-\d-\d+-(\d+-){1,14}\d+$'} | %{&quot;&quot;&quot;HKU:\$($_.PSChildName)\Software\Microsoft\Windows\CurrentVersion\Uninstall&quot;&quot;&quot; };$Found=@();foreach($Key in $RegKeys) {$Found+= gci $Key -EA 0 | ? {$_.GetValue('DisplayName') -match 'Google Chrome'} | Select @{n='Rem'; e={$_.GetValue('UninstallString')}} | Select -ExpandProperty 'Rem' }; Remove-PSDrive HKU;if (0 -lt $Found.Count) { foreach ($RegVal in $Found){[string]$Path=[regex]::Matches($RegVal, '(?&lt;&lt;=\&quot;).+?(?=\&quot;)').Value; Start-Process $Path -Wait -Args '--uninstall --system-level --multi-install --force-uninstall'}};echo $($Found.Count)" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptRemove" />
+        </Statement>
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#ScriptRemove#&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <If description="detect if Firefox was actually installed">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThan" />
+            <Parameter xsi:type="StringParameter" name="Value" value="0" />
+          </Condition>
+          <Then>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#Software# detected" />
+            </Statement>
+            <Statement description="double-check" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#ScriptRemove#&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                <Parameter xsi:type="StringParameter" name="Value" value="0" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#Software# was removed" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#Software# uninstallation was not successful" />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#Software# was not detected" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

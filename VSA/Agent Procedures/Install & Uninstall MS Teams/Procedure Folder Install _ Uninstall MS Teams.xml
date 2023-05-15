@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Install &amp; Uninstall MS Teams" treePres="3">
+    <Procedure name="Install MS Teams" treePres="3" id="33359079" folderId="444522797430177" treeFullPath="myProcedures - vlad.Install &amp; Uninstall MS Teams">
+      <Body description="The procedure downloads and installs system-wide MS Teams">
+        <Statement description="The procedure downloads and installs MS Teams for all users on the computer &#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;detect if Teams is already installed" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Teams" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="Software" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="https://teams.microsoft.com/downloads/desktopurl?env=production&amp;plat=windows&amp;arch=x64&amp;managedInstaller=true&amp;download=true" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="DownloadLink64" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="https://teams.microsoft.com/downloads/desktopurl?env=production&amp;plat=windows&amp;managedInstaller=true&amp;download=true" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="DownloadLink32" />
+        </Statement>
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name like '#Software#%%'&quot; get Name | find /v &quot;Name&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+            <Parameter xsi:type="StringParameter" name="Value" value="#Software#" />
+          </Condition>
+          <Then>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults# is already installed" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="#Software#.msi" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="TheInstaller" />
+            </Statement>
+            <If description="">
+              <Condition name="Windows 32 or 64 Bit Check">
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              </Condition>
+              <Then>
+                <Statement description="Actual 64-bit installer URL" name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#DownloadLink64#" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:DownloadLink" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement description="Actual 32-bit installer URL" name="GetVariable" continueOnFail="false">
+                  <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                  <Parameter xsi:type="StringParameter" name="SourceContent" value="#DownloadLink32#" />
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="global:DownloadLink" />
+                </Statement>
+              </Else>
+            </If>
+            <Statement name="GetURL" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="URL" value="#global:DownloadLink#" />
+              <Parameter xsi:type="StringParameter" name="ResponseFileName" value="#vAgentConfiguration.agentTempDir#/#TheInstaller#" />
+              <Parameter xsi:type="BooleanParameter" name="WaitComplete" value="True" />
+            </Statement>
+            <If description="Check if the installer downloaded successfully">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#\#TheInstaller#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: The installer file was not downloaded" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement description="Run the installer" name="ExecuteShellCommand" continueOnFail="false" osType="Windows">
+                  <Parameter xsi:type="StringParameter" name="Command" value="cd #vAgentConfiguration.agentTempDir# &amp;&amp; msiexec /i #TheInstaller# OPTIONS=&quot;noAutoStart=true&quot; ALLUSERS=1" />
+                  <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                  <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                </Statement>
+                <Statement description="Detect the software after installation" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name like '#Software#%%'&quot; get Name | find /v &quot;Name&quot;" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="#Software#" />
+                  </Condition>
+                  <Then>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults# installed successfully" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="Could not detect #Software# after installation" />
+                    </Statement>
+                  </Else>
+                </If>
+                <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempDir#/#TheInstaller#" />
+                </Statement>
+              </Else>
+            </If>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Uninstall MS Teams" treePres="3" id="464578466" folderId="444522797430177" treeFullPath="myProcedures - vlad.Install &amp; Uninstall MS Teams">
+      <Body description="The procedure uninstalls system-wide MS Teams">
+        <Statement description="The procedure uninstalls MS Teams&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Teams" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="Software" />
+        </Statement>
+        <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name like '#Software#%%'&quot; get Name | find /v &quot;Name&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+            <Parameter xsi:type="StringParameter" name="Value" value="#Software#" />
+          </Condition>
+          <Then>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #global:cmdresults# detected" />
+            </Statement>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name like '#Software#%%'&quot; call uninstall" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <Statement description="Check if uninstalled" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name like '#Software#%%'&quot; get Name | find /v &quot;Name&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="DoesNotContain" />
+                <Parameter xsi:type="StringParameter" name="Value" value="#Software#" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #Software# was uninstalled successfully" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="WARNIG: Please uninstall #Software# manually" />
+                </Statement>
+              </Else>
+            </If>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #Software# is absent. No action needed" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

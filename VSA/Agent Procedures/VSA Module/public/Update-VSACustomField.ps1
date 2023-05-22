@@ -58,7 +58,6 @@
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'UpdateValue')]
-        [ValidateNotNullOrEmpty()] 
         [string] $FieldValue,
 
         [parameter(Mandatory=$true,

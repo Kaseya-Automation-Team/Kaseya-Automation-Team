@@ -40,7 +40,7 @@ function Get-ModuleToFolder {
         [string] $ModuleInstallFolder
     )
 
-    Write-Host "Downloading from GitHub: $URL" -ForegroundColor Cyan
+    Write-Verbose "Downloading from GitHub: $URL"
     $TempArchiveFile = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $ArchiveName
 
     Invoke-WebRequest $URL -OutFile $TempArchiveFile
@@ -52,11 +52,7 @@ function Get-ModuleToFolder {
     #perform cleanup
     Remove-Item -Path $TempArchiveFile -Force -ErrorAction SilentlyContinue
 
-    Write-Host "Module" -NoNewline
-    Write-Host "`t$moduleName" -ForegroundColor Green -NoNewline
-    Write-Host "`tinstalled into`t" -NoNewline
-    Write-Host $ModuleInstallFolder -ForegroundColor Green -NoNewline
-    Write-Host "`tFolder"
+    Write-Verbose "Module <$moduleName> installed into <$ModuleInstallFolder> Folder"
 }
 
 function Install-GithubModule
@@ -116,10 +112,8 @@ function Install-GithubModule
             break
         }
         3 { #The module folder exists. Overwrite
-            Write-Host "The module folder" -NoNewline
-            Write-Host "`t$ModuleInstallFolder" -ForegroundColor Yellow  -NoNewline
-            Write-Host "`texists." -NoNewline
-            Write-Host "`t Removing" -ForegroundColor Red
+            Write-Verbose "The module folder <$ModuleInstallFolder> exists."
+            Write-Verbose "Removing the folder..."
             Remove-Item -Path $ModuleInstallFolder -Recurse -Force
             Get-ModuleToFolder -URL $URL -ArchiveName $ArchiveName -ModuleInstallFolder $ModuleInstallFolder
         }
@@ -215,14 +209,14 @@ if ( -Not (Get-Module -ListAvailable -Name $ModuleName) ) {
 
     #region Count Events By type & Month
     foreach ($Event in $LogData ) {
-        Write-Host "$Event"
+        #Write-Host "$Event"
         foreach ( $Status in @('Online', 'Offline')) {
             for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
                 
                 $HashIndex = "Month $Month $Status"
                 $MonthOffset = -1*($Month - 1)
                 $CompareDate = $Now.AddMonths($MonthOffset)
-                Write-Host "Status: <$Status>; Month: <$Month>; $CompareDate"
+                #Write-Host "Status: <$Status>; Month: <$Month>; $CompareDate"
                 if ( ($Event.Date.Year -eq $CompareDate.Year) -and ($Event.Date.Month -eq $CompareDate.Month) -and ( $Event.Status -eq $Status ) ) {
                     $LogsByMonths[$HashIndex]++
                 }
@@ -236,7 +230,7 @@ if ( -Not (Get-Module -ListAvailable -Name $ModuleName) ) {
 
     foreach ($FieldName in $LogsByMonths.Keys) 
     {
-      Write-Host " $FieldName  : $($LogsByMonths.Item($FieldName ))"
+      #Write-Host " $FieldName  : $($LogsByMonths.Item($FieldName ))"
 
         [hashtable]$Params = @{
             AgentID       = $TheAgentID

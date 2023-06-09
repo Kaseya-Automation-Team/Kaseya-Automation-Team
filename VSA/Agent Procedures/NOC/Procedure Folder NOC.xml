@@ -5,7 +5,7 @@
       <Body description="">
         <Statement description="This procedure detects the online/offline status of VSA endpoints and records the information in custom fields.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Dedicated Endpoint's concatenated representation of the machine id and the group id it is associated with." name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="w10x64-2.root.unnamed" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Your Dedicated Endpoint" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="DedicatedEndpoint" />
         </Statement>
         <Statement description="VSA credentials" name="GetVariable" continueOnFail="false">
@@ -75,7 +75,7 @@
       <Body description="">
         <Statement description="This procedure leverages a PowerShell script that handles reports received via email in Excel format. &#xD;&#xA;The script identifies and extracts Excel files from email attachments and retrieves report data. It further performs calculations on the extracted data to determine the percentage of vulnerable VSA endpoints.&#xD;&#xA;The script then records the calculated percentages in custom fields.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Dedicated Endpoint's concatenated representation of the machine id and the group id it is associated with." name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="w10x64-2.root.unnamed" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Your Dedicated Endpoint" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="DedicatedEndpoint" />
         </Statement>
         <Statement description="VSA credentials" name="GetVariable" continueOnFail="false">
@@ -112,12 +112,12 @@
             </Statement>
             <Statement name="GetVariable" continueOnFail="false">
               <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-              <Parameter xsi:type="StringParameter" name="SourceContent" value="doej48056@gmail.com" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="YourAddress@gmail.com" />
               <Parameter xsi:type="StringParameter" name="VariableName" value="MailAddress" />
             </Statement>
             <Statement name="GetVariable" continueOnFail="false">
               <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-              <Parameter xsi:type="StringParameter" name="SourceContent" value="vldzzmvmcbpzoavn" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="YourPassword" />
               <Parameter xsi:type="StringParameter" name="VariableName" value="MailPwd" />
             </Statement>
             <Statement description="Download the script" name="WriteFile" continueOnFail="false">

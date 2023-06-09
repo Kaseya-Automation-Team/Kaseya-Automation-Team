@@ -1,10 +1,34 @@
-﻿param (
+﻿<#
+.Synopsis
+    The script gathers information on number of comuters that are offline/online and fills in corresponding custom fields.
+.DESCRIPTION
+    This PowerShell script detects which computers are offline/online and stores summarized information in corresponding custom fields.
+    If these custom fields do not already exist, the script automatically creates them to ensure accurate tracking of number of comuters that are offline/online over time.
+    To maintain a historical record of offline and online computers, the script stores the information in a CSV file.
+    This CSV file acts as a repository for collecting and preserving the data from previous reports.
+.PARAMETER $VSAServerAddress
+    List of primary and Secondary VSA servers devided by a semicolon.
+.PARAMETER VSAUserName
+    The VSA username. The user must have permissions to create VSA organizations and machine groups.
+.PARAMETER VSAUserPAT
+    The VSA User access token. (VSA->System->User Security->Users->Access Tokens).
+.PARAMETER  DedicatedEndpoint
+.PARAMETER LogFilePath
+    (Optional) Name of the CSV file to store historical data.
+.PARAMETER OverwriteExistingModule
+    (Optional) Enforce overwriting existing PowerShell VSAModule.
+.PARAMETER MailSSLDisable
+    (Optional) Disables SSL connection to the Mail server.
+.PARAMETER DisableLogging
+    (Optional) Disables logging of the script.
+.NOTES
+    Version 0.1
+    Author: Proserv Team - VS
+#>
+param (
     [parameter(Mandatory=$true, 
         ValueFromPipelineByPropertyName = $true)]
-    [ValidateScript(
-            { if ( $($_.Trim()) -match '^http(s)?:\/\/([\w.-]+(?:\.[\w\.-]+)+|localhost)\/?$') {$true}
-            else {Throw "$_ is an invalid address. Enter a valid address that begins with https://"}}
-            )]
+    [ValidateNotNullOrEmpty()]
     [string] $VSAServerAddress,
 
     [parameter(Mandatory=$true)]
@@ -24,13 +48,26 @@
     [string] $LogFilePath = 'NOC.csv',
 
     [parameter(Mandatory=$false)]
-    [switch] $OverwriteExistingModule
-)
+    [switch] $OverwriteExistingModule,
 
+    [parameter(Mandatory=$false)]
+    [switch] $DisableLogging
+)
+$ScriptPath = Split-Path $script:MyInvocation.MyCommand.Path
+#region check/start transcript
 [string]$Pref = 'Continue'
+if ( -Not $DisableLogging )
+{
+    $DebugPreference       = $Pref
+    $VerbosePreference     = $Pref
+    $InformationPreference = $Pref
+    $ScriptName = [io.path]::GetFileNameWithoutExtension( $($MyInvocation.MyCommand.Name) )
+    $LogFile = "$ScriptPath\$ScriptName.log"
+    Start-Transcript -Path $LogFile
+}
+#endregion check/start transcript
 
 $ModuleName  = 'VSAModule'
-$VSAServerAddress = $VSAServerAddress.Trim()
 
 #region Checking & installing VSA Module
 function Get-ModuleToFolder {
@@ -139,115 +176,133 @@ Import-Module "$ModulePath\$ModuleName.psm1" -Force
 #endregion Load VSA Module
 
 if ( -Not (Get-Module -ListAvailable -Name $ModuleName) ) {
+    throw "Module <$ModuleName> is not available"
+}
 
-    Write-Output "Module"
-    Write-Output "`t$ModuleName"
-    Write-Output "`tis not available"
+#region prepare creds
+[securestring]$secStringPassword = ConvertTo-SecureString $VSAUserPAT -AsPlainText -Force
+[pscredential]$VSACredentials = New-Object System.Management.Automation.PSCredential ($VSAUserName, $secStringPassword)
+#endregion prepare creds
 
-} else {
+#region Create connection objects
+[hashtable] $VSAConnParams  = @{
+    VSAServer   = ''
+    Credential  = $VSACredentials
+    ErrorAction = 'Stop'
+}
 
-    #region prepare creds & set connection
-
-    # Convert to SecureString
-    [securestring]$secStringPassword = ConvertTo-SecureString $VSAUserPAT -AsPlainText -Force
-    [pscredential]$VSACredentials = New-Object System.Management.Automation.PSCredential ($VSAUserName, $secStringPassword)
-
-    #endregion prepare creds
-
-    #region Create connection objects
-    $VSAConnParams  = @{
-                            VSAServer     = $VSAServerAddress
-                            Credential    = $VSACredentials
-                        }
-    #Clear-Host
-    Write-Verbose "Connecting to the VSA Environment`n" -ForegroundColor Green
-    $VSAConnection = New-VSAConnection @VSAConnParams
-    #endregion prepare creds & set connection
-
-    [datetime] $Now = [datetime]::Now
-
-    [int] $MinMonth = 1
-    [int] $MaxMonth = 6
-
-    [string] $FormatDate = 'yyyy-MM-dd HH:mm:ss'
-
-    #hashtable to store values of the Custom Fields
-    [hashtable] $LogsByMonths = @{}
-    foreach ( $Status in @('Online', 'Offline')) {
-        for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
-            $LogsByMonths.Add("Month $Month $Status", 0)
-        }
+#Clear-Host
+#region Detect Available VSA Server & Connect to it
+[string[]]$VSAServers = $VSAServerAddress -split ';'
+foreach ( $Server in $VSAServers  ) {
+    [string] $Address = "https://$([regex]::Matches( $Server, '.+?(?=\:)' ).Value)"
+    $VSAConnParams.VSAServer = $Address
+    Write-Verbose "Attempt to connect to <$Address>"
+    $VSAConnection = try { New-VSAConnection @VSAConnParams } catch {$null}
+    if ( $null -ne $VSAConnection ) {
+        Write-Verbose "Connected to <$Address>"
+        break
     }
+}
+#endregion Detect Available VSA Server & Connect to it
 
-    #region Check & Create Custom Fields
-    $ExistingCustomFields = Get-VSACustomFields -VSAConnection $VSAConnection
-    [string[]]$CFList = $LogsByMonths | Select-Object -ExpandProperty Keys
-    $CFList | Where-Object { -Not $($ExistingCustomFields.FieldName).Contains($_) } | ForEach-Object { Add-VSACustomField -FieldName $_ -FieldType "number" -VSAConnection $VSAConnection}
-    #endregion Check & Create Custom Fields
+[datetime] $Now = [datetime]::Now
 
-    $AllAgents = Get-VSAAgent -VSAConnection $VSAConnection | Select-Object AgentId, AgentName, Online
+[int] $MinMonth = 1
+[int] $MaxMonth = 6
 
-    #region Gather All Agents' Statuses & historical data (if exists)
-    [Array] $LogData = @()
-    if (Test-Path -LiteralPath $LogFilePath ) {
-        Import-Csv -LiteralPath $LogFilePath | `
-        ForEach-Object {
-            $_.Date = [datetime]::parseexact( $_.Date, $FormatDate, $null)
+[string] $FormatDate = 'yyyy-MM-dd HH:mm:ss'
+
+#hashtable to store values of the Custom Fields
+[hashtable] $LogsByMonths = @{}
+foreach ( $Status in @('Online', 'Offline')) {
+    for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
+        $LogsByMonths.Add("Month $Month $Status", 0)
+    }
+}
+
+#region Check & Create Custom Fields
+$ExistingCustomFields = Get-VSACustomFields -VSAConnection $VSAConnection
+[string[]]$CFList = $LogsByMonths | Select-Object -ExpandProperty Keys
+$CFList | Where-Object { -Not $($ExistingCustomFields.FieldName).Contains($_) } | ForEach-Object { Add-VSACustomField -FieldName $_ -FieldType "number" -VSAConnection $VSAConnection}
+#endregion Check & Create Custom Fields
+
+$AllAgents = Get-VSAAgent -VSAConnection $VSAConnection | Select-Object AgentId, AgentName, Online
+
+#region Gather All Agents' Statuses & historical data (if exists)
+[Array] $LogData = @()
+if (Test-Path -LiteralPath $LogFilePath ) {
+    Import-Csv -LiteralPath $LogFilePath | `
+    ForEach-Object {
+        $_.Date = [datetime]::parseexact( $_.Date, $FormatDate, $null)
+        #skip the current month
+        if ( -Not (($_.Date.Year -eq $Now.Year) -and ( $_.Date.Month -eq $Now.Month)) ) {
             $LogData += $_
         }
     }
+}
 
-    foreach ($Agent in $AllAgents) {
-        [string] $Status = 'Online'
-        if ( 0 -eq $Agent.Online) { $Status = 'Offline' }
+foreach ($Agent in $AllAgents) {
+    [string] $Status = 'Online'
+    if ( 0 -eq $Agent.Online) { $Status = 'Offline' }
 
-        $LogData += New-Object PSObject -Property @{Date    = $Now
-                                                    AgentID = $Agent.AgentID
-                                                    Status  = $Status}
-    }
-    #endregion Gather All Agents' Statuses & historical data (if exists)
+    $LogData += New-Object PSObject -Property @{Date    = $Now
+                                                AgentID = $Agent.AgentID
+                                                Status  = $Status}
+}
+#endregion Gather All Agents' Statuses & historical data (if exists)
 
-    #region Count Events By type & Month
-    foreach ($Event in $LogData ) {
-        #Write-Host "$Event"
-        foreach ( $Status in @('Online', 'Offline')) {
-            for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
+#region Count Events By type & Month
+foreach ($Event in $LogData ) {
+    #Write-Host "$Event"
+    foreach ( $Status in @('Online', 'Offline')) {
+        for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
                 
-                $HashIndex = "Month $Month $Status"
-                $MonthOffset = -1*($Month - 1)
-                $CompareDate = $Now.AddMonths($MonthOffset)
-                #Write-Host "Status: <$Status>; Month: <$Month>; $CompareDate"
-                if ( ($Event.Date.Year -eq $CompareDate.Year) -and ($Event.Date.Month -eq $CompareDate.Month) -and ( $Event.Status -eq $Status ) ) {
-                    $LogsByMonths[$HashIndex]++
-                }
+            $HashIndex = "Month $Month $Status"
+            $MonthOffset = -1*($Month - 1)
+            $CompareDate = $Now.AddMonths($MonthOffset)
+            #Write-Host "Status: <$Status>; Month: <$Month>; $CompareDate"
+            if ( ($Event.Date.Year -eq $CompareDate.Year) -and ($Event.Date.Month -eq $CompareDate.Month) -and ( $Event.Status -eq $Status ) ) {
+                $LogsByMonths[$HashIndex]++
             }
         }
     }
-    #endregion Count Events By type & Month
-
-    #region Update Custom Fields on the Dedicated Agent
-    $TheAgentID = $AllAgents | Where-Object {$_.AgentName -eq $DedicatedEndpoint} | Select-Object -ExpandProperty AgentId
-
-    foreach ($FieldName in $LogsByMonths.Keys) 
-    {
-      #Write-Host " $FieldName  : $($LogsByMonths.Item($FieldName ))"
-
-        [hashtable]$Params = @{
-            AgentID       = $TheAgentID
-            FieldName     = $FieldName
-            FieldValue    = $($LogsByMonths.Item($FieldName ))
-            VSAConnection = $VSAConnection
-        }
-        Update-VSACustomField @Params
-    }
-    #endregion Update Custom Fields on the Dedicated Agent
-    
-    #region (Over)write Log Data
-    [Array] $NewLogData = @()
-    $LogData | ForEach-Object {
-        $_.Date = $_.Date.ToString($FormatDate)
-        $NewLogData += $_
-    }
-    $NewLogData | Export-Csv -LiteralPath $LogFilePath -NoTypeInformation -Force
-    #endregion (Over)write Log Data
 }
+#endregion Count Events By type & Month
+
+#region Update Custom Fields on the Dedicated Agent
+$TheAgentID = $AllAgents | Where-Object {$_.AgentName -eq $DedicatedEndpoint} | Select-Object -ExpandProperty AgentId
+
+foreach ($FieldName in $LogsByMonths.Keys) 
+{
+    #Write-Host " $FieldName  : $($LogsByMonths.Item($FieldName ))"
+
+    [hashtable]$Params = @{
+        AgentID       = $TheAgentID
+        FieldName     = $FieldName
+        FieldValue    = $($LogsByMonths.Item($FieldName ))
+        VSAConnection = $VSAConnection
+    }
+    Update-VSACustomField @Params
+}
+#endregion Update Custom Fields on the Dedicated Agent
+    
+#region (Over)write Log Data
+[Array] $NewLogData = @()
+$LogData | ForEach-Object {
+    $_.Date = $_.Date.ToString($FormatDate)
+    $NewLogData += $_
+}
+$NewLogData | Export-Csv -LiteralPath $LogFilePath -NoTypeInformation -Force
+#endregion (Over)write Log Data
+
+#region check/stop transcript
+if ( -Not $DisableLogging )
+{
+    $Pref = 'SilentlyContinue'
+    $DebugPreference = $Pref
+    $VerbosePreference = $Pref
+    $InformationPreference = $Pref
+    Stop-Transcript
+}
+#endregion check/stop transcript

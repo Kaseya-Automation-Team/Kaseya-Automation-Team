@@ -35,7 +35,7 @@
 .PARAMETER DisableLogging
     (Optional) Disables logging of the script.
 .NOTES
-    Version 0.1
+    Version 0.1.2
     Author: Proserv Team - VS
 #>
 
@@ -75,7 +75,7 @@ param (
     
     [parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]
-    [string] $XLSName = 'Machines vulnerable.xlsx',
+    [string] $XLSName = 'Machines vulnerable (Excluding Rejected and Suppressed).xlsx',
     
     [parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]
@@ -176,12 +176,13 @@ if ( -Not (Get-Module -ListAvailable -Name ImportExcel) ) {
 $XLSName = Split-Path -Path $XLSName -Leaf
 $XLSName = Join-Path -Path $ScriptPath -ChildPath $XLSName
 
-$ExcelData = Get-ExcelSheetInfo -Path $XLSName `
+[string[]] $ExcelData = Get-ExcelSheetInfo -Path $XLSName `
                 | ForEach-Object {Import-Excel -DataOnly $_.Path -WorksheetName $_.Name -NoHeader} `
                 | Select-Object { $_.PSObject.Properties } `
                 | ForEach-Object { $_.PSObject.Properties | Select-Object -ExpandProperty Value | Select-Object -ExpandProperty Value } `
                 | Where-Object { -Not [string]::IsNullOrEmpty($_) } `
                 | Select-Object -Unique
+Write-Verbose "Excel data [$XLSName]: $($ExcelData | Out-String)"
 #endregion Parse Excel File
 
 
@@ -327,15 +328,17 @@ foreach ( $Server in $VSAServers  ) {
 [string] $FormatDate = 'yyyy-MM-dd HH:mm:ss'
 
 #hashtable to store values of the Custom Fields
-[hashtable] $LogsByMonths = @{}
+[hashtable] $VulnerableLogsByMonths = @{}
+[hashtable] $InvulnerableLogsByMonths = @{}
 
 for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
-    $LogsByMonths.Add("Month $Month Percentage Of Vulnerable", 0)
+    $VulnerableLogsByMonths.Add("Month $Month Percentage Of Vulnerable", 0)
+    $InvulnerableLogsByMonths.Add("Month $Month Percentage Of Invulnerable", 0)
 }
 
 #region Check & Create Custom Fields
 $ExistingCustomFields = Get-VSACustomFields -VSAConnection $VSAConnection
-[string[]]$CFList = $LogsByMonths | Select-Object -ExpandProperty Keys
+[string[]]$CFList = $VulnerableLogsByMonths + $InvulnerableLogsByMonths | Select-Object -ExpandProperty Keys
 $CFList | Where-Object { -Not $($ExistingCustomFields.FieldName).Contains($_) } | ForEach-Object { Add-VSACustomField -FieldName $_ -FieldType "number" -VSAConnection $VSAConnection}
 #endregion Check & Create Custom Fields
 
@@ -377,12 +380,12 @@ for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
         if ( ($Event.Date.Year -eq $CompareDate.Year) -and ($Event.Date.Month -eq $CompareDate.Month) ) {
             $EventsPerMonth++
                 if ( 'Vulnerable' -eq $Event.Status ) {
-                $LogsByMonths[$HashIndex]++
+                $VulnerableLogsByMonths[$HashIndex]++
             }
         }
     }
     if ( 0 -lt $EventsPerMonth) {
-        $LogsByMonths[$HashIndex] = [math]::Round( ($LogsByMonths[$HashIndex]*100/$EventsPerMonth) )
+        $VulnerableLogsByMonths[$HashIndex] = [math]::Round( ($VulnerableLogsByMonths[$HashIndex]*100/$EventsPerMonth) )
     }
 }
 #endregion Count the vulnerable month
@@ -390,19 +393,40 @@ for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
 #region Update Custom Fields on the Dedicated Agent
 $DedicatedAgentID = $AllAgents | Where-Object {$_.AgentName -eq $DedicatedEndpoint} | Select-Object -ExpandProperty AgentId
 
-foreach ($FieldName in $LogsByMonths.Keys) 
-{
-    #Write-Host " $FieldName  : $($LogsByMonths.Item($FieldName ))"
+for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
+    $VulnerableFieldName  = "Month $Month Percentage Of Vulnerable"
+    $VulnerableFieldValue = $VulnerableLogsByMonths.Item( $FieldName )
 
     [hashtable]$Params = @{
         AgentID       = $DedicatedAgentID
-        FieldName     = $FieldName
-        FieldValue    = $($LogsByMonths.Item($FieldName ))
+        FieldName     = $VulnerableFieldName
+        FieldValue    = $VulnerableFieldValue
+        VSAConnection = $VSAConnection
+    }
+    Update-VSACustomField @Params
+
+    $InvulnerableFieldName  = "Month $Month Percentage Of Invulnerable"
+    $InvulnerableFieldValue = 100 - $VulnerableFieldValue
+    [hashtable]$Params = @{
+        AgentID       = $DedicatedAgentID
+        FieldName     = $InvulnerableFieldName
+        FieldValue    = $InvulnerableFieldValue
         VSAConnection = $VSAConnection
     }
     Update-VSACustomField @Params
 }
 
+foreach ($FieldName in $VulnerableLogsByMonths.Keys) {
+    #Write-Host " $FieldName  : $($VulnerableLogsByMonths.Item($FieldName ))"
+
+    [hashtable]$Params = @{
+        AgentID       = $DedicatedAgentID
+        FieldName     = $FieldName
+        FieldValue    = $($VulnerableLogsByMonths.Item($FieldName ))
+        VSAConnection = $VSAConnection
+    }
+    Update-VSACustomField @Params
+}
 #endregion Update Custom Fields on the Dedicated Agent
     
 #region (Over)write Log Data

@@ -403,18 +403,6 @@ foreach ($FieldName in $LogsByMonths.Keys)
     Update-VSACustomField @Params
 }
 
-foreach ($FieldName in $LogsByMonths.Keys) 
-{
-    #Write-Host " $FieldName  : $($LogsByMonths.Item($FieldName ))"
-
-    [hashtable]$Params = @{
-        AgentID       = $DedicatedAgentID
-        FieldName     = $FieldName
-        FieldValue    = $($LogsByMonths.Item($FieldName ))
-        VSAConnection = $VSAConnection
-    }
-    Update-VSACustomField @Params
-}
 #endregion Update Custom Fields on the Dedicated Agent
     
 #region (Over)write Log Data

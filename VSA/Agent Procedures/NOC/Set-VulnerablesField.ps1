@@ -395,7 +395,7 @@ $DedicatedAgentID = $AllAgents | Where-Object {$_.AgentName -eq $DedicatedEndpoi
 
 for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
     $VulnerableFieldName  = "Month $Month Percentage Of Vulnerable"
-    $VulnerableFieldValue = $VulnerableLogsByMonths.Item( $FieldName )
+    [int] $VulnerableFieldValue = $VulnerableLogsByMonths.Item( $FieldName )
 
     [hashtable]$Params = @{
         AgentID       = $DedicatedAgentID
@@ -406,7 +406,7 @@ for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
     Update-VSACustomField @Params
 
     $InvulnerableFieldName  = "Month $Month Percentage Of Invulnerable"
-    $InvulnerableFieldValue = 100 - $VulnerableFieldValue
+    [int] $InvulnerableFieldValue = 100 - $VulnerableFieldValue
     [hashtable]$Params = @{
         AgentID       = $DedicatedAgentID
         FieldName     = $InvulnerableFieldName

@@ -395,37 +395,27 @@ $DedicatedAgentID = $AllAgents | Where-Object {$_.AgentName -eq $DedicatedEndpoi
 
 for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
     $VulnerableFieldName  = "Month $Month Percentage Of Vulnerable"
-    [int] $VulnerableFieldValue = $VulnerableLogsByMonths.Item( $FieldName )
+    if ( $null -ne $VulnerableLogsByMonths.Item( $VulnerableFieldName ) ) {
+        [int] $VulnerableFieldValue = $VulnerableLogsByMonths.Item( $VulnerableFieldName )
 
-    [hashtable]$Params = @{
-        AgentID       = $DedicatedAgentID
-        FieldName     = $VulnerableFieldName
-        FieldValue    = $VulnerableFieldValue
-        VSAConnection = $VSAConnection
+        [hashtable]$Params = @{
+            AgentID       = $DedicatedAgentID
+            FieldName     = $VulnerableFieldName
+            FieldValue    = $VulnerableFieldValue
+            VSAConnection = $VSAConnection
+        }
+        Update-VSACustomField @Params
+
+        $InvulnerableFieldName  = "Month $Month Percentage Of Invulnerable"
+        [int] $InvulnerableFieldValue = 100 - $VulnerableFieldValue
+        [hashtable]$Params = @{
+            AgentID       = $DedicatedAgentID
+            FieldName     = $InvulnerableFieldName
+            FieldValue    = $InvulnerableFieldValue
+            VSAConnection = $VSAConnection
+        }
+        Update-VSACustomField @Params
     }
-    Update-VSACustomField @Params
-
-    $InvulnerableFieldName  = "Month $Month Percentage Of Invulnerable"
-    [int] $InvulnerableFieldValue = 100 - $VulnerableFieldValue
-    [hashtable]$Params = @{
-        AgentID       = $DedicatedAgentID
-        FieldName     = $InvulnerableFieldName
-        FieldValue    = $InvulnerableFieldValue
-        VSAConnection = $VSAConnection
-    }
-    Update-VSACustomField @Params
-}
-
-foreach ($FieldName in $VulnerableLogsByMonths.Keys) {
-    #Write-Host " $FieldName  : $($VulnerableLogsByMonths.Item($FieldName ))"
-
-    [hashtable]$Params = @{
-        AgentID       = $DedicatedAgentID
-        FieldName     = $FieldName
-        FieldValue    = $($VulnerableLogsByMonths.Item($FieldName ))
-        VSAConnection = $VSAConnection
-    }
-    Update-VSACustomField @Params
 }
 #endregion Update Custom Fields on the Dedicated Agent
     

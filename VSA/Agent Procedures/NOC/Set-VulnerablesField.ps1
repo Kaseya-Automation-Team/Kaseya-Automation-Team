@@ -130,7 +130,7 @@ if ( -Not $POP3Client.Connected ) {
     Remove-Variable MailPwd
 
     $msgTotal = $POP3Client.GetMessageCount()
-    for ( $MsgNumber = 1 ; $MsgNumber -le $msgTotal; $MsgNumber++ ) {
+    foreach ($MsgNumber in 1..$msgTotal) {
 
         $EMail = $pop3Client.GetMessage( $MsgNumber ).ToMailMessage()
         
@@ -331,7 +331,7 @@ foreach ( $Server in $VSAServers  ) {
 [hashtable] $VulnerableLogsByMonths = @{}
 [hashtable] $InvulnerableLogsByMonths = @{}
 
-for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
+foreach ($Month in $MinMonth..$MaxMonth) {
     $VulnerableLogsByMonths.Add("Month $Month Percentage Of Vulnerable", 0)
     $InvulnerableLogsByMonths.Add("Month $Month Percentage Of Invulnerable", 0)
 }
@@ -369,7 +369,7 @@ foreach ($Agent in $AllAgents) {
 #endregion Gather All Agents' Statuses & historical data (if exists)
 
 #region Count the vulnerable month
-for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
+foreach ($Month in $MinMonth..$MaxMonth) {
     [int] $EventsPerMonth = 0
     #Write-Host "$Event"
     foreach ($Event in $LogData ) {
@@ -393,29 +393,27 @@ for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
 #region Update Custom Fields on the Dedicated Agent
 $DedicatedAgentID = $AllAgents | Where-Object {$_.AgentName -eq $DedicatedEndpoint} | Select-Object -ExpandProperty AgentId
 
-for ($Month = $MinMonth; $Month -le $MaxMonth; $Month++ ) {
+foreach ($Month in $MinMonth..$MaxMonth) {
     $VulnerableFieldName  = "Month $Month Percentage Of Vulnerable"
-    if ( $null -ne $VulnerableLogsByMonths.Item( $VulnerableFieldName ) ) {
-        [int] $VulnerableFieldValue = $VulnerableLogsByMonths.Item( $VulnerableFieldName )
+    [int] $VulnerableFieldValue = $VulnerableLogsByMonths.Item( $VulnerableFieldName )
 
-        [hashtable]$Params = @{
-            AgentID       = $DedicatedAgentID
-            FieldName     = $VulnerableFieldName
-            FieldValue    = $VulnerableFieldValue
-            VSAConnection = $VSAConnection
-        }
-        Update-VSACustomField @Params
-
-        $InvulnerableFieldName  = "Month $Month Percentage Of Invulnerable"
-        [int] $InvulnerableFieldValue = 100 - $VulnerableFieldValue
-        [hashtable]$Params = @{
-            AgentID       = $DedicatedAgentID
-            FieldName     = $InvulnerableFieldName
-            FieldValue    = $InvulnerableFieldValue
-            VSAConnection = $VSAConnection
-        }
-        Update-VSACustomField @Params
+    [hashtable]$Params = @{
+        AgentID       = $DedicatedAgentID
+        FieldName     = $VulnerableFieldName
+        FieldValue    = $VulnerableFieldValue
+        VSAConnection = $VSAConnection
     }
+    Update-VSACustomField @Params
+
+    $InvulnerableFieldName  = "Month $Month Percentage Of Invulnerable"
+    [int] $InvulnerableFieldValue = 100 - $VulnerableFieldValue
+    [hashtable]$Params = @{
+        AgentID       = $DedicatedAgentID
+        FieldName     = $InvulnerableFieldName
+        FieldValue    = $InvulnerableFieldValue
+        VSAConnection = $VSAConnection
+    }
+    Update-VSACustomField @Params
 }
 #endregion Update Custom Fields on the Dedicated Agent
     

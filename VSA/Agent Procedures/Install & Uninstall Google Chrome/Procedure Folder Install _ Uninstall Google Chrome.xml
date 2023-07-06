@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Install &amp; Uninstall Google Chrome" treePres="3">
-    <Procedure name="Install Google Chrome" treePres="3" id="1163108876" folderId="661015822114895" treeFullPath="myProcedures - vlad.Install &amp; Uninstall Google Chrome">
+    <Procedure name="Install Google Chrome" treePres="3" id="1491756993" folderId="589351395698893" treeFullPath="myProcedures - Vladislav.Semko@kaseya.com.Install &amp; Uninstall Google Chrome">
       <Body description="The procedure downloads and installs Google Chrome for all users on the computer">
         <Statement description="The procedure downloads and installs Google Chrome for all users on the computer &#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;detect if Adobe Reader is already installed" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
@@ -122,55 +122,109 @@
         </If>
       </Body>
     </Procedure>
-    <Procedure name="Uninstall Google Chrome" treePres="3" id="2028752882" folderId="661015822114895" treeFullPath="myProcedures - vlad.Install &amp; Uninstall Google Chrome">
+    <Procedure name="Uninstall Google Chrome" treePres="3" id="1634583665" folderId="589351395698893" treeFullPath="myProcedures - Vladislav.Semko@kaseya.com.Install &amp; Uninstall Google Chrome">
       <Body description="">
         <Statement description="The procedure silently uninstalls Google Chrome.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-          <Parameter xsi:type="StringParameter" name="SourceContent" value="$RegKeys=@('HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall','HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall');$null=New-PSDrive -Name HKU -PSProvider Registry -Root Registry::HKEY_USERS;$RegKeys+=gci HKU: -EA 0 | ?{$_.Name -match 'S-\d-\d+-(\d+-){1,14}\d+$'} | %{&quot;&quot;&quot;HKU:\$($_.PSChildName)\Software\Microsoft\Windows\CurrentVersion\Uninstall&quot;&quot;&quot; };$Found=@();foreach($Key in $RegKeys) {$Found+= gci $Key -EA 0 | ? {$_.GetValue('DisplayName') -match 'Google Chrome'} | Select @{n='Rem'; e={$_.GetValue('UninstallString')}} | Select -ExpandProperty 'Rem' }; Remove-PSDrive HKU;if (0 -lt $Found.Count) { foreach ($RegVal in $Found){[string]$Path=[regex]::Matches($RegVal, '(?&lt;&lt;=\&quot;).+?(?=\&quot;)').Value; Start-Process $Path -Wait -Args '--uninstall --system-level --multi-install --force-uninstall'}};echo $($Found.Count)" />
-          <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptRemove" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Google Chrome" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="SoftwareName" />
         </Statement>
         <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-          <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#ScriptRemove#&quot;" />
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name like '#SoftwareName#%%'&quot; get Name | find /v &quot;Name&quot;" />
           <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
           <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
         </Statement>
-        <If description="detect if Firefox was actually installed">
+        <If description="">
           <Condition name="CheckVariable">
             <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
-            <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThan" />
-            <Parameter xsi:type="StringParameter" name="Value" value="0" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+            <Parameter xsi:type="StringParameter" name="Value" value="#SoftwareName#" />
           </Condition>
           <Then>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Comment" value="#Software# detected" />
+              <Parameter xsi:type="StringParameter" name="Comment" value="INFO: MSI installer for #global:cmdresults# detected" />
             </Statement>
-            <Statement description="double-check" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#ScriptRemove#&quot;" />
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name like '#SoftwareName#%%'&quot; call uninstall" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <Statement description="Check if uninstalled" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic product where &quot;Name like '#SoftwareName#%%'&quot; get Name | find /v &quot;Name&quot;" />
               <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
               <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
             </Statement>
             <If description="">
               <Condition name="CheckVariable">
                 <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
-                <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
-                <Parameter xsi:type="StringParameter" name="Value" value="0" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="DoesNotContain" />
+                <Parameter xsi:type="StringParameter" name="Value" value="#SoftwareName#" />
               </Condition>
               <Then>
                 <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Comment" value="#Software# was removed" />
+                  <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #SoftwareName# was uninstalled using MSI" />
                 </Statement>
               </Then>
               <Else>
                 <Statement name="WriteScriptLogEntry" continueOnFail="false">
-                  <Parameter xsi:type="StringParameter" name="Comment" value="#Software# uninstallation was not successful" />
+                  <Parameter xsi:type="StringParameter" name="Comment" value="WARNIG: Please uninstall #SoftwareName# manually" />
                 </Statement>
               </Else>
             </If>
           </Then>
           <Else>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">
-              <Parameter xsi:type="StringParameter" name="Comment" value="#Software# was not detected" />
+              <Parameter xsi:type="StringParameter" name="Comment" value="INFO: MSI installer for #SoftwareName# not detected. Checking EXE installation of #SoftwareName#" />
             </Statement>
+            <Statement description="Check for EXE installations" name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="$RegKeys=@('HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall','HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall');$null=New-PSDrive -Name HKU -PSProvider Registry -Root Registry::HKEY_USERS;$RegKeys+=gci HKU: -EA 0 | ?{$_.Name -match 'S-\d-\d+-(\d+-){1,14}\d+$'} | %{&quot;&quot;&quot;HKU:\$($_.PSChildName)\Software\Microsoft\Windows\CurrentVersion\Uninstall&quot;&quot;&quot; };$Found=@();foreach($Key in $RegKeys) {$Found+= gci $Key -EA 0 | ? {$_.GetValue('DisplayName') -match 'Google Chrome'} | Select @{n='Rem'; e={$_.GetValue('UninstallString')}} | Select -ExpandProperty 'Rem' }; Remove-PSDrive HKU;if (0 -lt $Found.Count) { foreach ($RegVal in $Found){[string]$Path=[regex]::Matches($RegVal, '(?&lt;&lt;=\&quot;).+?(?=\&quot;)').Value; Start-Process $Path -Wait -Args '--uninstall --system-level --multi-install --force-uninstall'}};echo $($Found.Count)" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptRemove" />
+            </Statement>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#ScriptRemove#&quot;" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <If description="detect if Chrome was actually installed">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThan" />
+                <Parameter xsi:type="StringParameter" name="Value" value="0" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#SoftwareName# detected" />
+                </Statement>
+                <Statement description="double-check" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#ScriptRemove#&quot;" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+                <If description="">
+                  <Condition name="CheckVariable">
+                    <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="0" />
+                  </Condition>
+                  <Then>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="#SoftwareName# was removed" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="#SoftwareName# uninstallation was not successful" />
+                    </Statement>
+                  </Else>
+                </If>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="#SoftwareName# EXE installation was not detected" />
+                </Statement>
+              </Else>
+            </If>
           </Else>
         </If>
       </Body>

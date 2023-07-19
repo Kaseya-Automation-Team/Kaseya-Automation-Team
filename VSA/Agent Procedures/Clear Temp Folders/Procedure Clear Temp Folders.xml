@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Procedure name="Clear Temp Folders" treePres="3" id="485511557" folderId="691945742625717">
     <Body description="The procedure calls PowerShell script that clears temp folders for all users and the system&#xA;&#xA;Author: Proserv Team - VS">
       <Statement description="The procedure calls PowerShell script that clears temp folders for all users and the system&#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;################################&#xD;&#xA;Set script logging variable variable. 0 - no logging. 1 - log to file" name="GetVariable" continueOnFail="false">
@@ -56,4 +56,4 @@
       </If>
     </Body>
   </Procedure>
-</ScriptExport>
+</ScExport>

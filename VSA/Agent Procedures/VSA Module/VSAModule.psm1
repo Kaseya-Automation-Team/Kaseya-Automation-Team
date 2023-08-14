@@ -89,7 +89,7 @@ public class VSAConnection
         case ConnectionState.Open:
             if (DateTime.Compare(DateTime.UtcNow, SessionExpiration) > 0)
             {
-                this.Status = ConnectionState.Expired;
+                this.Status = ConnectionState.Open;
             }
             break;
         default:
@@ -221,7 +221,7 @@ function New-VSAConnection {
             Mandatory = $true,
             Position = 0)]
         [ValidateScript(
-            {if ($_ -match '^http(s)?:\/\/([\w.-]+(?:\.[\w\.-]+)+|localhost)$') {$true}
+            {if ($_ -match '^http(s)?:\/\/([\w.-]+(?:\.[\w\.-]+)+|((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}|((([0-9a-fA-F]){1,4})\:){7}([0-9a-fA-F]){1,4}|localhost)(\/)?$') {$true}
             else {Throw "$_ is an invalid. Enter a valid address that begins with https://"}}
             )]
         [String]$VSAServer,

@@ -22,7 +22,7 @@ function Log-Event {
     )
 
     #Check if log source alread exists
-    [string] $TheSource = "VSA API Module"
+    [string] $TheSource = "VSAModule"
     [bool]   $SourceExists = try { [System.Diagnostics.EventLog]::SourceExists($TheSource) } catch {$false}
 
     #If not, create a new one

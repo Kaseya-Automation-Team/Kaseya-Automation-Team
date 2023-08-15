@@ -96,7 +96,14 @@ function Get-RequestData
     "$($MyInvocation.MyCommand). `n$LogMessage `n$Json"| Write-Debug    
    
     try {
-            $response = Invoke-RestMethod @requestParameters -ErrorAction Stop
+            $response = try {
+            Invoke-RestMethod @requestParameters -ErrorAction Stop
+            } catch {
+                [string]$Msg = "Request URI: `"$URI`"`nStatusCode: $($_.Exception.Response.StatusCode.value__)`nStatusDescription: $($_.Exception.Response.StatusDescription)"
+                if( $Body ) { $Msg += "`nRequest body:`n$Body" }
+                Write-Error $Msg
+                $null
+            }
             if ($response) {
                 "$($MyInvocation.MyCommand). Response:`n$response" | Out-String | Write-Debug
                 if ( ($response.ResponseCode -match "(^0$)|(^20\d$)" ) -or ('OK' -eq $response.Status) ) {

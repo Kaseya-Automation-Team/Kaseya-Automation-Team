@@ -22,14 +22,15 @@ function Log-Event {
     )
 
     #Check if log source alread exists
-    $SourceExists = try { [System.Diagnostics.EventLog]::SourceExists("VSA API Module") } catch {$false}
+    [string] $TheSource = "VSA API Module"
+    [bool]   $SourceExists = try { [System.Diagnostics.EventLog]::SourceExists($TheSource) } catch {$false}
 
     #If not, create a new one
     if ( -Not $SourceExists ) {
-        New-EventLog -LogName Application -Source "VSA API Module"
+        New-EventLog -LogName Application -Source $TheSource
     }
 
-    Write-EventLog -LogName Application -Source "VSA API Module" -EntryType $Type -EventID $Id -Message $Msg -Category 0
-    $CurrentTime = Get-Date
-    Write-Host "$CurrentTime`: $Type`: $Msg"
+    Write-EventLog -LogName Application -Source $TheSource -EntryType $Type -EventID $Id -Message $Msg -Category 0
+    #$CurrentTime = Get-Date
+    #Write-Host "$CurrentTime`: $Type`: $Msg"
 }

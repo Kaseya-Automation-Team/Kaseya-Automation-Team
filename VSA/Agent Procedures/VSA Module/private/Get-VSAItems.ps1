@@ -75,10 +75,12 @@
             $CombinedURL = "$($VSAConnection.URI)/$URISuffix"
             $UsersToken = "Bearer $( $VSAConnection.GetToken() )"
         }
+        <#
         else
         {
             throw "Connection status: $ConnectionStatus`n"
         }
+        #>
     }
     #region Filterin, Sorting, Paging
     [string]$JoinWith = '?'

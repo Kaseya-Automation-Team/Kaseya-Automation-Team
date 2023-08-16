@@ -55,10 +55,10 @@
             })]
         [string] $NewFieldName,
 
-        [parameter(Mandatory=$true,
+        [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'UpdateValue')]
-        [string] $FieldValue,
+        [string] $FieldValue=[string]::Empty,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,

@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="NOC. Gather Agent Statuses" treePres="3" id="2029523763" folderId="758928721472121" treeFullPath="NOC">
+    <Body description="This procedure serves to identify the online/offline status of VSA endpoints and generate a report in Excel format">
+      <Statement description="This procedure serves to identify the online/offline status of VSA endpoints and generate a report in Excel format.&#xD;&#xA;The report is generated within the Dedicated Endpoint on the Kaseya agent's working directory, typically located at C:\kworking.&#xD;&#xA;Additionally, the procedure facilitates the transfer of the report file to the VSA Server. The file is transferred to the Dedicated Endpoint's designated folder within the UserProfilesInfo directory.&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="desktop-hlnrjce.monta.miami" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="DedicatedEndpoint" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="gonzalo.carrillo@proserv.us" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="VSAUserName" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="cb053d20-93ee-4d5a-8ff9-cd305dd30ac5" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="VSAUserPAT" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Week" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="TimeUnitType" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="1" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="TimeUnitQuantity" />
+      </Statement>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#vAgentConfiguration.Machine_GroupID#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="#DedicatedEndpoint#" />
+        </Condition>
+        <Then>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="New-OfflineReport.ps1" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="TheScript" />
+          </Statement>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="#vAgentConfiguration.agentTempSecureDir#\NOC.csv" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="LogFilePath" />
+          </Statement>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="#vAgentConfiguration.agentTempDir#\OfflineReport.xlsx" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="ExcelPath" />
+          </Statement>
+          <Statement name="WriteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+            <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\NOC\#TheScript#" />
+            <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+          </Statement>
+          <If description="">
+            <Condition name="TestFile">
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\#TheScript#" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              <Parameter xsi:type="StringParameter" name="Value" value="" />
+            </Condition>
+            <Then>
+              <If description="">
+                <Condition name="TestFile">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#ExcelPath#" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="" />
+                </Condition>
+                <Then>
+                  <Statement name="DeleteFile" continueOnFail="true">
+                    <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/NOC1.xlsx" />
+                  </Statement>
+                </Then>
+              </If>
+              <Statement description="Executing the PowerShell script to create the report" name="ExecuteShellCommand" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#vAgentConfiguration.agentTempSecureDir#\#TheScript# -VSAServerAddress '#vAgentConfiguration.primaryKServer#;#vAgentConfiguration.secondaryKServer#' -VSAUserName '#VSAUserName#' -VSAUserPAT '#VSAUserPAT#' -TimeUnitType '#TimeUnitType#' -TimeUnitQuantity '#TimeUnitQuantity#' -ExcelPath '#ExcelPath#' -LogFilePath '#LogFilePath#'&quot;" />
+                <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+              </Statement>
+              <If description="">
+                <Condition name="TestFile">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#ExcelPath#" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="" />
+                </Condition>
+                <Then>
+                  <Statement description="Pull the output file to the VSA server and put into the agent's folder inside the UserProfilesInfo directory" name="GetFile" continueOnFail="true">
+                    <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#ExcelPath#" />
+                    <Parameter xsi:type="StringParameter" name="KServerFileName" value="NOC\NOC1.xlsx" />
+                    <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteSendAlert" />
+                  </Statement>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="INFO: Report on machines online status is saved to the file &lt;#ExcelPath#&gt; on the Dedicated Endpoint &lt;#DedicatedEndpoint#&gt;" />
+                  </Statement>
+                </Then>
+              </If>
+              <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+              </Statement>
+            </Then>
+            <Else>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. Could not download #TheScript# from the VSA Server" />
+              </Statement>
+            </Else>
+          </If>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="WARNING. The procedure configured to run on Dedicated Endpoint [#DedicatedEndpoint#]" />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

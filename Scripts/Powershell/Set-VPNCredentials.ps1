@@ -46,9 +46,9 @@
         ParameterSetName = 'Remove')]
     [switch]$Remove,
 
-[parameter(Mandatory=$true, 
+[parameter(Mandatory=$false, 
         ParameterSetName = 'Add')]
-[parameter(Mandatory=$true, 
+[parameter(Mandatory=$false, 
         ParameterSetName = 'Remove')]
 [ValidateNotNullOrEmpty()]
     [switch]$AllUserConnection

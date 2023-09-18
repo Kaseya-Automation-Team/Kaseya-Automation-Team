@@ -54,71 +54,70 @@
     [switch]$AllUserConnection
 )
 
-#region Checking & installing VpnClient Module
-[string] $ModuleName = 'VpnClient'
-[string] $PkgProvider = 'NuGet'
+$TheScript = @'
+    [string] $ModuleName = 'VpnClient'
+    [string] $PkgProvider = 'NuGet'
+    if ( -not ((Get-Module -ListAvailable | Select-Object -ExpandProperty Name) -contains $ModuleName) ) {{
 
-if ( -not ((Get-Module -ListAvailable | Select-Object -ExpandProperty Name) -contains $ModuleName) ) {
-    Write-Debug "Please wait for the necessary modules to install."
-    if ( -not ((Get-PackageProvider -ListAvailable | Select-Object -ExpandProperty Name) -contains $PkgProvider) ) {
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        Install-PackageProvider -Name $PkgProvider -Force -Confirm:$false
-    }
-    Install-Module -Name $ModuleName -Force -Confirm:$false
-}
-Import-Module $ModuleName
-if ( -Not (Get-Module -ListAvailable -Name $ModuleName) ) {
-    throw "ERROR: the PowerShell module <$ModuleName> is not available"
-}  else {
-    Write-Debug "INFO: The Module <$ModuleName> imported successfully."
-}
-#endregion Checking & installing VpnClient Module
+        Write-Debug 'Please wait for the necessary modules to install.'
 
-[scriptblock] $Scriptblock = {
+        if ( -not ((Get-PackageProvider -ListAvailable | Select-Object -ExpandProperty Name) -contains $PkgProvider) ) {{
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            Install-PackageProvider -Name $PkgProvider -Force -Confirm:$false
+        }}
+        Install-Module -Name $ModuleName -Force -Confirm:$false
+    }}
 
-    [hashtable]$Parameters = @{
-        Name  = $VpnConnectionName
+    Import-Module $ModuleName
+    if ( -Not (Get-Module -ListAvailable -Name $ModuleName) ) {{
+        throw "ERROR: the PowerShell module <$ModuleName> is not available"
+    }}  else {{
+        Write-Debug "INFO: The Module <$ModuleName> imported successfully."
+    }}
+
+    [hashtable]$Parameters = @{{
+        Name  = "{0}"
         Force = $true
-    }
-    if ($AllUserConnection) {{$Parameters.Add('AllUserConnection', $true)}}
+    }}
+    if ( [System.Convert]::ToBoolean("{1}") ) {{$Parameters.Add('AllUserConnection', $true)}}
 
-    if ($Remove) {
-        try {
+    if ( [System.Convert]::ToBoolean("{2}")) {{
+        try {{
             Remove-VpnConnection @Parameters
-        } catch {
+        }} catch {{
             Throw "Failed to remove VPN credentials. Error: $($_.Exception.Message)"
-        }
-    } else {
+        }}
+    }} else {{
     
-        $Parameters.Add('ServerAddress', $ServerAddress)
+        $Parameters.Add('ServerAddress', "{3}")
         $Parameters.Add('PassThru', $true)
     
-        if ($RememberCredential) {$Parameters.Add('RememberCredential', $true)}
+        if ( [System.Convert]::ToBoolean("{4}")) {{$Parameters.Add('RememberCredential', $true)}}
     
-        if ( -not [string]::IsNullOrEmpty($TunnelType) ) {$Parameters.Add('TunnelType', $TunnelType)}
+        if ( -not [string]::IsNullOrEmpty("{5}") ) {{$Parameters.Add('TunnelType', "{5}")}}
 
-        if ( -not [string]::IsNullOrEmpty($EncryptionLevel) ) {$Parameters.Add('EncryptionLevel', $EncryptionLevel)}
+        if ( -not [string]::IsNullOrEmpty("{6}") ) {{$Parameters.Add('EncryptionLevel', "{6}")}}
     
-        if ( -not [string]::IsNullOrEmpty($AuthenticationMethod) ) {$Parameters.Add('AuthenticationMethod', $AuthenticationMethod)}
+        if ( -not [string]::IsNullOrEmpty("{7}") ) {{$Parameters.Add('AuthenticationMethod', "{7}")}}
 
-        if ( -not [string]::IsNullOrEmpty($L2tpPsk) ) {$Parameters.Add('L2tpPsk', $L2tpPsk)}
+        if ( -not [string]::IsNullOrEmpty("{8}") ) {{$Parameters.Add('L2tpPsk', "{8}")}}
 
-        if ($UseWinlogonCredential) {$Parameters.Add('UseWinlogonCredential', $true)}
+        if ( [System.Convert]::ToBoolean("{9}")) {{$Parameters.Add('UseWinlogonCredential', $true)}}
 
-        try {
+        try {{
             $vpnConnection = Add-VpnConnection @Parameters
-        } catch {
+        }} catch {{
             Write-Host "Failed to add VPN credentials. Error: $($_.Exception.Message)"
-        }
-    }
-}
+        }}
+    }}
+'@ -f $VpnConnectionName, $AllUserConnection, $Remove, $ServerAddress, $RememberCredential, $TunnelType, $EncryptionLevel, $AuthenticationMethod, $L2tpPsk, $UseWinlogonCredential
 
 if ($AllUserConnection) {
+    [scriptblock] $Scriptblock = [scriptblock]::Create($TheScript)
     Invoke-Command -ScriptBlock $Scriptblock
 } else {
     #Add VPN connection to the logged-in users via scheduled task
-    $str = $ScriptBlock.ToString()
-    $EncodedCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($str))
+    $EncodedCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($TheScript))
 
     #region Get logged in users
     [string] $SIDPattern = 'S-1-5-21-\d+-\d+\-\d+\-\d+$'
@@ -146,6 +145,7 @@ if ($AllUserConnection) {
 
     if ( 0 -ne $LoggedInUsers.Length )
     {
+        [int]$DelaySeconds = 5
     
         Foreach ( $UserPrincipal in $LoggedInUsers )
         {

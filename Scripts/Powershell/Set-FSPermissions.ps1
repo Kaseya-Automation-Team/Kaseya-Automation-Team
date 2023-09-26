@@ -1,4 +1,23 @@
-﻿param (
+﻿<#
+.Synopsis
+    Set file system permission for a user or group.
+.PARAMETER Path
+    The file system path to manage permission.
+.PARAMETER UserOrGroup
+    The account to set permissions for.
+.PARAMETER Permissions
+    Valid values are: 'ListDirectory', 'ReadData', 'WriteData', 'CreateFiles', 'CreateDirectories', 'AppendData', 'ReadExtendedAttributes', 'WriteExtendedAttributes', 'Traverse', 'ExecuteFile', 'DeleteSubdirectoriesAndFiles', 'ReadAttributes', 'WriteAttributes', 'Write', 'Delete', 'ReadPermissions', 'Read', 'ReadAndExecute', 'Modify', 'ChangePermissions', 'TakeOwnership', 'Synchronize' and 'FullControl'.
+.PARAMETER AccessType
+    Access Type. Valid values are: 'Allow' and 'Deny'
+.PARAMETER $RemoveRights
+    (Optional) Remove specified file system rights.
+.EXAMPLE
+    .\Set-FSPermissions -Path c:\temp -Permissions Read, Write -UserOrGroup TestUser
+.NOTES
+    Version 0.1   
+    Author: Proserv Team - VS
+#>
+param (
 [parameter(Mandatory=$true, 
         ParameterSetName = 'Add')]
 [ValidateScript({
@@ -7,7 +26,7 @@
     }
     return $true
     })]
-    [string[]] $permissions,
+    [string[]] $Permissions,
 
 [parameter(Mandatory=$true, 
         ParameterSetName = 'Add')]
@@ -61,7 +80,7 @@ if ($RemoveRights) {
     # Add the permission to the ACL
     $InheritanceFlags=[System.Security.AccessControl.InheritanceFlags]"ContainerInherit, ObjectInherit"
     $PropagationFlags=[System.Security.AccessControl.PropagationFlags]"None"
-    $FileSystemRights=[System.Security.AccessControl.FileSystemRights]"$($permissions -join ',')"
+    $FileSystemRights=[System.Security.AccessControl.FileSystemRights]"$($Permissions -join ',')"
     $AccessControl = [System.Security.AccessControl.AccessControlType]$AccessType
 
     if ((Get-Item $Path) -is [System.IO.DirectoryInfo]) {

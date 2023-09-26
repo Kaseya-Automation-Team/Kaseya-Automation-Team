@@ -9,7 +9,7 @@
     Valid values are: 'ListDirectory', 'ReadData', 'WriteData', 'CreateFiles', 'CreateDirectories', 'AppendData', 'ReadExtendedAttributes', 'WriteExtendedAttributes', 'Traverse', 'ExecuteFile', 'DeleteSubdirectoriesAndFiles', 'ReadAttributes', 'WriteAttributes', 'Write', 'Delete', 'ReadPermissions', 'Read', 'ReadAndExecute', 'Modify', 'ChangePermissions', 'TakeOwnership', 'Synchronize' and 'FullControl'.
 .PARAMETER AccessType
     Access Type. Valid values are: 'Allow' and 'Deny'
-.PARAMETER $RemoveRights
+.PARAMETER RemoveRights
     (Optional) Remove specified file system rights.
 .EXAMPLE
     .\Set-FSPermissions -Path c:\temp -Permissions Read, Write -UserOrGroup TestUser

@@ -158,7 +158,7 @@
             "Invoke-VSARestMethod`nRecords: $TotalRecords" | Write-Debug
         }
         if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-            "Invoke-VSARestMethod`nRecords: $TotalRecords"
+            "Invoke-VSARestMethod`nRecords: $TotalRecords"  | Write-Verbose
         }
         #endregion messages to verbose and debug streams
 

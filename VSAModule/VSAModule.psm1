@@ -112,7 +112,7 @@ function New-VSAConnection {
         [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
-        [string] $URISuffix = 'API/v1.0/Auth',
+        [string] $AuthSuffix = 'API/v1.0/Auth',
 
         [switch] $IgnoreCertificateErrors
     )  
@@ -126,9 +126,6 @@ function New-VSAConnection {
     }
     
     [string]$UserName = $Credential.username
-
-    # If there's the trailing backslash, remove it
-    $VSAServer = $VSAServer.TrimEnd('/')
             
     $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Credential.password)
 
@@ -136,14 +133,15 @@ function New-VSAConnection {
 
     [string] $AuthString  = "Basic $Encoded"
 
-    [string]$URI = "{0}/{1}" -f $VSAServer, $URISuffix
 
-    [string]$Msg = "Attempting authentication for user '$UserName' on VSA server '$VSAServer'."
-    $Msg | ForEach-Object { Write-Debug $_; Write-Verbose $_; Write-Host $_ -ForegroundColor Gray  }
+    $VSAServerUri = New-Object System.Uri -ArgumentList $VSAServer
+    [string]$AuthEndpoint = [System.Uri]::new($VSAServerUri, $AuthSuffix) | Select-Object -ExpandProperty AbsoluteUri
+ 
+    Write-Host "Attempting authentication for user '$UserName' on VSA server '$VSAServer'." -ForegroundColor Gray
 
     [hashtable]$AuthParams = @{
-        URI = $URI
-        AuthString = $AuthString
+        URI                     = $AuthEndpoint
+        AuthString              = $AuthString
         IgnoreCertificateErrors = $IgnoreCertificateErrors
     }
 
@@ -153,18 +151,20 @@ function New-VSAConnection {
         [datetime] $SessionExpiration = [DateTime]::ParseExact($result.SessionExpiration, "yyyy-MM-ddTHH:mm:ssZ", [System.Globalization.CultureInfo]::InvariantCulture)
         $SessionExpiration = $SessionExpiration.AddMinutes($result.OffSetInMinutes)
 
-        "Authenticated. Session token expiration date: $SessionExpiration (UTC)." | ForEach-Object { Write-Verbose $_; Write-Debug $_; Write-Host $_}
-        $result | ConvertTo-Json | Write-Debug
+        [string]$Msg = "User '$UserName' authenticated on VSA server '$VSAServer'. Session token expiration date: $SessionExpiration (UTC)."
+        Write-Host $Msg
+        if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+            Write-Verbose $Msg
+        }
+        if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+            Write-Debug $Msg
+            Write-Debug "New-VSAConnection result: '$($result | ConvertTo-Json)'"
+        }
+
         $VSAConnection = [VSAConnection]::new($VSAServer, $result.UserName, $result.Token, $ignoreCertificateErrors, $SessionExpiration)
 
     } else {
-        "Could not get authentication response" | ForEach-Object { Write-Verbose $_; Write-Debug $_; Write-Host $_ -ForegroundColor Red}
 		throw "Could not get authentication response"
-    }
-
-    if ( 'Open' -eq $VSAConnection.GetStatus() ) {
-        [string]$Msg = "Authentication successful."
-        $Msg | ForEach-Object { Write-Debug $_; Write-Verbose $_; Write-Host $_ -ForegroundColor Green }
     }
 
     return $VSAConnection

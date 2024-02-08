@@ -24,7 +24,7 @@ function New-VSAMachineGroup
     .NOTES
         Version 0.1.1
     #>
-    [alias("Add-VSAMachineGroup")]
+    [alias("Add-VSAMachineGroup", "New-VSAMG")]
     [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $true, 
@@ -86,6 +86,10 @@ function New-VSAMachineGroup
         if ( $null -eq $ParentOrganization ) { 
             Write-Warning "Could not find find the parent Organization by the OrgId provided '$OrgId' for the new Group '$MachineGroupName'."
             return $false
+        } else {
+            if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+                Write-Debug "New-VSAMachineGroup. Organization for Machine Group '$MachineGroupName' found."
+            }
         }
         $URISuffix = $URISuffix -f $OrgId
 
@@ -108,11 +112,18 @@ function New-VSAMachineGroup
             if ( [string]::IsNullOrEmpty($ParentMachineGroup) ) {
                 Write-Warning "Could not find find the Parent Machine Group by the ParentMachineGroupId provided '$ParentMachineGroupId' for '$MachineGroupName'."
             }
+        } else {
+            $BodyHT.Remove("ParentMachineGroupId")
         }
+
+        #region Process Attributes
         if ( -not [string]::IsNullOrEmpty($Attributes) ) {
             [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
             $BodyHT['Attributes'] = $AttributesHT
+        } else {
+            $BodyHT.Remove("Attributes")
         }
+        #endregion Process Attributes
    
         $Body = $BodyHT | ConvertTo-Json
         if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {

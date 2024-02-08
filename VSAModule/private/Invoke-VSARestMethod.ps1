@@ -73,7 +73,7 @@
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
         [ValidateRange(1,100)]
-        [int]$RecordsPerPage = 100,
+        [int] $RecordsPerPage = 100,
 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]

@@ -69,7 +69,7 @@
     .NOTES
         Version 0.1.1
 #>
-    [alias("Add-VSAOrganization")]
+    [alias("Add-VSAOrganization", "New-VSAOrg")]
     [CmdletBinding(SupportsShouldProcess)]
     param (
         [parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
@@ -293,6 +293,8 @@
         if ( [string]::IsNullOrEmpty($ParentOrg) ) {
             Write-Warning "Could not find the Parent Organization by the ParentOrgId provided '$ParentOrgId' for '$OrgName'."
         }
+    } else {
+        $BodyHT.Remove("ParentOrgId")
     }
 
     #Remove empty keys

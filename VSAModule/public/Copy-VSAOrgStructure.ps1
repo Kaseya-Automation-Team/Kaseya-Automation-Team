@@ -34,32 +34,30 @@
         [array] $OrgsToTransfer
     )
 
-    # Sort Source Organizations So Parent Organizations Come First
-    $OrgsToTransfer = $OrgsToTransfer | Where-Object { -not [string]::IsNullOrEmpty($_.OrgId) }
+    if ( $SourceVSA -eq $DestinationVSA ) {
+        throw "The Source and the Destionation is the same VSA Environment!"
+    }
 
     [hashtable]$DestinationParams = @{VSAConnection = $DestinationVSA}
     [hashtable]$SourceParams      = @{VSAConnection = $SourceVSA}
 
-    # Retrieve existing organizations in the destination
-    [array] $global:DestinationOrgs = Get-VSAOrganization @DestinationParams
-    [array] $SourceOrgs             = Get-VSAOrganization @SourceParams
+    # Retrieve existing organizations in the source and the destination
+    [array] $SourceOrgs      = Get-VSAOrganization @SourceParams
+    [array] $DestinationOrgs = Get-VSAOrganization @DestinationParams
 
     #region message
     if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
         "Organizations to be created: [$($OrgsToTransfer.OrgRef -join '; ')]" | Write-Debug
-        "Organizations already present in the destination: [$($global:DestinationOrgs.OrgRef -join '; ')]" | Write-Debug
+        "Organizations already present in the destination: [$($DestinationOrgs.OrgRef -join '; ')]" | Write-Debug
     }
     if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
         "Organizations to be created: [$($OrgsToTransfer.OrgRef -join '; ')]" | Write-Verbose
-        "Organizations already present in the destination: [$($global:DestinationOrgs.OrgRef -join '; ')]" | Write-Verbose
+        "Organizations already present in the destination: [$($DestinationOrgs.OrgRef -join '; ')]" | Write-Verbose
     }
     #endregion message
 
     Foreach ($Organization in $OrgsToTransfer | Sort-Object -Property @{
                 Expression = { $_.Orgref.Split('.').Count }
-            }, @{
-                Expression = {$_.ParentOrgId}
-                Ascending = $false
             }, @{
                 Expression = {$_.OrgRef}
                 Ascending = $false
@@ -69,64 +67,65 @@
 
         [string]$Info = "Processing Organization: '$($Organization.OrgRef)'"
         #region message
-        Write-Host $Info -ForegroundColor Cyan
         if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) { Write-Debug $Info }
         if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) { Write-Verbose $Info }
         #endregion message
-        [string] $ParentOrgId = [string]::Empty
+
+        #region Define the current Organiztion's own OrgRef and the parent organization OrgRef (if exists)
+
+        [string] $OwnOrgRef = ($Organization.OrgRef.split('.'))[-1]
+
+        $ParentOrgRef = [string]::Empty
+        [int] $strLength = $organization.OrgRef.LastIndexOf('.')
+        if (0 -lt $strLength ) {
+            [string] $ParentOrgRef = $organization.OrgRef.Substring( 0, $strLength )
+        }
+        
+        $Organization.OrgRef = $OwnOrgRef
+        
+        #endregion Define the current Organiztion's own OrgRef and the parent organization OrgRef (if exists)
+
 
         # Check if the Parent Organization already exists in the destination.
-        if (-not [string]::IsNullOrEmpty($Organization.ParentOrgId)) {
+        if ( -not [string]::IsNullOrEmpty($ParentOrgRef) ) {
 
-            # Obtain ParentOrgId by orgref
-            $ParentRef = $SourceOrgs | Where-Object { $_.OrgId -eq $Organization.ParentOrgId } | Select-Object -ExpandProperty OrgRef
+            $DestinationParentOrgId =  Get-VSAOrganization @DestinationParams -Filter "OrgRef eq '$ParentOrgRef'" | Select-Object -ExpandProperty OrgId
 
-            if ([string]::IsNullOrEmpty($ParentRef)) {
-                #region message
-                if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-                    Write-Debug "Parent Organization for '$($Organization.OrgRef)' not found in the source. Skip now"
-                }
-                if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-                    Write-Verbose "Parent Organization for '$($Organization.OrgRef)' not found in the source. Skip now"
-                }
-                #endregion message
-                continue
-
-            } else {
-                $ParentOrgId = $global:DestinationOrgs | Where-Object { $_.OrgRef -eq $ParentRef } | Select-Object -ExpandProperty OrgId
-                #region message
-                if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-                    Write-Debug "Parent Organization for '$($Organization.OrgRef)' : '$ParentRef'. Destination ParentOrgId: '$ParentOrgId'. Will try to create"
-                }
-                if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-                    Write-Verbose "Parent Organization for '$($Organization.OrgRef)' : '$ParentRef'. Destination ParentOrgId: '$ParentOrgId'. Will try to create"
-                }
-                #endregion message
-                $Organization.ParentOrgId = $ParentOrgId 
+            #region message
+            if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+                Write-Debug "Parent Organization for '$($Organization.OrgRef)' : '$ParentOrgRef'. Destination ParentOrgId: '$DestinationParentOrgId'."
             }
+            if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+                Write-Verbose "Parent Organization for '$($Organization.OrgRef)' : '$ParentOrgRef'. Destination ParentOrgId: '$DestinationParentOrgId'."
+            }
+            #endregion message
+
+            #Replace source's ParentOrgId with the destination's counterpart
+            $Organization.ParentOrgId = $DestinationParentOrgId
         }
 
-        [array]$CheckDestination = $global:DestinationOrgs | Where-Object { $_.OrgRef -eq $Organization.OrgRef }
-
+        #region message
         if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-            Write-Debug   "Look up the Destination for <$($Organization.OrgRef)>: found [$($CheckDestination.Count)]"
+            Write-Debug   "Look up the Destination for '$($Organization.OrgRef)'"
         }
         if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-            Write-Verbose "Look up the Destination for <$($Organization.OrgRef)>: found [$($CheckDestination.Count)]"
+            Write-Verbose "Look up the Destination for '$($Organization.OrgRef)'"
         }
+        #endregion message
 
-        if (0 -eq $CheckDestination.Count) {
+        $CheckDestination = Get-VSAOrganization @DestinationParams -Filter "OrgRef eq '$OwnOrgRef'"
+
+        if ( $null -eq $CheckDestination ) {
             # The Organization does not exist in the Destination. Create
-
-            [string]$OrgRef = ($Organization.OrgRef.split('.'))[-1]
-            $Organization.OrgRef = $OrgRef
 
             $NewOrgParams = $DestinationParams.Clone()
             $NewOrgParams.Add('ExtendedOutput',  $true)
 
+            if ($PSCmdlet.MyInvocation.BoundParameters['Debug'])   { $NewOrgParams.Add('Debug', $true) }
+            if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) { $NewOrgParams.Add('Verbose', $true) }
+
             #region message
-            $Info = "Organization with OrgRef '$($Organization.OrgRef)' was not found in the destination. Attempting to create it."
-            Write-Host $Info -ForegroundColor Cyan
+            $Info = "Organization with OrgRef '$($Organization.OrgRef)' was not found in the destination. Will attempt to create it."
             if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) { Write-Debug $Info }
             if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) { Write-Verbose $Info }
 
@@ -134,6 +133,7 @@
                 "Organization will be created with the following data:`n'$($Organization | ConvertTo-Json -Depth 3 | Out-String)'" | Write-Debug
             }
             #endregion message
+            
             $NewOrgId = try {
                 $Organization | New-VSAOrganization @NewOrgParams
             } catch {
@@ -143,10 +143,13 @@
             if ($NewOrgId -match "^\d+$") {
                 #region message
                 $Info = "Successfully created organization '$($Organization.OrgRef)' with ID '$NewOrgId'."
-                Write-Host $Info -ForegroundColor Green
-                if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) { Write-Debug $Info }
+                Write-Host $Info
                 if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) { Write-Verbose $Info }
+                if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) { Write-Debug $Info }
                 #endregion message
+
+                #Make the REST API wait while the BackEnd updates the information
+                $null = Get-VSAOrganization @DestinationParams -OrgID $NewOrgId
             } else {
                 #region message
                 $Info = "Something went wrong while creating '$($Organization.OrgRef)'. Returned ID: '$NewOrgId'"
@@ -159,33 +162,9 @@
                 #endregion message
             } 
         }
-
-        $global:DestinationOrgs = Get-VSAOrganization @DestinationParams
-
-        [array]$DirectChildren = $SourceOrgs | Where-Object { $_.ParentOrgId -eq $Organization.OrgId }
-
-        if (0 -lt $DirectChildren.Count) {
-
-            $CreateOrgParams = [ordered]@{
-                SourceVSA      = $SourceVSA
-                DestinationVSA = $DestinationVSA
-                OrgsToTransfer = $DirectChildren
-            }
-
-            #region message
-            $Info = "--- Processing Direct children of <$($Organization.OrgRef)> ---`n[$($DirectChildren.Count)] Direct children of '$($Organization.OrgRef)' to be created:`n[$($DirectChildren.OrgRef -join '; ')]`n==============="
-            Write-Host $Info
-            if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) { 
-                $Info += "`nRecursive call of Copy-VSAOrgStructure with parameters:`n$($CreateOrgParams | Out-String)"
-                Write-Debug $Info
-            }
-            if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-                $Info += "`nRecursive call of Copy-VSAOrgStructure with parameters:`n$($CreateOrgParams | Out-String)"
-                Write-Verbose $Info
-            }
-            #endregion message
-
-            Copy-VSAOrgStructure @CreateOrgParams
+        else {
+            #$CheckDestination is not null
+            continue
         }
     } # Foreach
 }

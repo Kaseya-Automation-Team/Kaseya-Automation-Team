@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="NOC. Gather Vulnerable Computers" treePres="3" id="124801059" folderId="758928721472121" treeFullPath="NOC">
+    <Body description="">
+      <Statement description="This procedure leverages a PowerShell script that handles reports received via email in Excel format. &#xD;&#xA;The script identifies and extracts Excel files from email attachments and retrieves report data. It further processes the extracted data to summarize gathered information on vulnerable VSA endpoints.&#xD;&#xA;The script generates a new Excel report that summarizes information about vulnerable computers across current and previous periods.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="desktop-hlnrjce.monta.miami" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="DedicatedEndpoint" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="gonzalo.carrillo@proserv.us" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="VSAUserName" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="cb053d20-93ee-4d5a-8ff9-cd305dd30ac5" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="VSAUserPAT" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Week" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="TimeUnitType" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="1" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="TimeUnitQuantity" />
+      </Statement>
+      <If description="">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#vAgentConfiguration.Machine_GroupID#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+          <Parameter xsi:type="StringParameter" name="Value" value="#DedicatedEndpoint#" />
+        </Condition>
+        <Then>
+          <Statement description="Set EMail account parameters" name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="#vAgentConfiguration.agentTempSecureDir#/NOC2.csv" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="LogFilePath" />
+          </Statement>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="pop.gmail.com" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="MailServer" />
+          </Statement>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="doej48056@gmail.com" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="MailAddress" />
+          </Statement>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="vldzzmvmcbpzoavn" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="MailPwd" />
+          </Statement>
+          <Statement description="Output report file" name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="#vAgentConfiguration.agentTempDir#\VulnerabilitiesReport.xlsx" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="ReportPath" />
+          </Statement>
+          <Statement description="Download the script" name="WriteFile" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/New-VulnerableReport.ps1" />
+            <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\NOC\New-VulnerableReport.ps1" />
+            <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+          </Statement>
+          <If description="">
+            <Condition name="TestFile">
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/New-VulnerableReport.ps1" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              <Parameter xsi:type="StringParameter" name="Value" value="" />
+            </Condition>
+            <Then>
+              <Statement description="Download the DLL for the script" name="WriteFile" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/OpenPop.dll" />
+                <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\NOC\OpenPop.dll" />
+                <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+              </Statement>
+              <If description="">
+                <Condition name="TestFile">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/OpenPop.dll" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="" />
+                </Condition>
+                <Then>
+                  <Statement name="ExecuteShellCommand" continueOnFail="false">
+                    <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#vAgentConfiguration.agentTempSecureDir#/New-VulnerableReport.ps1 -VSAServerAddress '#vAgentConfiguration.primaryKServer#;#vAgentConfiguration.secondaryKServer#' -VSAUserName '#VSAUserName#' -VSAUserPAT '#VSAUserPAT#' -ReportPath '#ReportPath#' -LogFilePath '#LogFilePath#'&quot; -MailServer '#MailServer#' -MailAddress '#MailAddress#' -MailPwd '#MailPwd#' -TimeUnitType '#TimeUnitType#' -TimeUnitQuantity '#TimeUnitQuantity#' &quot;" />
+                    <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+                    <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+                  </Statement>
+                </Then>
+                <Else>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. Could not download OpenPop.dll from the VSA Server" />
+                  </Statement>
+                </Else>
+              </If>
+              <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/New-VulnerableReport.ps1" />
+              </Statement>
+            </Then>
+            <Else>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. Could not download  from #vAgentConfiguration.agentTempSecureDir#/Set-VulnerablesField.ps1 the VSA Server" />
+              </Statement>
+            </Else>
+          </If>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="WARNING. The procedure configured to run on Dedicated Endpoint [#DedicatedEndpoint#]" />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

@@ -4,8 +4,9 @@
        Creates a custom field.
     .DESCRIPTION
        Creates a custom field of given type.
+       Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
-        Specifies an established VSAConnection.
+        Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .PARAMETER FieldName
@@ -13,20 +14,20 @@
     .PARAMETER FieldType
         New Field Type: "string", "number", "datetime", "date", "time".
     .EXAMPLE
-       New-VSACustomField -VSAConnection $VSAConnection -FieldName 'MyField'
+       New-VSACustomField -FieldName 'MyField'
     .EXAMPLE
-       New-VSACustomField -VSAConnection $VSAConnection -FieldName 'MyField' -FieldType datetime
+       New-VSACustomField -FieldName 'MyField' -FieldType datetime
     .INPUTS
-       Accepts piped VSAConnection 
+       Accepts piped non-persistent VSAConnection 
     .OUTPUTS
        True if creation was successful
     .NOTES
-        Version 0.1.1
+        Version 0.1.0
     #>
     [alias("Add-VSACustomField")]
     [CmdletBinding(SupportsShouldProcess)]
     param (
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
@@ -47,13 +48,12 @@
         [ValidateSet("string", "number", "datetime", "date", "time")]
         [string]$FieldType = 'string'
         )
-
+    
     [bool]$result = $false
 
-    #[string[]]$ExistingFields = Get-VSACustomFields -Filter "FieldName eq `'$FieldName`'"
     [string[]]$ExistingFields = Get-VSACustomFields -VSAConnection $VSAConnection | Select-Object -ExpandProperty FieldName 
 
-    If ($FieldName -notin $ExistingFields) {
+    if ($FieldName -notin $ExistingFields) {
         
         $Body = @'
 [
@@ -73,6 +73,11 @@
             URISuffix      = $URISuffix
             Method         = 'POST'
             Body           = $Body
+        }
+
+        #Remove empty keys
+        foreach ( $key in $Params.Keys.Clone() ) {
+            if ( -not $Params[$key] )  { $Params.Remove($key) }
         }
         
         $result = Invoke-VSARestMethod @Params

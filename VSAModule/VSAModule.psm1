@@ -1,60 +1,156 @@
 ﻿<#
    Kaseya VSA9 REST API Wrapper
-   Version 0.8.1
+   Version 0.1.0
    Author: Vladislav Semko
+   Description:
+   VSAModule for Kaseya VSA 9 REST API is a PowerShell module that provides cmdlets for interacting with the Kaseya VSA 9 platform via its REST API.
+   This module simplifies the process of automating tasks, retrieving data, and managing resources within the Kaseya VSA 9 environment directly from PowerShell scripts or the command line.
+
+    Key Features:
+    - Intuitive cmdlets for common operations such as retrieving information about assests and managing entities.
+    - Secure authentication methods, including support for API tokens, ensuring the confidentiality of sensitive information.
+    - Examples to help users get started quickly and effectively integrate Kaseya VSA 9 functionality into their automation workflows.
+
+    This module is distributed under the MIT License, allowing for free use, modification, and distribution by users.
 #>
 
 #Import additional functions from Private and Public folders
 $Public  = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction SilentlyContinue )
 $Private = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue )
 
-Foreach($file in @($Public + $Private)) {
+Foreach($import in @($Public + $Private)) {
     Try {
-        . $file.fullname
+        . $import.fullname
     } Catch {
-        Write-Warning -Msg "Failed to import commandlet: `'$($file.fullname)`': $_"
+        Write-Warning -Msg "Failed to import function $($import.fullname): $_"
 		Continue
     }
 }
+
 #region Class VSAConnection
-Add-Type -TypeDefinition @"
-    using System;
+Add-Type -TypeDefinition @'
+using System;
 
-    public class VSAConnection
+public class VSAConnection
+{
+    // Properties to store connection details
+    public string URI { get; set; }
+    public string UserName { get; set; }
+    public string Token { get; set; }
+    public bool IgnoreCertificateErrors { get; set; }
+    public DateTime SessionExpiration { get; set; }
+    public static bool IsPersistent { get; set; } // Changed to static
+
+    // Method to check connection status
+    public string GetStatus()
     {
-        public string URI { get; set; }
-        public string UserName { get; set; }
-        public string Token { get; set; }
-        public bool IgnoreCertificateErrors { get; set; }
-        public DateTime SessionExpiration { get; set; }
-
-        public string GetStatus()
+        string status = "Closed";
+        if (!string.IsNullOrEmpty(Token))
         {
-            string Status = "Closed";
-            if (!string.IsNullOrEmpty(Token))
-            {
-                Status = "Open";
-            }
-            return Status;
+            status = "Open";
         }
+        return status;
+    }
 
-        public VSAConnection(
-            string uri,
-            string userName,
-            string token,
-            bool ignoreCertificateErrors,
-            DateTime sessionExpiration)
+    // Constructor to initialize connection properties
+    public VSAConnection(
+       string uri,
+       string userName,
+       string token,
+       DateTime sessionExpiration,
+       bool ignoreCertificateErrors = false,
+       bool isPersistent = false)
+    {
+        URI = uri;
+        UserName = userName;
+        Token = token;
+        SessionExpiration = sessionExpiration;
+        IgnoreCertificateErrors = ignoreCertificateErrors;
+        IsPersistent = isPersistent;
+        if (isPersistent)
         {
-            URI = uri;
-            Token = token;
-            IgnoreCertificateErrors = ignoreCertificateErrors;
-            UserName = userName;
-            SessionExpiration = sessionExpiration;
+            SetPersistent(isPersistent);
         }
     }
-"@
+
+    public string GetToken()
+    {
+        return Token;
+    }
+
+    public void SetPersistent(bool isPersistent = true)
+    {
+        IsPersistent = isPersistent;
+        if (IsPersistent)
+        {
+            string serial = URI + "\t" + Token + "\t" + UserName + "\t" + SessionExpiration + "\t" + IgnoreCertificateErrors + "\t" + IsPersistent;
+            string encoded = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(serial));
+            Environment.SetEnvironmentVariable("VSAConnection", encoded);
+        }
+        else
+        {
+            Environment.SetEnvironmentVariable("VSAConnection", null);
+        }
+    }
+
+    public static bool GetPersistent()
+    {
+        return IsPersistent;
+    }
+
+    public static string GetPersistentURI()
+    {
+        string theURI = string.Empty;
+        if (IsPersistent)
+        {
+            string encoded = Environment.GetEnvironmentVariable("VSAConnection");
+            if (encoded != null)
+            {
+                string serial = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
+                string[] separateValues = serial.Split('\t');
+                theURI = separateValues[0];
+            }
+        }
+        return theURI;
+    }
+
+    public static string GetPersistentToken()
+    {
+        string theToken = string.Empty;
+        if (IsPersistent)
+        {
+            string encoded = Environment.GetEnvironmentVariable("VSAConnection");
+            if (encoded != null)
+            {
+                string serial = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
+                string[] separateValues = serial.Split('\t');
+                theToken = separateValues[1];
+            }
+        }
+        return theToken;
+    }
+
+    public static bool GetIgnoreCertErrors()
+    {
+        bool ignoreCertErrors = false;
+        if (IsPersistent)
+        {
+            string encoded = Environment.GetEnvironmentVariable("VSAConnection");
+            if (encoded != null)
+            {
+                string serial = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
+                string[] separateValues = serial.Split('\t');
+                bool.TryParse(separateValues[4], out ignoreCertErrors);
+            }
+        }
+        return ignoreCertErrors;
+    }
+}
+'@
 #endregion Class VSAConnection
 
+#region Class TrustAllCertsPolicy
+# Define a TrustAllCertsPolicy class to handle certificate validation
 Add-Type -TypeDefinition @'
     using System.Net;
     using System.Security.Cryptography.X509Certificates;
@@ -68,91 +164,106 @@ Add-Type -TypeDefinition @'
         }
     }
 '@
-#============================================================================================
-
+#endregion Class TrustAllCertsPolicy
 #region function New-VSAConnection
 function New-VSAConnection {
 <#
-.Synopsis
-   Creates VSAConnection object.
+.SYNOPSIS
+    Creates a VSAConnection object.
 .DESCRIPTION
-   Creates VSAConnection object that incapsulates access token as well as additional connection information.
-   Optionally makes the connection object persistent.
+    Creates a VSAConnection object that encapsulates access token as well as additional connection information.
+    Optionally makes the connection object persistent.
 .PARAMETER VSAServer
-    Address of the VSA Server to connect.
-.PARAMETER UserName
-    Specifies existing VSA user thet allowed to connect VSA through REST API.
+    Specifies the address of the VSA Server to connect.
+.PARAMETER Credential
+    Specifies the existing VSA user credentials that are allowed to connect to the VSA through the REST API.
 .PARAMETER AuthSuffix
-    Specifies authorization URI suffix if it differs from the default.
+    Specifies the URI suffix for the authorization endpoint, if it differs from the default '/API/v1.0/Auth'.
+.PARAMETER IgnoreCertificateErrors
+    Indicates whether to allow self-signed certificates. Default is false.
+.PARAMETER SetPersistent
+    Indicates whether to make the VSAConnection object persistent during the session so that module commandlets will use the connection information implicitly.
 .EXAMPLE
-   New-VSAConnection -VSAServer https://vsaserver.address.example 
-.EXAMPLE
-   New-VSAConnection -VSAServer https://vsaserver.address.example -IgnoreCertificateErrors
+    # Example 1: Creating a VSAConnection object with persistent setting
+    # This command creates a VSAConnection object to connect to a VSA server with the provided credentials and makes the connection persistent during the session.
+    New-VSAConnection -VSAServer "https://vsaserver.example.com" -Credential (Get-Credential) -SetPersistent
+
+    # Example 2: Creating a VSAConnection object with custom authorization URI suffix
+    # This command creates a VSAConnection object and ignores certificate errors.
+    New-VSAConnection -VSAServer "https://vsaserver.example.com" -Credential (Get-Credential) -IgnoreCertificateErrors
 .INPUTS
-   Accepts response object from the authorization API.
+    Accepts response object from the authorization API.
 .OUTPUTS
-   VSAConnection. New-VSAConnection returns object of VSAConnection type that incapsulates access token as well as additional connection information.
+    VSAConnection.
+    New-VSAConnection returns an object of VSAConnection type that encapsulates access token as well as additional connection information.
 #>
 
     [cmdletbinding()]
     [OutputType([VSAConnection])]
     param(
-        [parameter(ValueFromPipeline,
+        [parameter(
             Mandatory = $true,
             Position = 0)]
         [ValidateScript(
             {if ($_ -match '^http(s)?:\/\/([\w.-]+(?:\.[\w\.-]+)+|((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}|((([0-9a-fA-F]){1,4})\:){7}([0-9a-fA-F]){1,4}|localhost)(\/)?$') {$true}
-            else {Throw "$_ is an invalid. Enter a valid address that begins with https://"}}
+            else {Throw "$_ is invalid. Enter a valid address that begins with https://"}}
             )]
         [String]$VSAServer,
 
         [parameter(Mandatory = $false)]
         [PSCredential] $Credential,
 
-        [parameter(DontShow, Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true)]
+        [parameter(DontShow, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [string] $AuthSuffix = 'API/v1.0/Auth',
 
-        [switch] $IgnoreCertificateErrors
-    )  
+        [parameter(Mandatory=$false)]
+        [switch] $IgnoreCertificateErrors,
 
-    if ( $IgnoreCertificateErrors ) {
-        Write-Warning "Ignoring certificate errors may expose your connection to potential security risks.`nBy enabling this option, you accept all associated risks, and any consequences are solely your responsibility."
+        [parameter(Mandatory=$false)]
+        [Alias('MakePersistent')]
+        [switch] $SetPersistent
+    )
+
+    #region Apply Certificate Policy
+    if ($IgnoreCertificateErrors) {
+        Write-Warning -Message "Ignoring certificate errors may expose your connection to potential security risks.`nBy enabling this option, you accept all associated risks, and any consequences are solely your responsibility."
     }
+    #endregion Apply Certificate Policy
 
-    if ( $null -eq $Credential) {
+    if (-not $Credential) {
         $Credential = Get-Credential -Message "Please provide Username and Personal Authentication Token"
     }
-    
-    [string]$UserName = $Credential.username
-            
-    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Credential.password)
 
-    [string]$Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$UserName`:$([System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR))"))
+    $UserName = $Credential.UserName
 
-    [string] $AuthString  = "Basic $Encoded"
-
+    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Credential.Password)
+    $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$UserName`:$([System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR))"))
+    $AuthString  = "Basic $Encoded"
 
     $VSAServerUri = New-Object System.Uri -ArgumentList $VSAServer
-    [string]$AuthEndpoint = [System.Uri]::new($VSAServerUri, $AuthSuffix) | Select-Object -ExpandProperty AbsoluteUri
- 
-    Write-Host "Attempting authentication for user '$UserName' on VSA server '$VSAServer'." -ForegroundColor Gray
+    $AuthEndpoint = [System.Uri]::new($VSAServerUri, $AuthSuffix) | Select-Object -ExpandProperty AbsoluteUri
 
-    [hashtable]$AuthParams = @{
+    Write-Information "Attempting authentication for user '$UserName' on VSA server '$VSAServer'." -ForegroundColor Gray
+
+    $AuthParams = @{
         URI                     = $AuthEndpoint
         AuthString              = $AuthString
         IgnoreCertificateErrors = $IgnoreCertificateErrors
     }
 
-    $result = Get-RequestData @AuthParams | Select-Object -ExpandProperty Result
-    
-    if ( $result ) {
-        [datetime] $SessionExpiration = [DateTime]::ParseExact($result.SessionExpiration, "yyyy-MM-ddTHH:mm:ssZ", [System.Globalization.CultureInfo]::InvariantCulture)
-        $SessionExpiration = $SessionExpiration.AddMinutes($result.OffSetInMinutes)
+    $response = Get-RequestData @AuthParams
+    $result = $response | Select-Object -ExpandProperty Result
 
-        [string]$Msg = "User '$UserName' authenticated on VSA server '$VSAServer'. Session token expiration date: $SessionExpiration (UTC)."
-        Write-Host $Msg
+    if ([string]::IsNullOrEmpty($result)) {
+        throw "ERROR: Could not get authentication response from '$VSAServer' for user '$username'`n$("Response Code: '$($response.ResponseCode)'`nResponse Error: '$($response.Error)'")"
+    } else {
+        $SessionExpiration = [DateTime]::ParseExact($result.SessionExpiration, "yyyy-MM-ddTHH:mm:ssZ", [System.Globalization.CultureInfo]::InvariantCulture)
+        $SessionExpiration = $SessionExpiration.AddMinutes($result.OffSetInMinutes)
+        $VSAConnection = [VSAConnection]::new($VSAServer, $result.UserName, $result.Token, $SessionExpiration, $IgnoreCertificateErrors, $SetPersistent)
+
+        $Msg = "SUCCESS: User '$UserName' authenticated on VSA server '$VSAServer'. Session token expiration: $SessionExpiration (UTC)."
+        Write-Information $Msg
         if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
             Write-Verbose $Msg
         }
@@ -160,11 +271,13 @@ function New-VSAConnection {
             Write-Debug $Msg
             Write-Debug "New-VSAConnection result: '$($result | ConvertTo-Json)'"
         }
+        if ($SetPersistent) {
+            Write-Information "INFO: Connection to server '$VSAServer' set to be persistent during the session so that module commandlets can use the connection implicitly"
+        }
+    }
 
-        $VSAConnection = [VSAConnection]::new($VSAServer, $result.UserName, $result.Token, $ignoreCertificateErrors, $SessionExpiration)
-
-    } else {
-		throw "Could not get authentication response"
+    if ($SetPersistent) {
+        $VSAConnection.SetPersistent($true)
     }
 
     return $VSAConnection

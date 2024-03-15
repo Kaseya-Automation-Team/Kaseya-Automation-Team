@@ -1,4 +1,3 @@
-#region function Get-RequestData
 function Get-RequestData
 {
     <#
@@ -28,51 +27,32 @@ function Get-RequestData
     .OUTPUTS
        Array of custom objects returned by the remote server.
     .NOTES
-        Version 0.1.1
+        Version 0.1
     #>
     [CmdletBinding()]
     param ( 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'WithoutRequestBody'
-            )]
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'WithRequestBody'
-            )] 
+            ValueFromPipelineByPropertyName=$true)] 
         [ValidateNotNullOrEmpty()] 
         [string] $URI,
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'WithoutRequestBody'
-            )]
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'WithRequestBody'
-            )]
+            ValueFromPipelineByPropertyName=$true)] 
+        [ValidateNotNullOrEmpty()]
         [string] $AuthString,
 
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'WithoutRequestBody'
-            )]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'WithRequestBody'
-            )]
+            ValueFromPipelineByPropertyName=$true)] 
         [ValidateSet('GET', 'POST', 'PUT', 'DELETE', 'PATCH')]
         [string] $Method = 'GET',
 
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'WithRequestBody')]
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
 		[string] $Body,
 
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'WithRequestBody')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
 		[string] $ContentType = 'application/json',
 
@@ -83,7 +63,7 @@ function Get-RequestData
     $LogMessage = "URI: '$URI': Method '$Method'"
     
     # Creating authorization headers
-    $authHeader = @{
+    $AuthHeader = @{
         Authorization = $AuthString
     }
 
@@ -91,7 +71,7 @@ function Get-RequestData
     $WebRequestParams = @{
         Uri = $URI
         Method = $Method
-        Headers = $authHeader
+        Headers = $AuthHeader
     }
 
     # Adding body and content type if the Body parameter is specified
@@ -117,25 +97,25 @@ function Get-RequestData
         }
 
         # Performing the web request
-        $response = Invoke-RestMethod @WebRequestParams -ErrorAction Stop
+        $Response = Invoke-RestMethod @WebRequestParams -ErrorAction Stop
 
         # Outputting additional debug information
         if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-            "$($MyInvocation.MyCommand). Response:`n{0}" -f $response | Out-String | Write-Debug
+            "$($MyInvocation.MyCommand). Response:`n{0}" -f $Response | Out-String | Write-Debug
         }
 
         # Checking if the response indicates success
-        if (($response.ResponseCode -match "(^0$)|(^20\d$)") -or ('OK' -eq $response.Status)) {
-            return $response
+        if (($Response.ResponseCode -match "(^0$)|(^20\d$)") -or ('OK' -eq $Response.Status)) {
+            return $Response
         } else {
             # Handling errors and throwing an exception
-            Write-Error "$($response.Result)`n$($response.Error)"
-            throw $($response.Error)
+            Write-Error "Response Code: '$($Response.ResponseCode)'`nResponse Error: '$($Response.Error)'`nResponse Result: '$($Response.Result)'"
+            throw $("Response Code: '$($Response.ResponseCode)'`nResponse Error: '$($Response.Error)'")
         }
     }
     catch [System.Net.WebException] {
         # Handling web exceptions and throwing an exception
-        Write-Error("Executing call $Method failed for $URI.`nMessage : $($_.Exception.Message)")
+        Write-Error("Calling method '$Method' failed for '$URI'.`nMessage : $($_.Exception.Message)")
         throw $_
     }
 }

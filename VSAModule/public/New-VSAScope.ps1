@@ -5,25 +5,28 @@ function New-VSAScope
        Creates a new scope.
     .DESCRIPTION
        Creates a new VSA scope.
+       Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
-        Specifies an established VSAConnection.
+        Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .PARAMETER ScopeName
         Specifies the Scope Name.
     .EXAMPLE
-       Add-VSAScope -ScopeName 'ANewScope' -VSAConnection $connection
+       New-VSAScope -ScopeName 'NewScope'
+    .EXAMPLE
+       New-VSAScope -ScopeName 'NewScope' -VSAConnection $connection
     .INPUTS
-       Accepts piped established VSAConnection
+       Accepts piped non-persistent VSAConnection 
     .OUTPUTS
        True if creation was successful.
     .NOTES
-        Version 0.1.1
+        Version 0.1.0
     #>
     [alias("Add-VSAScope")]
     [CmdletBinding(SupportsShouldProcess)]
     param ( 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
@@ -53,11 +56,11 @@ function New-VSAScope
     $Body = $BodyHT | ConvertTo-Json
 
     [hashtable]$Params =@{
-        VSAConnection = $VSAConnection
-        URISuffix     = $URISuffix
-        Method        = 'POST'
-        Body          = $Body
+        URISuffix      = $URISuffix
+        Method         = 'POST'
+        Body           = $Body
     }
+    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
     if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
         Write-Debug "New-VSAScope. Request Params`:$($Params | Out-String)"

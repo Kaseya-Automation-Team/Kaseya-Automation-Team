@@ -1,24 +1,26 @@
 ﻿function Invoke-VSARestMethod
 {
-<#
+    <#
     .Synopsis
-       Invokes VSA REST API method
+       Invokes VSA REST API methods.
     .DESCRIPTION
-       Executes various VSA REST API methods. Returns response or success status.
+       Executes various VSA REST API methods and returns the response or success status.
     .PARAMETER VSAConnection
-        Specifies established VSAConnection.
+        Specifies the established VSAConnection.
     .PARAMETER URISuffix
-        Specifies URI suffix if it differs from the default.
+        Specifies the URI suffix if it differs from the default.
     .PARAMETER Method
-        Specifies REST API Method.
+        Specifies the REST API Method (default is "GET").
     .PARAMETER Body
-        Specifies the request's body for methods that require it.
+        Specifies the request body for methods that require it.
     .PARAMETER ContentType
         Specifies the content type of the request (default is "application/json").
     .PARAMETER ExtendedOutput
         Specifies whether to return the Result field of the REST API response.
     .PARAMETER Filter
         Specifies REST API Filter.
+    .PARAMETER RecordsPerPage
+        Specifies the number of records per page for paging (default is 100).
     .PARAMETER Paging
         Specifies REST API Paging.
     .PARAMETER Sort
@@ -28,20 +30,20 @@
     .EXAMPLE
        Invoke-VSARestMethod -VSAConnection $connection -URISuffix 'items' -Method 'POST' -Body $Body
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped VSAConnection.
     .OUTPUTS
        Varies based on the method invoked.
     .NOTES
-        Version 0.1.2
-#>
+        Version 0.1
+    #>
     [alias("Get-VSAItems", "Update-VSAItems")]
     [CmdletBinding()]
     param (
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory = $true, 
+        [parameter(DontShow, Mandatory = $true, 
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix,
@@ -86,11 +88,26 @@
         [string] $Sort
     )
 
+    $VSAServerURI = [string]::Empty
+    [bool]$IgnoreCertificateErrors = $false
+
+    if ( $null -eq $VSAConnection )
+    {
+        if ( [VSAConnection]::GetPersistent() )
+        {
+            $VSAServerURI = [VSAConnection]::GetPersistentURI()
+            $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
+            $IgnoreCertificateErrors = [VSAConnection]::GetIgnoreCertErrors()
+        }
+    } else {
+        $VSAServerURI = $VSAConnection.URI
+        $UsersToken = "Bearer {0}" -f $($VSAConnection.Token)
+        $IgnoreCertificateErrors = $VSAConnection.IgnoreCertificateErrors
+    }
+
     # Convert the base URI and URISuffix into a full URI
-    $baseUri = New-Object System.Uri -ArgumentList $VSAConnection.URI
+    $baseUri = New-Object System.Uri -ArgumentList $VSAServerURI
     [string]$URI = [System.Uri]::new($baseUri, $URISuffix) | Select-Object -ExpandProperty AbsoluteUri
-    
-    $UsersToken = "Bearer {0}" -f $($VSAConnection.Token)
 
     #region Filtering, Sorting, Paging
     # Hashtable to store filtering, sorting, and paging parameters
@@ -119,7 +136,7 @@
         Uri = $CombinedURI
         Method = $Method
         AuthString = $UsersToken
-        IgnoreCertificateErrors = $VSAConnection.IgnoreCertificateErrors
+        IgnoreCertificateErrors = $IgnoreCertificateErrors
     }
 
     # Add Body and ContentType to the API request details if specified
@@ -150,7 +167,7 @@
     [array]$result = $response | Select-Object -ExpandProperty Result
 
     # Process paging if TotalRecords is specified in the response
-    if ($response.TotalRecords) {
+    if ( -not [string]::IsNullOrEmpty("$($response.TotalRecords)")  ) {
         [int]$TotalRecords = $response.TotalRecords
 
         #region messages to verbose and debug streams
@@ -184,7 +201,7 @@
                 $WebRequestParams.Uri = $CombinedURI
                 [array]$temp = Get-RequestData @WebRequestParams | Select-Object -ExpandProperty Result
 
-                if ( 0 -lt $temp.Count) { $resultCollection.AddRange( $temp )}
+                if ( 0 -lt $temp.Count) { $resultCollection.AddRange( $temp ) | Out-Null }
             }
             $result = $resultCollection.ToArray()
         }

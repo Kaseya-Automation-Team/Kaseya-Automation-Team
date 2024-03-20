@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="Create Local Admin to CF" treePres="3" id="38847472" folderId="147400446165074" treeFullPath="myProcedures - vlad.Test.Create Local Admin (CF)">
+    <Body description="This procedure creates a local administrator account and saves the encrypted credential of the account into the LocalAdmin Custom field. The LocalAdmin field must be created before executing the procedure. Version: 0.1 Author: Proserv Team - VS">
+      <Statement description="Retrieve value from the Custom Field storing information on the account." name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="#vSystemInfoManual.LocalAdmin#" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="FieldValue" />
+      </Statement>
+      <If description="Check if LocalAdmin field is empty.">
+        <Condition name="CheckVariable">
+          <Parameter xsi:type="StringParameter" name="VariableName" value="#FieldValue#" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="GreaterThan" />
+          <Parameter xsi:type="StringParameter" name="Value" value=" " />
+        </Condition>
+        <Then>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="ATTENTION: No user created because the 'LocalAdmin' Custom Field is not empty. Please ensure that the local user is removed and the 'LocalAdmin' is purged before running the procedure." />
+          </Statement>
+        </Then>
+        <Else>
+          <Statement description="Set password length according to security policy." name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="16" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="PasswordLength" />
+          </Statement>
+          <Statement description="Generate a password." name="Execute Powershell Command (32-bit, Run As System)" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+            <Parameter xsi:type="StringParameter" name="Parameter2" value="add-type -AssemblyName System.Web; do { $Pwd = [System.Web.Security.Membership]::GeneratePassword(#PasswordLength#, 1) } until ($Pwd -match '\d'); Write-Output $Pwd" />
+            <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+          </Statement>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="#global:psresult#" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="Password" />
+          </Statement>
+          <Statement description="Generate a new username." name="Execute Powershell Command (32-bit, Run As System)" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+            <Parameter xsi:type="StringParameter" name="Parameter2" value="$str=$('{0}{1}' -f 'WinNT://', $env:COMPUTERNAME); $adsi = [ADSI]$str; [string[]]$Names = $adsi.Children | where {$_.SchemaClassName -eq 'user'} | Select-Object -ExpandProperty Name; do { $NewName = 'Admin{0}' -f $(((100..999) | Get-Random).ToString()) } until ($Names -notcontains $NewName); Write-Output $NewName" />
+            <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+          </Statement>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="#global:psresult#" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="UserName" />
+          </Statement>
+          <Statement description="Create a new user." name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Parameter1" value="NET USER #UserName# #Password# /add /y /expires:never" />
+            <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+            <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+          </Statement>
+          <Statement description="Check if user created." name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Parameter1" value="NET USER #UserName#" />
+            <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+            <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+          </Statement>
+          <If description="Check if user was created successfully.">
+            <Condition name="CheckVariable">
+              <Parameter xsi:type="StringParameter" name="VariableName" value="#global:cmdresults#" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+              <Parameter xsi:type="StringParameter" name="Value" value="#UserName#" />
+            </Condition>
+            <Then>
+              <Statement description="Get the Local Administrators group name." name="Execute Shell Command - Get Results to Variable" continueOnFail="false" osType="Windows">
+                <Parameter xsi:type="StringParameter" name="Parameter1" value="wmic group where &quot;SID='S-1-5-32-544'&quot; get name | findstr /v &quot;Name&quot;" />
+                <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+              </Statement>
+              <Statement name="GetVariable" continueOnFail="false">
+                <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+                <Parameter xsi:type="StringParameter" name="SourceContent" value="#global:cmdresults#" />
+                <Parameter xsi:type="StringParameter" name="VariableName" value="Group" />
+              </Statement>
+              <Statement description="Add the user to the Local Admin Group." name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Parameter1" value="NET LOCALGROUP #Group# #UserName# /add" />
+                <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+              </Statement>
+              <Statement description="Update The Custom field with encrypted UserName and Password divided by the semicolon &quot;;&quot; symbol" name="Execute Powershell Command (32-bit, Run As System)" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+                <Parameter xsi:type="StringParameter" name="Parameter2" value="$str = @('#UserName#','#Password#') | Out-String; $Bytes = [System.Text.Encoding]::UTF8.GetBytes($str); $Encoded =[Convert]::ToBase64String($Bytes); Write-Output $Encoded" />
+                <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+              </Statement>
+              <Statement name="UpdateSystemInfo" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="ColumnName" value="LocalAdmin" />
+                <Parameter xsi:type="StringParameter" name="Value" value="#global:psresult#" />
+              </Statement>
+            </Then>
+            <Else>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: Could not find the user '#UserName#'" />
+              </Statement>
+            </Else>
+          </If>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>

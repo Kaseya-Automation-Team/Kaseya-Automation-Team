@@ -23,7 +23,6 @@ function New-VSAScope
     .NOTES
         Version 0.1.0
     #>
-    [alias("Add-VSAScope")]
     [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
@@ -81,4 +80,5 @@ function New-VSAScope
         return $Result
     }
 }
-Export-ModuleMember -Function New-VSAScope
+New-Alias -Name Add-VSAScope -Value New-VSAScope
+Export-ModuleMember -Function New-VSAScope -Alias Add-VSAScope

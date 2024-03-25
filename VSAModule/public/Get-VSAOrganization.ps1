@@ -2,9 +2,10 @@
 {
     <#
     .Synopsis
-       Returns Organizations Data.
+        Returns Organizations Data.
     .DESCRIPTION
-       Returns Organizations Data.
+        Returns Organizations Data.
+        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies an established VSAConnection.
     .PARAMETER URISuffix
@@ -31,7 +32,7 @@
     .EXAMPLE
        Get-VSAOrganization -VSAConnection $VSAConnection -GetTypes
     .EXAMPLE
-       Get-VSAOrganization -VSAConnection $VSAConnection -OrgID '10001' -VSAConnection $connection
+       Get-VSAOrganization -VSAConnection $VSAConnection -OrgID '10001'
     .INPUTS
        Accepts piped VSAConnection 
     .OUTPUTS
@@ -42,13 +43,13 @@
     [CmdletBinding()]
     param ( 
         
-        [parameter(Mandatory = $true,  
+        [parameter(Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Locations')] 
-        [parameter(Mandatory = $true,  
+        [parameter(Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Types')]
-        [parameter(Mandatory = $true,  
+        [parameter(Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Filtering')]
         [ValidateNotNull()]
@@ -129,10 +130,10 @@
 
     #region messages to verbose and debug streams
     if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-        "Get-VSAOrganization: $($Params | Out-String)"  | Write-Debug
+        "Get-VSAOrganization: $($Params | Out-String)" | Write-Debug
     }
     if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-        "Get-VSAOrganization: $($Params | Out-String)"   | Write-Verbose
+        "Get-VSAOrganization: $($Params | Out-String)" | Write-Verbose
     }
     #endregion messages to verbose and debug streams
 

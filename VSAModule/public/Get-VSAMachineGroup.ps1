@@ -2,9 +2,10 @@
 {
     <#
     .Synopsis
-       Returns Machine Groups.
+        Returns Machine Groups.
     .DESCRIPTION
-       Returns Machine Groups.
+        Returns Machine Groups.
+        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies established VSAConnection.
     .PARAMETER URISuffix
@@ -36,10 +37,10 @@
     [alias("Get-VSAMG")]
     [CmdletBinding()] 
     param ( 
-        [parameter(Mandatory = $true,  
+        [parameter(Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Organization')] 
-        [parameter(Mandatory = $true,  
+        [parameter(Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Group')] 
         [ValidateNotNull()] 
@@ -68,10 +69,10 @@
         })]
         [string] $MachineGroupID,
 
-        [parameter(Mandatory = $false,  
+        [parameter(DontShow,Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Group')]
-        [parameter(Mandatory = $false,  
+        [parameter(DontShow, Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Organization',
             HelpMessage = "Please  use {0} as a placeholder for OrgID in case a custom URISuffix provided.")]
@@ -131,19 +132,22 @@
         [hashtable]$Params = @{
             VSAConnection = $VSAConnection
             URISuffix     = $URISuffix
+            Filter        = $Filter
+            Paging        = $Paging
+            Sort          = $Sort
         }
-
-        if($Filter)        {$Params.Add('Filter', $Filter)}
-        if($Paging)        {$Params.Add('Paging', $Paging)}
-        if($Sort)          {$Params.Add('Sort', $Sort)}
+        
+        #Remove empty keys
+        foreach ( $key in $Params.Keys.Clone()  ) {
+            if ( -not $Params[$key]) { $Params.Remove($key) }
+        }
 
         $result = Invoke-VSARestMethod @Params
 
         if ($ResolveIDs)
         {
-            [hashtable]$ResolveParams =@{
-                VSAConnection = $VSAConnection
-            }
+            [hashtable]$ResolveParams =@{}
+            if ($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
             [hashtable]$OrganizationDictionary = @{}
 

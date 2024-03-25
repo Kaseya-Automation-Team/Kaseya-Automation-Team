@@ -1,6 +1,6 @@
 ﻿<#
    Kaseya VSA9 REST API Wrapper
-   Version 0.1.0
+   Version 0.1.2
    Author: Vladislav Semko
    Description:
    VSAModule for Kaseya VSA 9 REST API is a PowerShell module that provides cmdlets for interacting with the Kaseya VSA 9 platform via its REST API.
@@ -227,7 +227,7 @@ function New-VSAConnection {
 
     #region Apply Certificate Policy
     if ($IgnoreCertificateErrors) {
-        Write-Warning -Message "Ignoring certificate errors may expose your connection to potential security risks.`nBy enabling this option, you accept all associated risks, and any consequences are solely your responsibility."
+        Write-Warning -Message "Ignoring certificate errors may expose your connection to potential security risks.`nBy enabling this option, you accept all associated risks, and any consequences are solely your responsibility.`n"
     }
     #endregion Apply Certificate Policy
 
@@ -244,7 +244,14 @@ function New-VSAConnection {
     $VSAServerUri = New-Object System.Uri -ArgumentList $VSAServer
     $AuthEndpoint = [System.Uri]::new($VSAServerUri, $AuthSuffix) | Select-Object -ExpandProperty AbsoluteUri
 
-    Write-Information "Attempting authentication for user '$UserName' on VSA server '$VSAServer'." -ForegroundColor Gray
+    $Msg = "Attempting authentication for user '$UserName' on VSA server '$VSAServer'."
+    
+    if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+        Write-Verbose $Msg
+    }
+    if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+        Write-Debug $Msg
+    }
 
     $AuthParams = @{
         URI                     = $AuthEndpoint
@@ -256,14 +263,14 @@ function New-VSAConnection {
     $result = $response | Select-Object -ExpandProperty Result
 
     if ([string]::IsNullOrEmpty($result)) {
-        throw "ERROR: Could not get authentication response from '$VSAServer' for user '$username'`n$("Response Code: '$($response.ResponseCode)'`nResponse Error: '$($response.Error)'")"
+        throw "Failed to retrieve authentication response from '$VSAServer' for user '$username'`n$("Response Code: '$($response.ResponseCode)'`nResponse Error: '$($response.Error)'`n")"
     } else {
         $SessionExpiration = [DateTime]::ParseExact($result.SessionExpiration, "yyyy-MM-ddTHH:mm:ssZ", [System.Globalization.CultureInfo]::InvariantCulture)
         $SessionExpiration = $SessionExpiration.AddMinutes($result.OffSetInMinutes)
         $VSAConnection = [VSAConnection]::new($VSAServer, $result.UserName, $result.Token, $SessionExpiration, $IgnoreCertificateErrors, $SetPersistent)
 
-        $Msg = "SUCCESS: User '$UserName' authenticated on VSA server '$VSAServer'. Session token expiration: $SessionExpiration (UTC)."
-        Write-Information $Msg
+        $Msg = "`tUser '$UserName' authenticated on VSA server '$VSAServer'.`n`tSession token expiration: $SessionExpiration (UTC).`n"
+        Write-Host $Msg
         if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
             Write-Verbose $Msg
         }
@@ -272,7 +279,14 @@ function New-VSAConnection {
             Write-Debug "New-VSAConnection result: '$($result | ConvertTo-Json)'"
         }
         if ($SetPersistent) {
-            Write-Information "INFO: Connection to server '$VSAServer' set to be persistent during the session so that module commandlets can use the connection implicitly"
+            $Msg = "`tConnection to server '$VSAServer' set Persistent during the current session so the VSAModule's commandlets can use the connection implicitly.`n"
+            Write-Host $Msg
+            if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+                Write-Verbose $Msg
+            }
+            if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+                Write-Debug $Msg
+            }
         }
     }
 

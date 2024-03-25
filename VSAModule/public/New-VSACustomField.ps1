@@ -24,7 +24,6 @@
     .NOTES
         Version 0.1.0
     #>
-    [alias("Add-VSACustomField")]
     [CmdletBinding(SupportsShouldProcess)]
     param (
         [parameter(Mandatory = $false, 
@@ -86,4 +85,5 @@
     }
     return $result
 }
-Export-ModuleMember -Function New-VSACustomField
+New-Alias -Name Add-VSACustomField -Value New-VSACustomField
+Export-ModuleMember -Function New-VSACustomField -Alias Add-VSACustomField

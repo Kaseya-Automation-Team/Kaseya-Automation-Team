@@ -83,7 +83,7 @@
         
         $Organization.OrgRef = $OwnOrgRef
         
-        #endregion Define the current Organiztion's own OrgRef and the parent organization OrgRef (if exists)
+        #endregion Define the current Organization's own OrgRef and the parent organization OrgRef (if exists)
 
 
         # Check if the Parent Organization already exists in the destination.

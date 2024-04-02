@@ -1,0 +1,161 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Create Windows Local Admin" treePres="3" treeFullPath="myProcedures - vladislav.semko@kaseya.com.PathFinder.Create Windows Local Admin">
+    <Procedure name="Create Local Admin to CF" treePres="3" id="1162434650" treeFullPath="myProcedures - vladislav.semko@kaseya.com.PathFinder.Create Windows Local Admin">
+      <Body description="">
+        <Statement description="This procedure facilitates the creation of a local administrator account on a Windows client and securely stores the credentials in a Custom field named LocalAdmin.&#xD;&#xA;The credentials are encrypted using base64 encoding for security purposes.&#xD;&#xA;The procedure requires Windows Management Framework version 5.1 or newer&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Provide your user" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="VSAUserName" />
+        </Statement>
+        <Statement description="Provide your Token (VSA - System - User Security - Users - Access Tokens)" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="VSAUserPAT" />
+        </Statement>
+        <Statement description="Provide new user's password length" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="12" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PasswordLength" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="New-LocalAdminCF.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="TheScript" />
+        </Statement>
+        <Statement name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#TheScript#" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\#TheScript#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement description="If you are using self-signed certificates, ensure to include the '-IgnoreCertificateErrors' switch after a space character in the 'PoShCommand' variable." name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="#vAgentConfiguration.agentTempSecureDir#\#TheScript# -VSAAddress '#vAgentConfiguration.primaryKServer#;#vAgentConfiguration.secondaryKServer#' -VSAUser '#VSAUserName#' -PAT '#VSAUserPAT#' -AgentId '#vAgentConfiguration.agentGuid#' -PasswordLength #PasswordLength#" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="PoShCommand" />
+            </Statement>
+            <If description="Executing the PowerShell script">
+              <Condition name="Windows 32 or 64 Bit Check">
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              </Condition>
+              <Then>
+                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#PoShCommand#&quot;" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+              </Then>
+            </If>
+            <If description="">
+              <Condition name="Windows 32 or 64 Bit Check">
+                <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+              </Condition>
+              <Then>
+                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#PoShCommand#&quot;" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+              </Then>
+            </If>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+            </Statement>
+            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. Could not download #TheScript# from the VSA Server" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Create Local Admin to ITGlue" treePres="3" id="1393932001" treeFullPath="myProcedures - vladislav.semko@kaseya.com.PathFinder.Create Windows Local Admin">
+      <Body description="">
+        <Statement description="This procedure facilitates the creation of a local administrator account on a Windows client and securely stores the credentials in IT Glue&#xD;&#xA;The procedure requires Windows Management Framework version 5.1 or newer&#xD;&#xA;Version: 0.2&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Provide your ITGlue API Endpoint" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="https://api.itglue.com" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="APIEndpoint" />
+        </Statement>
+        <Statement description="Provide your IT Glue API Key (Admin - Settings API Keys)" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="APIKey" />
+        </Statement>
+        <Statement description="Provide new user's password length" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="12" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PasswordLength" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="New-LocalAdminITG.ps1" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="TheScript" />
+        </Statement>
+        <Statement name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\#TheScript#" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#\#TheScript#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement description="If you are using self-signed certificates, ensure to include the '-IgnoreCertificateErrors' switch after a space character in the 'PoShCommand' variable." name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="#vAgentConfiguration.agentTempSecureDir#\#TheScript# -APIEndpoint '#APIEndpoint#' -APIKey '#APIKey#' -PasswordLength #PasswordLength#" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="PoShCommand" />
+            </Statement>
+            <If description="Executing the PowerShell script">
+              <Condition name="Windows 32 or 64 Bit Check">
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              </Condition>
+              <Then>
+                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#PoShCommand#&quot;" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+              </Then>
+            </If>
+            <If description="">
+              <Condition name="Windows 32 or 64 Bit Check">
+                <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+              </Condition>
+              <Then>
+                <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#PoShCommand#&quot;" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+                </Statement>
+              </Then>
+            </If>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+            </Statement>
+            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. Could not download #TheScript# from the VSA Server" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

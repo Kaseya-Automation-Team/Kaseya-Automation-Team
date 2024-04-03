@@ -32,33 +32,41 @@
 
 Param
 (
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true, 
+        ValueFromPipelineByPropertyName = $true)]
     [ValidateNotNullOrEmpty()]
     [string] $VSAAddress,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true, 
+        ValueFromPipelineByPropertyName = $true)]
     [ValidateNotNullOrEmpty()]
     [string] $VSAUser,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true, 
+        ValueFromPipelineByPropertyName = $true)]
     [ValidateNotNullOrEmpty()]
     [string] $PAT,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true, 
+        ValueFromPipelineByPropertyName = $true)]
     [ValidateNotNullOrEmpty()]
     [string] $AgentId,
 
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory=$false, 
+        ValueFromPipelineByPropertyName = $true)]
     [ValidateRange(1, 20)]
     [int] $UsernameLength = 16,
 
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory=$false, 
+        ValueFromPipelineByPropertyName = $true)]
     [int] $PasswordLength = 16,
 
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory=$false, 
+        ValueFromPipelineByPropertyName = $true)]
     [string] $CFUserName = 'LocalAdminUsername',
 
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory=$false, 
+        ValueFromPipelineByPropertyName = $true)]
     [string] $CFPassword = 'LocalAdminPassword',
 
     [Parameter(Mandatory=$false)]

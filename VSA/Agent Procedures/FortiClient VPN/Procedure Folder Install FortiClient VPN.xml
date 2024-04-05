@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Install FortiClient VPN" treePres="3" treeFullPath="myProcedures - vladislav.semko@kaseya.com.PathFinder.Install FortiClient VPN">
+    <Procedure name="Install FortiClient VPN Specified Version" treePres="3" id="1047414068" treeFullPath="myProcedures - vladislav.semko@kaseya.com.PathFinder.Install FortiClient VPN">
+      <Body description="">
+        <Statement description="This procedure performs FortiClient VPN install&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;The variables" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="7.0.11" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="TargetVersion" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="FortiClient" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="SoftwareName" />
+        </Statement>
+        <Statement name="Execute Powershell" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="$Name = '#SoftwareName#'; $Goal = '#TargetVersion#'; if ($Goal -notmatch '\.$') { $Goal+='.'}; $Found = Get-WmiObject -Query &quot;&quot;&quot;SELECT IdentifyingNumber, Version FROM Win32_Product WHERE Name='$Name'&quot;&quot;&quot;; if( $null -ne $Found ) { if ( $Found.Version -gt $Goal -and $Found.Version -notmatch [Regex]::Escape($Goal) ) { $Out = $Found.IdentifyingNumber } else { $Out = 'FOUND' } } else { $Out = 'INSTALL' }; Write-Output $Out" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#global:psresult#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="SearchResult" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#SearchResult#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+            <Parameter xsi:type="StringParameter" name="Value" value="FOUND" />
+          </Condition>
+          <Then>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="INFO: '#SoftwareName#' version '#TargetVersion#' already installed." />
+            </Statement>
+          </Then>
+          <Else>
+            <If description="#SearchResult# contains {GUID} of the software if detected version is newer than the TargetVersion">
+              <Condition name="CheckVariable">
+                <Parameter xsi:type="StringParameter" name="VariableName" value="#SearchResult#" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+                <Parameter xsi:type="StringParameter" name="Value" value="{" />
+              </Condition>
+              <Then>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="INFO: Found '#SoftwareName#' newer than the target version. Performing uninstallation." />
+                </Statement>
+                <Statement name="Execute Powershell" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+                  <Parameter xsi:type="StringParameter" name="Parameter2" value="Start-Process msiexec.exe -ArgumentList &quot;&quot;&quot;/x #SearchResult# /qn REBOOT=ReallySuppress&quot;&quot;&quot; -wait" />
+                  <Parameter xsi:type="StringParameter" name="Parameter3" value="False" />
+                </Statement>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="ATTENTION: A reboot is necessary after uninstalling '#SoftwareName#' to proceed with the new installation!" />
+                </Statement>
+              </Then>
+            </If>
+            <If description="At this point the software is either uninstalled, missed or older than than the target version">
+              <Condition name="Windows 32 or 64 Bit Check">
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+              </Condition>
+              <Then>
+                <Statement name="WriteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/FortiClient.msi" />
+                  <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\FortiClientx64\FortiClient.msi" />
+                  <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+                </Statement>
+                <Statement name="WriteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/FortiClient.mst" />
+                  <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\FortiClientx64\FortiClient.mst" />
+                  <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+                </Statement>
+              </Then>
+            </If>
+            <If description="">
+              <Condition name="Windows 32 or 64 Bit Check">
+                <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+              </Condition>
+              <Then>
+                <Statement name="WriteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/FortiClient.msi" />
+                  <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\FortiClientx32\FortiClient.msi" />
+                  <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+                </Statement>
+                <Statement name="WriteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/FortiClient.mst" />
+                  <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\FortiClientx32\FortiClient.mst" />
+                  <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+                </Statement>
+              </Then>
+            </If>
+            <If description="">
+              <Condition name="TestFile">
+                <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/FortiClient.msi" />
+                <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                <Parameter xsi:type="StringParameter" name="Value" value="" />
+              </Condition>
+              <Then>
+                <If description="">
+                  <Condition name="TestFile">
+                    <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/FortiClient.mst" />
+                    <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="" />
+                  </Condition>
+                  <Then>
+                    <Statement description="Perform install &amp; check result" name="Execute Powershell" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+                      <Parameter xsi:type="StringParameter" name="Parameter2" value="Set-Location -Path '#vAgentConfiguration.agentTempSecureDir#'; Start-Process C:\Windows\System32\msiexec.exe -ArgumentList &quot;&quot;&quot;/i FortiClient.msi TRANSFORMS=FortiClient.mst /qn&quot;&quot;&quot; -wait; Start-Sleep -Seconds 15; $Name = '#SoftwareName#'; $Goal = '#TargetVersion#'; if ($Goal -notmatch '\.$') { $Goal+='.'}; $Found = Get-WmiObject -Query &quot;&quot;&quot;SELECT IdentifyingNumber, Version FROM Win32_Product WHERE Name='$Name'&quot;&quot;&quot;; if( $null -ne $Found ) { if ( $Found.Version -gt $Goal -and $Found.Version -notmatch [Regex]::Escape($Goal) ) { $Out = $Found.IdentifyingNumber } else { $Out = 'FOUND' } } else { $Out = 'INSTALL' }; Write-Output $Out" />
+                      <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+                    </Statement>
+                    <If description="">
+                      <Condition name="CheckVariable">
+                        <Parameter xsi:type="StringParameter" name="VariableName" value="#global:psresult#" />
+                        <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                        <Parameter xsi:type="StringParameter" name="Value" value="FOUND" />
+                      </Condition>
+                      <Then>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="SUCCESS: '#SoftwareName#' version '#TargetVersion#' installed." />
+                        </Statement>
+                      </Then>
+                      <Else>
+                        <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                          <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: Unable to detect '#SoftwareName#' version '#TargetVersion#'." />
+                        </Statement>
+                      </Else>
+                    </If>
+                    <Statement description="Cleanup. Remove the MST" name="DeleteFile" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/FortiClient.mst" />
+                    </Statement>
+                  </Then>
+                  <Else>
+                    <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                      <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: Failed to download the file 'FortiClient.mst'." />
+                    </Statement>
+                  </Else>
+                </If>
+                <Statement description="Cleanup. Remove the MSI" name="DeleteFile" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/FortiClient.msi" />
+                </Statement>
+              </Then>
+              <Else>
+                <Statement name="WriteScriptLogEntry" continueOnFail="false">
+                  <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: Failed to download the file 'FortiClient.msi'." />
+                </Statement>
+              </Else>
+            </If>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Uninstall FortiClient VPN" treePres="3" id="1706159966" treeFullPath="myProcedures - vladislav.semko@kaseya.com.PathFinder.Install FortiClient VPN">
+      <Body description="">
+        <Statement description="This procedure performs Uninstall of FortiClient VPN &#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;The variables" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="FortiClient" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="SoftwareName" />
+        </Statement>
+        <Statement name="Execute Powershell" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Parameter1" value="" />
+          <Parameter xsi:type="StringParameter" name="Parameter2" value="$Name = '#SoftwareName#'; $Found = Get-WmiObject -Query &quot;&quot;&quot;SELECT IdentifyingNumber FROM Win32_Product WHERE Name='$Name'&quot;&quot;&quot; | Select-Object -ExpandProperty IdentifyingNumber; if( -not [string]::IsNullOrEmpty($Found) ) { Start-Process msiexec.exe -ArgumentList &quot;&quot;&quot;/x $Found /qn REBOOT=ReallySuppress&quot;&quot;&quot; -wait; $Found='#SoftwareName# UNINSTALLED'} else {$Found='INFO: #SoftwareName# not found.'}; Write-Output $Found" />
+          <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+        </Statement>
+        <If description="">
+          <Condition name="CheckVariable">
+            <Parameter xsi:type="StringParameter" name="VariableName" value="#global:psresult#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+            <Parameter xsi:type="StringParameter" name="Value" value="UNINSTALLED" />
+          </Condition>
+          <Then>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="ATTENTION: A reboot is necessary after uninstalling '#SoftwareName#'!" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#global:psresult#" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

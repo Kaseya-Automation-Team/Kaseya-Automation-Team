@@ -3,7 +3,7 @@
   <Folder name="Create Windows Local Admin" treePres="3" treeFullPath="myProcedures - vladislav.semko@kaseya.com.PathFinder.Create Windows Local Admin">
     <Procedure name="Create Local Admin to CF" treePres="3" id="272911172" treeFullPath="myProcedures - vladislav.semko@kaseya.com.PathFinder.Create Windows Local Admin">
       <Body description="">
-        <Statement description="This procedure facilitates the creation of a local administrator account on a Windows client and securely stores the credentials in a Custom field named LocalAdmin.&#xD;&#xA;The credentials are encrypted using base64 encoding for security purposes.&#xD;&#xA;The procedure requires Windows Management Framework version 5.1 or newer&#xD;&#xA;Version: 0.2.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Provide your VSA user" name="GetVariable" continueOnFail="false">
+        <Statement description="This procedure facilitates the creation of a local administrator account on a Windows client and securely stores the credentials in the specified Custom fields.&#xD;&#xA;The credentials are encrypted using base64 encoding for security purposes.&#xD;&#xA;The procedure requires Windows Management Framework version 5.1 or newer&#xD;&#xA;Version: 0.2.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Provide your VSA user" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="VSAUserName" />

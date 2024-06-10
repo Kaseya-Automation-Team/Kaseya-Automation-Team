@@ -27,7 +27,7 @@ function Get-RequestData
     .OUTPUTS
        Array of custom objects returned by the remote server.
     .NOTES
-        Version 0.1
+        Version 0.1.3
     #>
     [CmdletBinding()]
     param ( 
@@ -105,11 +105,16 @@ function Get-RequestData
         }
 
         # Checking if the response indicates success
-        if (($Response.ResponseCode -match "(^0$)|(^20\d$)") -or ('OK' -eq $Response.Status)) {
+        if ($Response.ResponseCode -match "(^40\d|^50\d)") {
+            Write-Error "ERROR`nResponse Code: '$($Response.ResponseCode)'`nResponse Error: '$($Response.Error)'`nResponse Result: '$($Response.Result)'"
+            throw $("Response Code: '$($Response.ResponseCode)'`nResponse Error: '$($Response.Error)'")
+        }
+
+        if (($Response.ResponseCode -match "(^0$)|(^20\d+$)") -or ('OK' -eq $Response.Status)) {
             return $Response
         } else {
             # Handling errors and throwing an exception
-            Write-Error "Response Code: '$($Response.ResponseCode)'`nResponse Error: '$($Response.Error)'`nResponse Result: '$($Response.Result)'"
+            Write-Error "ERROR`nResponse Code: '$($Response.ResponseCode)'`nResponse Error: '$($Response.Error)'`nResponse Result: '$($Response.Result)'"
             throw $("Response Code: '$($Response.ResponseCode)'`nResponse Error: '$($Response.Error)'")
         }
     }

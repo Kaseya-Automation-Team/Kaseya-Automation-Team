@@ -56,22 +56,29 @@
     $Source      = $Source -replace '\\', '/'
     $Destination = $Destination -replace '\\', '/'
 
-    if ($Source -ne $Destination) {
-
+    if ($Source -eq $Destination) {
+        return $false
+    } else {
         $URISuffix   = $URISuffix -f $AgentId, $Source, $Destination
 
         [hashtable]$Params = @{
-                                'URISuffix' = $URISuffix
-                                'Method'    = 'PUT'
-                              }
+            VSAConnection = $VSAConnection
+            URISuffix     = $URISuffix
+            Method        = 'PUT'
+        }
+        #Remove empty keys
+        foreach ( $key in $Params.Keys.Clone() ) {
+            if ( -not $Params[$key] )  { $Params.Remove($key) }
+        }
 
-        if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+        if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+            $Result | Out-String | Write-Debug
+        }
+        if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+            $Result | Out-String | Write-Verbose
+        }
 
-        $Params | Out-String | Write-Debug
-
-        return Update-VSAItems @Params
-    } else {
-        return $false
+        return Invoke-VSARestMethod @Params
     }
 }
 Export-ModuleMember -Function Move-VSADocument

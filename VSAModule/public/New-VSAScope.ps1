@@ -55,29 +55,23 @@ function New-VSAScope
     $Body = $BodyHT | ConvertTo-Json
 
     [hashtable]$Params =@{
+        VSAConnection  = $VSAConnection
         URISuffix      = $URISuffix
         Method         = 'POST'
         Body           = $Body
     }
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+
+    #Remove empty keys
+    foreach ( $key in $Params.Keys.Clone() ) {
+        if ( -not $Params[$key] )  { $Params.Remove($key) }
+    }
 
     if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
         Write-Debug "New-VSAScope. Request Params`:$($Params | Out-String)"
     }
-    
 
     if( $PSCmdlet.ShouldProcess( $ScopeName ) ) {
-
-        $Result = Invoke-VSARestMethod @Params
-
-        if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-            $Result | Out-String | Write-Debug
-        }
-        if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-            $Result | Out-String | Write-Verbose
-        }
-
-        return $Result
+        return Invoke-VSARestMethod @Params
     }
 }
 New-Alias -Name Add-VSAScope -Value New-VSAScope

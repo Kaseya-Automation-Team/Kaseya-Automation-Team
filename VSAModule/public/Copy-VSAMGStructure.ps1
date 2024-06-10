@@ -19,7 +19,6 @@
     .OUTPUTS
        No output
     #>
-    [alias("Copy-VSAMachineGroupStructure")]
     [CmdletBinding()]
     param (
         [parameter(Mandatory = $true, 
@@ -187,4 +186,6 @@
 
     } # Foreach ($MachineGroup in $SourceMGs)
 }
-Export-ModuleMember -Function Copy-VSAMGStructure
+
+New-Alias -Name Copy-VSAMachineGroupStructure -Value Copy-VSAMGStructure
+Export-ModuleMember -Function Copy-VSAMGStructure -Alias Copy-VSAMachineGroupStructure

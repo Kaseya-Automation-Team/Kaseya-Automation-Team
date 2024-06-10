@@ -1,7 +1,6 @@
-﻿function Invoke-VSARestMethod
-{
+﻿function Invoke-VSARestMethod {
     <#
-    .Synopsis
+    .SYNOPSIS
        Invokes VSA REST API methods.
     .DESCRIPTION
        Executes various VSA REST API methods and returns the response or success status.
@@ -21,8 +20,8 @@
         Specifies REST API Filter.
     .PARAMETER RecordsPerPage
         Specifies the number of records per page for paging (default is 100).
-    .PARAMETER Paging
-        Specifies REST API Paging.
+    .PARAMETER Skip
+        Specifies the number of records to skip for paging.
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
@@ -34,56 +33,46 @@
     .OUTPUTS
        Varies based on the method invoked.
     .NOTES
-        Version 0.1
+        Version 0.1.3
     #>
     [alias("Get-VSAItems", "Update-VSAItems")]
     [CmdletBinding()]
     param (
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true)]
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
-        [parameter(DontShow, Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true)]
+        [parameter(DontShow, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix,
 
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true)]
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [ValidateSet("GET", "POST", "PUT", "DELETE", "PATCH")]
         [string] $Method = 'GET',
 
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true)]
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Body,
 
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true)]
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $ContentType = "application/json",
 
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true)]
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [switch] $ExtendedOutput,
 
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true)]
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true)]
-        [ValidateRange(1,100)]
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
+        [ValidateRange(1, 100)]
         [int] $RecordsPerPage = 100,
 
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true)]
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()] 
-        [string] $Paging,
+        [string] $Skip,
 
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true)]
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
@@ -91,125 +80,112 @@
     $VSAServerURI = [string]::Empty
     [bool]$IgnoreCertificateErrors = $false
 
-    if ( $null -eq $VSAConnection )
-    {
-        if ( [VSAConnection]::GetPersistent() )
-        {
+
+    if ($null -eq $VSAConnection) {
+        if ([VSAConnection]::IsPersistent) {
             $VSAServerURI = [VSAConnection]::GetPersistentURI()
             $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
             $IgnoreCertificateErrors = [VSAConnection]::GetIgnoreCertErrors()
         }
+        Update-VSAConnection
     } else {
         $VSAServerURI = $VSAConnection.URI
-        $UsersToken = "Bearer {0}" -f $($VSAConnection.Token)
+        $UsersToken = "Bearer $($VSAConnection.Token)"
         $IgnoreCertificateErrors = $VSAConnection.IgnoreCertificateErrors
+        Update-VSAConnection -VSAConnection $VSAConnection
     }
 
-    # Convert the base URI and URISuffix into a full URI
     $baseUri = New-Object System.Uri -ArgumentList $VSAServerURI
     [string]$URI = [System.Uri]::new($baseUri, $URISuffix) | Select-Object -ExpandProperty AbsoluteUri
 
-    #region Filtering, Sorting, Paging
-    # Hashtable to store filtering, sorting, and paging parameters
     [hashtable]$ApiSearchParams = @{
-        '$filter'   = $Filter
-        '$orderby'  = $Sort
-        '$Paging'   = $Paging
+        '$filter' = $Filter
+        '$orderby' = $Sort
+        '$skip' = $Skip
     }
 
-    # Filter out & remove null or empty Remove empty keys
-    foreach ( $key in $ApiSearchParams.Keys.Clone() ) {
-        if ( [string]::IsNullOrEmpty( $ApiSearchParams[$key] ) )  { $ApiSearchParams.Remove($key) }
+    foreach ($key in $ApiSearchParams.Keys.Clone()) {
+        if ([string]::IsNullOrEmpty($ApiSearchParams[$key])) {
+            $ApiSearchParams.Remove($key)
+        }
     }
 
-    # If Filtering, Sorting and Paging values are null or empty, set $CombinedURI to just $URI
-    if ( ($null -eq $ApiSearchParams) -or (0 -eq $ApiSearchParams.Count) ) {
-        $CombinedURI = $URI        
+    if (($null -eq $ApiSearchParams) -or (0 -eq $ApiSearchParams.Count)) {
+        $CombinedURI = $URI
     } else {
-        # Add Filtering, Sorting and Paging to the initial URI
         $CombinedURI = "{0}?{1}" -f $URI, $(($ApiSearchParams.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join '&')
     }
-    #endregion Filtering, Sorting, Paging
 
-    # Hashtable to store API request details
-    $WebRequestParams = @{
+    [hashtable]$WebRequestParams = @{
         Uri = $CombinedURI
         Method = $Method
         AuthString = $UsersToken
         IgnoreCertificateErrors = $IgnoreCertificateErrors
     }
 
-    # Add Body and ContentType to the API request details if specified
     if ($Body) {
         $WebRequestParams.Add('Body', $Body)
         $WebRequestParams.Add('ContentType', $ContentType)
     }
 
-    # Output the API request details for debugging
     if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
         Write-Debug "$($MyInvocation.MyCommand)"
         Write-Debug "Invoke-VSARestMethod. Request details:"
         $WebRequestParams | ConvertTo-Json -Depth 3 | Out-String | Write-Debug
-        "Calling Get-RequestData"
     }
     if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-        "Invoke-VSARestMethod. Calling Get-RequestData."
+        Write-Verbose "Invoke-VSARestMethod. Calling Get-RequestData."
     }
     
-    # Call the Get-RequestData function with the API request details
     $response = Get-RequestData @WebRequestParams
 
     if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-        "Invoke-VSARestMethod. Response:`n$($response | Out-String)" | Write-Debug 
+        Write-Debug "Invoke-VSARestMethod. Response:`n$($response | Out-String)"
     }
 
-    # Extract the 'Result' field from the response
     [array]$result = $response | Select-Object -ExpandProperty Result
 
-    # Process paging if TotalRecords is specified in the response
-    if ( -not [string]::IsNullOrEmpty("$($response.TotalRecords)")  ) {
+    if (-not [string]::IsNullOrEmpty("$($response.TotalRecords)")) {
         [int]$TotalRecords = $response.TotalRecords
 
-        #region messages to verbose and debug streams
         if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-            "Invoke-VSARestMethod`nRecords: $TotalRecords" | Write-Debug
+            Write-Debug "Invoke-VSARestMethod`nRecords: $TotalRecords"
         }
         if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-            "Invoke-VSARestMethod`nRecords: $TotalRecords"  | Write-Verbose
+            Write-Verbose "Invoke-VSARestMethod`nRecords: $TotalRecords"
         }
-        #endregion messages to verbose and debug streams
 
         [int]$Pages = [math]::Ceiling($TotalRecords / $RecordsPerPage)
+        $resultCollection = [System.Collections.ArrayList]@($result)
 
-        if ($null -eq $ApiSearchParams) {
-            $ApiSearchParams = @{}
-        }
+        for ($PageProcessed = 1; $PageProcessed -le $Pages; $PageProcessed++) {
+            $ApiSearchParams['$skip'] = $RecordsPerPage * $PageProcessed
+            $CombinedURI = "$URI`?$([array]($ApiSearchParams.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join '&')"
+            $WebRequestParams.Uri = $CombinedURI
 
-        #region processing multiple pages
-        if ( $Pages -gt 1 ) {
-
-            $resultCollection = [System.Collections.ArrayList]@($result)
-
-            for ($PageProcessed = 1; $PageProcessed -le $Pages; $PageProcessed++) {
-                if ($ApiSearchParams.ContainsKey('$skip')) {
-                    $ApiSearchParams['$skip'] = $RecordsPerPage * $PageProcessed
-                } else {
-                    $ApiSearchParams.Add('$skip', $RecordsPerPage * $PageProcessed)
+            if ($null -eq $VSAConnection) {
+                if ([VSAConnection]::IsPersistent) {
+                    Update-VSAConnection
+                    $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
                 }
-
-                $CombinedURI = "$URI`?$([array]($ApiSearchParams.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join '&')"
-                $WebRequestParams.Uri = $CombinedURI
-                [array]$temp = Get-RequestData @WebRequestParams | Select-Object -ExpandProperty Result
-
-                if ( 0 -lt $temp.Count) { $resultCollection.AddRange( $temp ) | Out-Null }
+            } else {
+                Update-VSAConnection -VSAConnection $VSAConnection
+                $UsersToken = "Bearer $($VSAConnection.Token)"
             }
-            $result = $resultCollection.ToArray()
+
+            $WebRequestParams.AuthString = $UsersToken
+
+            [array]$temp = Get-RequestData @WebRequestParams | Select-Object -ExpandProperty Result
+
+            if (0 -lt $temp.Count) { 
+                $resultCollection.AddRange($temp) | Out-Null 
+            }
         }
-        #endregion processing multiple pages
+        $result = $resultCollection.ToArray()
     }
 
     if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-        "Invoke-VSARestMethod. Result`n $($result | Out-String)" | Write-Debug
+        Write-Debug "Invoke-VSARestMethod. Result`n $($result | Out-String)"
     }
     
     if ($ExtendedOutput) {

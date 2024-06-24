@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Folder name="Gather MDM Hardware Hash" treePres="3" treeFullPath="myProcedures.Gather MDM Hardware Hash">
+    <Procedure name="Gather MDM Hardware Hash" treePres="3" id="491928652" treeFullPath="myProcedures.Gather MDM Hardware Hash">
+      <Body description="">
+        <Statement description="This procedure facilitates retrieving device hardware data from the Mobile Device Management (MDM) CIM namespace&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="HWHash.txt" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="FileName" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#vAgentConfiguration.agentTempDir#/#FileName#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="OutputFile" />
+        </Statement>
+        <Statement name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="$hash = (Get-CimInstance -Namespace root/cimv2/mdm/dmmap -Class MDM_DevDetail_Ext01 -Filter &quot;&quot;&quot;InstanceID='Ext' AND ParentID='./DevDetail'&quot;&quot;&quot;).DeviceHardwareData; if ( -not [string]::IsNullOrEmpty($hash)) { $hash | Out-File -FilePath #OutputFile# -Force -Confirm:$false -Encoding ascii}" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="PoShCommand" />
+        </Statement>
+        <Statement description="Separate multiple email addresses with commas:" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="address1@mail.server" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="EmailRecipients" />
+        </Statement>
+        <If description="If the hash already gathered">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#OutputFile#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#OutputFile#" />
+            </Statement>
+          </Then>
+        </If>
+        <If description="Overwrite the hash">
+          <Condition name="Windows 32 or 64 Bit Check">
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          </Condition>
+          <Then>
+            <Statement name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#PoShCommand#&quot;" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="True" />
+            </Statement>
+          </Then>
+        </If>
+        <If description="">
+          <Condition name="Windows 32 or 64 Bit Check">
+            <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+          </Condition>
+          <Then>
+            <Statement name="ExecuteShellCommand" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Command" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#PoShCommand#&quot;" />
+              <Parameter xsi:type="EnumParameter" name="ExecuteAccount" value="System" />
+              <Parameter xsi:type="BooleanParameter" name="Is64Bit" value="False" />
+            </Statement>
+          </Then>
+        </If>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#OutputFile#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="NotExists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement description="Unable to gather the hardware hash" name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="ERROR: Unable to retrieve device hardware data (hash) from #vAgentConfiguration.machName#" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement description="Upload the hardware hash to the VSA server" name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="INFO: Retrieved the device hardware data (hash) from #vAgentConfiguration.machName#" />
+            </Statement>
+            <Statement name="GetFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="RemoteFileName" value="#OutputFile#" />
+              <Parameter xsi:type="StringParameter" name="KServerFileName" value="#FileName#" />
+              <Parameter xsi:type="EnumParameter" name="Action" value="OverwriteNoAlert" />
+            </Statement>
+            <Statement name="GetVariable" continueOnFail="false">
+              <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="#OutputFile#" />
+              <Parameter xsi:type="StringParameter" name="VariableName" value="TheHash" />
+            </Statement>
+            <Statement description="Send the hardware hash to the e-mail recipients listed in the EmailRecipients variable" name="SendEmail" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="To" value="#EmailRecipients#" />
+              <Parameter xsi:type="StringParameter" name="Subject" value="Hardware Hash #vAgentConfiguration.machName#" />
+              <Parameter xsi:type="MultiLineStringParameter" name="Body" value="#TheHash#" />
+            </Statement>
+            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#OutputFile#" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+  </Folder>
+</ScExport>

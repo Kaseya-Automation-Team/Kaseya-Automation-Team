@@ -36,7 +36,7 @@ function Get-VSAAsset
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false)]
+        [parameter(DontShow, Mandatory=$false)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/assetmgmt/assets',
 
@@ -72,12 +72,19 @@ function Get-VSAAsset
         URISuffix = $URISuffix
     }
 
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-    if($Filter)        {$Params.Add('Filter', $Filter)}
-    if($Paging)        {$Params.Add('Paging', $Paging)}
-    if($Sort)          {$Params.Add('Sort', $Sort)}
+    [hashtable]$Params = @{
+        VSAConnection = $VSAConnection
+        URISuffix     = $URISuffix
+        Filter        = $Filter
+        Paging        = $Paging
+        Sort          = $Sort
+    }
 
-    $result = Get-VSAItems @Params
+    foreach ( $key in $Params.Keys.Clone()  ) {
+        if ( -not $Params[$key]) { $Params.Remove($key) }
+    }
+
+    $result = Invoke-VSARestMethod @Params
 
     if ($ResolveIDs)
     {

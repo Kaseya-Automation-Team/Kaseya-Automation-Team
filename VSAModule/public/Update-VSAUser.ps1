@@ -41,7 +41,7 @@ function Update-VSAUser
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       True if addition was successful.
+       True if update was successful.
     #>
     [CmdletBinding(DefaultParameterSetName = 'ById')]
     #[CmdletBinding()]
@@ -86,16 +86,32 @@ function Update-VSAUser
             Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
-        [int] $AdminType,
+        [decimal] $AdminType,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
+        [ValidateScript({
+            foreach ($item in $_) {
+                if ( -not [decimal]::TryParse($item, [ref]$null) ) {
+                    throw "All elements must be numeric. '$item' is not a valid number."
+                }
+            }
+            return $true
+        })]
         [decimal[]] $AdminRoleIds,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
+        [ValidateScript({
+            foreach ($item in $_) {
+                if ( -not [decimal]::TryParse($item, [ref]$null) ) {
+                    throw "All elements must be numeric. '$item' is not a valid number."
+                }
+            }
+            return $true
+        })]
         [decimal[]] $AdminScopeIds,
 
         [parameter(Mandatory=$false,
@@ -228,38 +244,33 @@ function Update-VSAUser
         }
     }# Begin
     Process {
-    $URISuffix = $URISuffix -f $UserId
-    $URISuffix | Write-Debug
     
-    [hashtable]$BodyHT = @{ UserId = $UserId }
-    if ($AdminName)                { $BodyHT.Add('AdminName', $AdminName) }
-    if ($AdminPassword)            { $BodyHT.Add('AdminPassword', $AdminPassword) }
-    if ($AdminType)                { $BodyHT.Add('Admintype', $AdminType) }
-    if ($AdminScopeIds)            { $BodyHT.Add('AdminScopeIds', $AdminScopeIds) }
-    if ($AdminRoleIds)             { $BodyHT.Add('AdminRoleIds', $AdminRoleIds) }
-    if ($FirstName)                { $BodyHT.Add('FirstName', $FirstName) }
-    if ($LastName)                 { $BodyHT.Add('LastName', $LastName) }
-    if ($DefaultStaffOrgId)        { $BodyHT.Add('DefaultStaffOrgId', $DefaultStaffOrgId) }
-    if ($DefaultStaffDepartmentId) { $BodyHT.Add('DefaultStaffDepartmentId', $DefaultStaffDepartmentId) }
-    if ($Email)                    { $BodyHT.Add('Email', $Email) }
-    if ($Attributes)               { $BodyHT.Add('Attributes', $Attributes) }
+    [hashtable]$BodyHT = @{
+        UserId                   = $UserId
+        AdminName                = $AdminName
+        AdminPassword            = $AdminPassword
+        AdminScopeIds            = $AdminScopeIds
+        AdminRoleIds             = $AdminRoleIds
+        FirstName                = $FirstName
+        LastName                 = $LastName
+        DefaultStaffOrgId        = $DefaultStaffOrgId
+        DefaultStaffDepartmentId = $DefaultStaffDepartmentId
+        Email                    = $Email
+        Attributes               = $Attributes
+    }
+    foreach ( $key in $BodyHT.Keys.Clone()  ) {
+        if ( -not $BodyHT[$key]) { $BodyHT.Remove($key) }
+    }
 
-    $Body = ConvertTo-Json $BodyHT
-
-    $Body | Out-String | Write-Debug
-
-    $URISuffix | Write-Debug
 
     [hashtable]$Params = @{
-                            'URISuffix' = $URISuffix
-                            'Method'    = 'PUT'
-                            'Body'      = $Body
+        URISuffix = $($URISuffix -f $UserId)
+        Method    = 'PUT'
+        Body      = $(ConvertTo-Json $BodyHT -Depth 5 -Compress)
     }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params | Out-String | Write-Debug
-
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
     }
 }
 Export-ModuleMember -Function Update-VSAUser

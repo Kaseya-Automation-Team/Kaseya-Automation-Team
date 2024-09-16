@@ -28,51 +28,47 @@ function Update-VSASDTicketCustomFields
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
-        [ValidateNotNullOrEmpty()] 
+
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/automation/servicedesktickets/{0}/customfields/{1}",
-        [ValidateNotNullOrEmpty()]
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+
+        [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })] 
         [string] $ServiceDeskTicketId,
-        [ValidateNotNullOrEmpty()]
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+
+        [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $CustomFieldId,
-        [ValidateNotNullOrEmpty()]
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+
+        [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $Value
 )
-    
-    $URISuffix = $URISuffix -f $ServiceDeskTicketId, $CustomFieldId
 
     [hashtable]$Params =@{
-        URISuffix = $URISuffix
-        Method = 'PUT'
+        URISuffix = $($URISuffix -f $ServiceDeskTicketId, $CustomFieldId)
+        Method    = 'PUT'
+        Body      = "`"$Value`""
     }
-
-	$Body = ConvertTo-Json "$Value"
-	
-    $Params.Add('Body', $Body)
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    Write-Host $Body
-
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Update-VSASDTicketCustomFields

@@ -33,13 +33,13 @@
     .OUTPUTS
        Varies based on the method invoked.
     .NOTES
-        Version 0.1.3
+        Version 0.1.5
     #>
-    [alias("Get-VSAItems", "Update-VSAItems")]
     [CmdletBinding()]
     param (
         [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
-        [VSAConnection] $VSAConnection,
+        [AllowNull()]
+        [VSAConnection] $VSAConnection = $null,
 
         [parameter(DontShow, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
@@ -61,7 +61,7 @@
         [switch] $ExtendedOutput,
 
         [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNullOrEmpty()]
+        [AllowEmptyString()]
         [string] $Filter,
 
         [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
@@ -69,24 +69,24 @@
         [int] $RecordsPerPage = 100,
 
         [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNullOrEmpty()] 
+        [AllowEmptyString()] 
         [string] $Skip,
 
         [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNullOrEmpty()] 
-        [string] $Sort
+        [AllowEmptyString()]
+        [string] $Sort,
+
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
+        [int] $MaxRecordsPerSession = 25000
     )
 
     $VSAServerURI = [string]::Empty
     [bool]$IgnoreCertificateErrors = $false
 
-
-    if ($null -eq $VSAConnection) {
-        if ([VSAConnection]::IsPersistent) {
-            $VSAServerURI = [VSAConnection]::GetPersistentURI()
-            $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
-            $IgnoreCertificateErrors = [VSAConnection]::GetIgnoreCertErrors()
-        }
+    if ( $null -eq $VSAConnection ) {
+        $VSAServerURI = [VSAConnection]::GetPersistentURI()
+        $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
+        $IgnoreCertificateErrors = [VSAConnection]::GetIgnoreCertErrors()
         Update-VSAConnection
     } else {
         $VSAServerURI = $VSAConnection.URI
@@ -158,19 +158,42 @@
         [int]$Pages = [math]::Ceiling($TotalRecords / $RecordsPerPage)
         $resultCollection = [System.Collections.ArrayList]@($result)
 
-        for ($PageProcessed = 1; $PageProcessed -le $Pages; $PageProcessed++) {
+        #Workaroud For SaaS limitation
+
+        [int]$RenewTimes = 1
+        [int]$RenewThreshold = $MaxRecordsPerSession
+        
+
+        for ( $PageProcessed = 1; $PageProcessed -le $Pages; $PageProcessed++ ) {
+
             $ApiSearchParams['$skip'] = $RecordsPerPage * $PageProcessed
             $CombinedURI = "$URI`?$([array]($ApiSearchParams.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join '&')"
             $WebRequestParams.Uri = $CombinedURI
 
-            if ($null -eq $VSAConnection) {
-                if ([VSAConnection]::IsPersistent) {
+            #Workaroud For SaaS limitation $MaxRecordsPerSession
+            if ($ApiSearchParams['$skip'] -ge $RenewThreshold ) {
+
+                if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+                    Write-Debug "Fetching in progress... So far fetched $RenewThreshold records."
+                }
+                if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+                    Write-Verbose "Fetching in progress... So far fetched $RenewThreshold records."
+                }
+
+                if ($null -eq $VSAConnection) {
+
+                    [VSAConnection]::UpdatePersistentSessionExpiration( $([datetime]::Now).AddMinutes(-1) )
                     Update-VSAConnection
                     $UsersToken = "Bearer $( [VSAConnection]::GetPersistentToken() )"
+                } else {
+
+                    $VSAConnection.UpdateSessionExpiration( $([datetime]::Now).AddMinutes(-1) )
+                    Update-VSAConnection -VSAConnection $VSAConnection
+                    $UsersToken = "Bearer $($VSAConnection.Token)"
                 }
-            } else {
-                Update-VSAConnection -VSAConnection $VSAConnection
-                $UsersToken = "Bearer $($VSAConnection.Token)"
+
+                $RenewTimes +=1
+                $RenewThreshold = $MaxRecordsPerSession * $RenewTimes
             }
 
             $WebRequestParams.AuthString = $UsersToken

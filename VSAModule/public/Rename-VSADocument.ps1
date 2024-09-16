@@ -30,7 +30,7 @@
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false)]
+        [parameter(DontShow, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/documents/{0}/Rename/{1}/{2}',
 
@@ -56,22 +56,17 @@
     $Source      = $Source -replace '\\', '/'
     $Destination = $Destination -replace '\\', '/'
 
-    if ($Source -ne $Destination) {
-
-        $URISuffix   = $URISuffix -f $AgentId, $Source, $Destination
-
-        [hashtable]$Params = @{
-                                'URISuffix' = $URISuffix
-                                'Method'    = 'DELETE'
-                              }
-
+    if ($Source -eq $Destination) {
+        [string]$Msg = "The source ($Source) and the destination ($Destination) are the same"
+        throw $Msg 
+    } else {
+            [hashtable]$Params = @{
+            'URISuffix' = $($URISuffix -f $AgentId, $Source, $Destination)
+            'Method'    = 'DELETE'
+        }
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-        $Params | Out-String | Write-Debug
-
-        return Update-VSAItems @Params
-    } else {
-        return $false
+        return Invoke-VSARestMethod @Params
     }
 }
 Export-ModuleMember -Function Rename-VSADocument

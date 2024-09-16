@@ -18,9 +18,9 @@ function Get-VSASDTicket {
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSASDTicket -ServiceDeskId 3434343
+       Get-VSASDTicket -ServiceDeskId 123456
     .EXAMPLE
-       Get-VSASDTicket -VSAConnection $connection -ServiceDeskId 3434343
+       Get-VSASDTicket -VSAConnection $connection -ServiceDeskId 123456
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
@@ -29,38 +29,45 @@ function Get-VSASDTicket {
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/automation/servicedesks/{0}/tickets',
-        [ValidateNotNullOrEmpty()]
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+
+        [Alias('ID')]
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $ServiceDeskId,
-        [ValidateNotNullOrEmpty()]
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
-        [string] $ServiceDeskTicketId,         
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
+        [string] $ServiceDeskTicketId,
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
@@ -74,16 +81,20 @@ function Get-VSASDTicket {
         $URISuffix = $URISuffix -f $ServiceDeskId
     }
 
-    [hashtable]$Params =@{
-        URISuffix = $URISuffix
+    [hashtable]$Params = @{
+        VSAConnection = $VSAConnection
+        URISuffix     = $URISuffix
+        Filter        = $Filter
+        Paging        = $Paging
+        Sort          = $Sort
     }
 
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-    if($Filter)        {$Params.Add('Filter', $Filter)}
-    if($Paging)        {$Params.Add('Paging', $Paging)}
-    if($Sort)          {$Params.Add('Sort', $Sort)}
+    #Remove empty keys
+    foreach ( $key in $Params.Keys.Clone()  ) {
+        if ( -not $Params[$key]) { $Params.Remove($key) }
+    }
 
-    return Get-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Get-VSASDTicket

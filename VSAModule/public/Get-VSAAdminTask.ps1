@@ -35,28 +35,32 @@ function Get-VSAAdminTask {
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'NonPersistent')]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/system/sessiontimers/admintasks',
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+
+        [Alias('ID')]
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })] 
         [string] $TaskId,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
@@ -67,12 +71,19 @@ function Get-VSAAdminTask {
         URISuffix = $URISuffix
     }
 
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-    if($Filter)        {$Params.Add('Filter', $Filter)}
-    if($Paging)        {$Params.Add('Paging', $Paging)}
-    if($Sort)          {$Params.Add('Sort', $Sort)}
+    [hashtable]$Params = @{
+        VSAConnection = $VSAConnection
+        URISuffix     = $URISuffix
+        Filter        = $Filter
+        Paging        = $Paging
+        Sort          = $Sort
+    }
 
-    return Get-VSAItems @Params
+    foreach ( $key in $Params.Keys.Clone()  ) {
+        if ( -not $Params[$key]) { $Params.Remove($key) }
+    }
+
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Get-VSAAdminTask

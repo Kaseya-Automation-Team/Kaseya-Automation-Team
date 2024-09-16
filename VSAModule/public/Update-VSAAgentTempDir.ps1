@@ -21,23 +21,20 @@ function Update-VSAAgentTempDir
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       No output
+       True if successful
     #>
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+
+        [parameter(DontShow, Mandatory=$false)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/assetmgmt/agents/{0}/settings/tempdir",
+
         [Parameter(Mandatory = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -46,25 +43,23 @@ function Update-VSAAgentTempDir
             return $true
         })]
         [string] $AgentId,
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $TempDir
 )
-    $URISuffix = $URISuffix -f $AgentId
+    $TempDir = [Regex]::Escape($TempDir)
 	
     [hashtable]$Params =@{
-        URISuffix = $URISuffix
+        URISuffix = $($URISuffix -f $AgentId)
         Method = 'PUT'
+        Body = $("[{""key"":""$TempDir"",""value"":""$TempDir""}]")
     }
-
-    $Body = ConvertTo-Json @(@{"key"="$TempDir"; "value"="$TempDir";})
-	
-    $Params.Add('Body', $Body)
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Update-VSAAgentTempDir

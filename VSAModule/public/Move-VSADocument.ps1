@@ -30,7 +30,7 @@
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false)]
+        [parameter(DontShow, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/documents/{0}/file/Move/{1}/{2}',
 
@@ -59,11 +59,10 @@
     if ($Source -eq $Destination) {
         return $false
     } else {
-        $URISuffix   = $URISuffix -f $AgentId, $Source, $Destination
 
         [hashtable]$Params = @{
             VSAConnection = $VSAConnection
-            URISuffix     = $URISuffix
+            URISuffix     = $($URISuffix -f $AgentId, $Source, $Destination)
             Method        = 'PUT'
         }
         #Remove empty keys

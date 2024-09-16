@@ -68,7 +68,7 @@
     .OUTPUTS
         Returns True if the creation was successful; returns the OrgId property of the new Organization if the ExtendedOutput switch is specified.
     .NOTES
-        Version 0.1.2
+        Version 0.2
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param (
@@ -258,7 +258,7 @@
     # Process Contact Info
     [hashtable] $ContactInfoHT = @{}
     # Check if ContactInfo object is present
-    if (-not [string]::IsNullOrEmpty($ContactInfo)) {
+    if ( -not [string]::IsNullOrEmpty($ContactInfo) ) {
         $BodyHT.Remove('ContactInfo')
         # Convert string literal to hashtable
         $ContactInfo -match '{(.*?)\}' | Out-Null
@@ -344,13 +344,14 @@
         "New-VSAOrganization. Request Body: $Body" | Write-Debug
     }
 
-    [hashtable]$Params =@{
-                            URISuffix      = $URISuffix
-                            Method         = 'POST'
-                            Body           = $Body
-                            ExtendedOutput = $ExtendedOutput
-                        }
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+    [hashtable]$Params = @{
+        URISuffix      = $URISuffix
+        Method         = 'POST'
+        Body           = $( $BodyHT | ConvertTo-Json -Depth 5 -Compress )
+        ExtendedOutput = $ExtendedOutput
+    }
+
+    if ($VSAConnection) { $Params.VSAConnection = $VSAConnection }
 
 
     # Debug output for Invoke-VSARestMethod parameters

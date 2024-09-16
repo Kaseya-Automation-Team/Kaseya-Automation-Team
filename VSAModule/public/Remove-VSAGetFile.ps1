@@ -28,7 +28,7 @@
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false)]
+        [parameter(DontShow, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/getfiles/{0}/{1}',
 
@@ -46,23 +46,17 @@
         [string] $Path
     )
     
-    if (-not [string]::IsNullOrEmpty($Path) ) {
-        $Path = $Path -replace '\\', '/'
-        #if ($Path -notmatch '^\/') { $Path = "/$Path"}
-        #if ($Path -notmatch '\/$') { $Path = "$Path/"}
-    }
+
+    $Path = $Path -replace '\\', '/'
 
     $URISuffix = $URISuffix -f $AgentId, $Path
 
     [hashtable]$Params = @{
-                            'URISuffix' = $URISuffix
-                            'Method'    = 'DELETE'
-                            }
-
+        URISuffix = $($URISuffix -f $AgentId, $Path)
+        Method    = 'DELETE'
+    }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params | Out-String | Write-Debug
-
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 Export-ModuleMember -Function Remove-VSAGetFile

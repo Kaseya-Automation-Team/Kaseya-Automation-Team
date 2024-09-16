@@ -25,7 +25,7 @@ function Start-VSAPurchaseWarrantyExpirationDatesUpdate
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory = $false,
+        [parameter(DontShow, Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/audit/{0}/hardware/purchaseandwarrantyexpire', 
@@ -50,6 +50,6 @@ function Start-VSAPurchaseWarrantyExpirationDatesUpdate
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 Export-ModuleMember -Function Start-VSAPurchaseWarrantyExpirationDatesUpdate

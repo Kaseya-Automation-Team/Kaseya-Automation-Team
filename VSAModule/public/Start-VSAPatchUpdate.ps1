@@ -53,34 +53,30 @@ function Start-VSAPatchUpdate
     [CmdletBinding()]
     param ( 
         [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/assetmgmt/patch/runnow",
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [array] $AgentGuids,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
         [switch] $ServerTimeZone,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
         [switch] $SkipIfOffLine,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
         [switch] $PowerUpIfOffLine,
+
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateSet('Never', 'Minutes', 'Hours', 'Days', 'Weeks', 'Months', 'Years')]
         [string] $Repeat = 'Never',
+
         [Parameter(Mandatory = $false)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -89,17 +85,13 @@ function Start-VSAPatchUpdate
             return $true
         })]
         [string] $SpecificDayOfMonth,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $true)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $true)]
+
         [string] $EndAt,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $true)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $true)]
+
         [string] $EndOn,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
         [string] $EndAfterIntervalTimes,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
         [string] $Interval = 'Minutes',
         [Parameter(Mandatory = $false)]
         [ValidateScript({
@@ -109,71 +101,71 @@ function Start-VSAPatchUpdate
             return $true
         })]
         [string] $Magnitude = '0',
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
         [string] $StartOn,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
         [string] $StartAt,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
         [string] $ExcludeFrom,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
         [string] $ExcludeTo,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
         [switch] $AgentTime
 
         
 )
    
     DynamicParam {
-        if ( 'Never' -notmatch $Repeat ) {
-
-            $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $false
-            $AttributeCollection.Add($ParameterAttribute)
+        if ('Never' -notmatch $Repeat) {
             $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('Times', [int], $AttributeCollection)
-            $RuntimeParameterDictionary.Add('Times', $RuntimeParameter)
 
+            # Helper function to create RuntimeDefinedParameter
+            function New-RuntimeParameter {
+                param (
+                    [string]$Name,
+                    [Type]$Type,
+                    [string[]]$ValidateSet
+                )
 
-            $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $false
-            $AttributeCollection.Add($ParameterAttribute)
-            [string[]] $ValidateSet = @('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday')
-            $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-            $AttributeCollection.Add($ValidateSetAttribute)
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('DaysOfWeek', [string], $AttributeCollection)
-            $RuntimeParameterDictionary.Add('DaysOfWeek', $RuntimeParameter)
+                $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
 
-            $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $false
-            $AttributeCollection.Add($ParameterAttribute)
-            [string[]] $ValidateSet = @('FirstSunday', 'SecondSunday', 'ThirdSunday', 'FourthSunday', 'LastSunday', 'FirstMonday', 'SecondMonday', 'ThirdMonday', 'FourthMonday', 'LastMonday', 'FirstTuesday', 'SecondTuesday', 'ThirdTuesday', 'FourthTuesday', 'LastTuesday', 'FirstWednesday', 'SecondWednesday', 'ThirdWednesday', 'FourthWednesday', 'LastWednesday', 'FirstThursday', 'SecondThursday', 'ThirdThursday', 'FourthThursday', 'LastThursday', 'FirstFriday', 'SecondFriday', 'ThirdFriday', 'FourthFriday', 'LastFriday', 'FirstSaturday', 'SecondSaturday', 'ThirdSaturday', 'FourthSaturday', 'LastSaturday', 'FirstWeekDay', 'SecondWeekDay', 'ThirdWeekDay', 'FourthWeekDay', 'LastWeekDay', 'FirstWeekendDay', 'SecondWeekendDay', 'ThirdWeekendDay', 'FourthWeekendDay', 'LastWeekendDay', 'FirstDay', 'SecondDay', 'ThirdDay', 'FourthDay', 'LastDay')
-            $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-            $AttributeCollection.Add($ValidateSetAttribute)
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('DayOfMonth', [string], $AttributeCollection)
-            $RuntimeParameterDictionary.Add('DayOfMonth', $RuntimeParameter)
+                $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
+                $ParameterAttribute.Mandatory = $false
+                $AttributeCollection.Add($ParameterAttribute)
 
-            $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $false
-            $AttributeCollection.Add($ParameterAttribute)
-            [string[]] $ValidateSet = @('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
-            $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-            $AttributeCollection.Add($ValidateSetAttribute)
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter('MonthOfYear', [string], $AttributeCollection)
-            $RuntimeParameterDictionary.Add('MonthOfYear', $RuntimeParameter)
+                if ($ValidateSet) {
+                    $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
+                    $AttributeCollection.Add($ValidateSetAttribute)
+                }
+
+                return New-Object System.Management.Automation.RuntimeDefinedParameter($Name, $Type, $AttributeCollection)
+            }
+
+            # Define parameters
+            $RuntimeParameterDictionary.Add('Times', (New-RuntimeParameter -Name 'Times' -Type [int] -ValidateSet $null))
+
+            $DaysOfWeekSet = @('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday')
+            $RuntimeParameterDictionary.Add('DaysOfWeek', (New-RuntimeParameter -Name 'DaysOfWeek' -Type [string] -ValidateSet $DaysOfWeekSet))
+
+            $DayOfMonthSet = @(
+                'FirstSunday', 'SecondSunday', 'ThirdSunday', 'FourthSunday', 'LastSunday',
+                'FirstMonday', 'SecondMonday', 'ThirdMonday', 'FourthMonday', 'LastMonday',
+                'FirstTuesday', 'SecondTuesday', 'ThirdTuesday', 'FourthTuesday', 'LastTuesday',
+                'FirstWednesday', 'SecondWednesday', 'ThirdWednesday', 'FourthWednesday', 'LastWednesday',
+                'FirstThursday', 'SecondThursday', 'ThirdThursday', 'FourthThursday', 'LastThursday',
+                'FirstFriday', 'SecondFriday', 'ThirdFriday', 'FourthFriday', 'LastFriday',
+                'FirstSaturday', 'SecondSaturday', 'ThirdSaturday', 'FourthSaturday', 'LastSaturday',
+                'FirstWeekDay', 'SecondWeekDay', 'ThirdWeekDay', 'FourthWeekDay', 'LastWeekDay',
+                'FirstWeekendDay', 'SecondWeekendDay', 'ThirdWeekendDay', 'FourthWeekendDay', 'LastWeekendDay',
+                'FirstDay', 'SecondDay', 'ThirdDay', 'FourthDay', 'LastDay'
+            )
+            $RuntimeParameterDictionary.Add('DayOfMonth', (New-RuntimeParameter -Name 'DayOfMonth' -Type [string] -ValidateSet $DayOfMonthSet))
+
+            $MonthOfYearSet = @('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
+            $RuntimeParameterDictionary.Add('MonthOfYear', (New-RuntimeParameter -Name 'MonthOfYear' -Type [string] -ValidateSet $MonthOfYearSet))
 
             return $RuntimeParameterDictionary
         }
-    }
-    Begin {
     }
 
     Process {    
@@ -184,26 +176,23 @@ function Start-VSAPatchUpdate
         [string] $MonthOfYear = $PSBoundParameters.MonthOfYear
 
         [hashtable]$Recurrence = @{
-            Repeat  = $Repeat
-            EndAt = $EndAt
-            EndOn = $EndOn
+            Repeat                = $Repeat
+            EndAt                 = $EndAt
+            EndOn                 = $EndOn
+            Times                 = $Times
+            DaysOfWeek            = $DaysOfWeek
+            DayOfMonth            = $DayOfMonth
+            SpecificDayOfMonth    = $SpecificDayOfMonth
+            MonthOfYear           = $MonthOfYear
+            EndAfterIntervalTimes = $EndAfterIntervalTimes
         }
-        
-        if ( -not [string]::IsNullOrEmpty($Times) )                 { $Recurrence.Add('Times', $Times) }
-        if ( -not [string]::IsNullOrEmpty($DaysOfWeek) )            { $Recurrence.Add('DaysOfWeek', $DaysOfWeek) }
-        if ( -not [string]::IsNullOrEmpty($DayOfMonth) )            { $Recurrence.Add('DayOfMonth', $DayOfMonth) }
-        if ( -not [string]::IsNullOrEmpty($SpecificDayOfMonth) )    { $Recurrence.Add('SpecificDayOfMonth', $SpecificDayOfMonth) }
-        if ( -not [string]::IsNullOrEmpty($MonthOfYear) )           { $Recurrence.Add('MonthOfYear', $MonthOfYear)}
-        if ( -not [string]::IsNullOrEmpty($EndAfterIntervalTimes) ) { $Recurrence.Add('EndAfterIntervalTimes', $EndAfterIntervalTimes) }
+        foreach ( $key in $Recurrence.Keys.Clone()  ) {
+            if ( -not $Recurrence[$key]) { $Recurrence.Remove($key) }
+        }
     
         [hashtable]$Distribution = @{
             Interval  = $Interval
             Magnitude = $Magnitude
-        }
-    
-        [hashtable]$Params =@{
-            URISuffix = $URISuffix
-            Method = 'PUT'
         }
 
         [hashtable]$Start =@{
@@ -215,22 +204,34 @@ function Start-VSAPatchUpdate
             From = $ExcludeFrom
             To = $ExcludeTo
         }
-        
-        [hashtable]$BodyHT = @{}
 
-        $BodyHT = @{"ServerTimeZone"=$ServerTimeZone.ToBool(); "SkipIfOffline"=$SkipIfOffLine.ToBool(); "PowerUpIfOffLine"=$PowerUpIfOffLine.ToBool(); "Recurrence"=$Recurrence; "Distribution"=$Distribution; "SchedInAgentTime"=$AgentTime.ToBool()}
+        $BodyHT = @{
+            ServerTimeZone   = $ServerTimeZone.ToBool()
+            SkipIfOffline    = $SkipIfOffLine.ToBool()
+            PowerUpIfOffLine = $PowerUpIfOffLine.ToBool()
+            Recurrence       = $Recurrence
+            Distribution     = $Distribution
+            SchedInAgentTime = $AgentTime.ToBool()
+            Start            = $Start
+            AgentGuids       = $AgentGuids
+        }
+        foreach ( $key in $BodyHT.Keys.Clone()  ) {
+            if ( -not $BodyHT[$key]) { $BodyHT.Remove($key) }
+        }
 
-        if ( -not [string]::IsNullOrEmpty($StartOn) )         {  $BodyHT.Add('Start', $Start) }
-        if ( -not [string]::IsNullOrEmpty($AgentGuids) )   {  $BodyHT.Add('AgentGuids', $AgentGuids) }
-        if ( (-not [string]::IsNullOrEmpty($ExcludeFrom)) -and (-not [string]::IsNullOrEmpty($ExcludeTo)))  {  $BodyHT.Add('Exclusion', $Exclusion) }
+        if ( (-not [string]::IsNullOrEmpty($ExcludeFrom)) -and (-not [string]::IsNullOrEmpty($ExcludeTo))) {
+            $BodyHT.Add('Exclusion', $Exclusion)
+        }
 
-        $Body = $BodyHT | ConvertTo-Json
-	
-        $Params.Add('Body', $Body)
+        [hashtable]$Params =@{
+            URISuffix = $URISuffix
+            Method    = 'PUT'
+            Body      = $($BodyHT | ConvertTo-Json)
+        }
 
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-        return Update-VSAItems @Params
+        return Invoke-VSARestMethod @Params
     }
 
 }

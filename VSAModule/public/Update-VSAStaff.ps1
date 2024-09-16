@@ -42,7 +42,7 @@ function Update-VSAStaff
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/system/staff/{0}',
@@ -84,7 +84,12 @@ function Update-VSAStaff
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $SupervisorId,
 
         [parameter(Mandatory=$false,
@@ -157,69 +162,54 @@ function Update-VSAStaff
         [ValidateNotNullOrEmpty()]
         [string] $PrimaryTextMessagePhone,
 
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $ViewAllTickets = 'False',
+        [switch] $ViewAllTickets,
 
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $ApproveAllTimeSheets = 'False'
+        [switch] $ApproveAllTimeSheets
     )
 
-    [string] $ItemId
-
-    $URISuffix = $URISuffix -f $OrgStaffId
-    $URISuffix | Write-Verbose
-    $URISuffix | Write-Debug
-
     [hashtable]$BodyHT = @{
-            OrgId = $OrgIdNumber
-            Function = $Function
-        } # Function = $Function ---> workaround for backend bug
+        OrgId         = $OrgIdNumber
+        Function      = $Function
+        StaffFullName = $StaffFullName
+        DeptId        = $DepartmentId
+        SupervisorId  = $SupervisorId
+        Title         = $Title
+        UserId        = $UserId
+    } # Function = $Function ---> workaround for backend bug
+    foreach ( $key in $BodyHT.Keys.Clone()  ) {
+        if ( -not $BodyHT[$key]) { $BodyHT.Remove($key) }
+    }
+    if ($ViewAllTickets.IsPresent)       { $BodyHT.Add('ViewAllTickets', $ViewAllTickets.ToString().ToLower()) }
+    if ($ApproveAllTimeSheets.IsPresent) { $BodyHT.Add('ApproveAllTimeSheets', $ApproveAllTimeSheets.ToString().ToLower() ) }
 
-    if ($StaffFullName)        { $BodyHT.Add('StaffFullName', $StaffFullName) }
-    if ($OrgId)                { $BodyHT.Add('OrgId', $OrgId) }
-    if ($ViewAllTickets)       { $BodyHT.Add('ViewAllTickets', $ViewAllTickets) }
-    if ($ApproveAllTimeSheets) { $BodyHT.Add('ApproveAllTimeSheets', $ApproveAllTimeSheets) }
-    if ($DepartmentId)         { $BodyHT.Add('DeptId', $DepartmentId) }
-    if ($SupervisorId)         { $BodyHT.Add('SupervisorId', $SupervisorId) }
-    if ($Title)                { $BodyHT.Add('Title', $Title) }
-    <#
-    if ($Function)             { $BodyHT.Add('Function', $Function) }
-    #>
-    if ($UserId)               { $BodyHT.Add('UserId', $UserId) }
 
-    [hashtable]$ContactInfoHT = @{}
-    if ($PreferredContactMethod)  { $ContactInfoHT.Add('PreferredContactMethod', $PreferredContactMethod)}
-    if ($PrimaryPhone)            { $ContactInfoHT.Add('PrimaryPhone', $PrimaryPhone)}
-    if ($PrimaryFax)              { $ContactInfoHT.Add('PrimaryFax', $PrimaryFax)}
-    if ($PrimaryEmail)            { $ContactInfoHT.Add('PrimaryEmail', $PrimaryEmail)}
-    if ($Country)                 { $ContactInfoHT.Add('Country', $Country)}
-    if ($Street)                  { $ContactInfoHT.Add('Street', $Street)}
-    if ($City)                    { $ContactInfoHT.Add('City', $City)}
-    if ($State)                   { $ContactInfoHT.Add('State', $State)}
-    if ($ZipCode)                 { $ContactInfoHT.Add('ZipCode', $ZipCode)}
-    if ($PrimaryTextMessagePhone) { $ContactInfoHT.Add('PrimaryTextMessagePhone', $PrimaryTextMessagePhone)}
+    [hashtable]$ContactInfoHT = @{
+        PreferredContactMethod  = $PreferredContactMethod
+        PrimaryPhone            = $PrimaryPhone
+        PrimaryFax              = $PrimaryFax
+        PrimaryEmail            = $PrimaryEmail
+        Country                 = $Country
+        Street                  = $Street
+        City                    = $City
+        State                   = $State
+        ZipCode                 = $ZipCode
+        PrimaryTextMessagePhone = $PrimaryTextMessagePhone
+    }
+    foreach ( $key in $ContactInfoHT.Keys.Clone()  ) {
+        if ( -not $ContactInfoHT[$key]) { $ContactInfoHT.Remove($key) }
+    }
 
     if ( 0 -lt $ContactInfoHT.Count) {
         $BodyHT.Add('ContactInfo', $ContactInfoHT )
     }
 
-    $Body = $BodyHT | ConvertTo-Json
-
-    $Body | Out-String | Write-Debug
-
-    [hashtable]$Params = @{}
+    [hashtable]$Params = @{
+        URISuffix = $($URISuffix -f $OrgStaffId)
+        Method    = 'PUT'
+        Body      = $($BodyHT | ConvertTo-Json -Depth 5 -Compress)
+    }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params.Add('URISuffix', $URISuffix)
-    $Params.Add('Method', 'PUT')
-    $Params.Add('Body', $Body)
-
-    $Params | Out-String | Write-Debug
-
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 Export-ModuleMember -Function Update-VSAStaff

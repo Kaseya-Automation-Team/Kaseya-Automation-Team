@@ -34,7 +34,7 @@
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/orgs/{0}',
@@ -170,9 +170,6 @@
         [string] $Attributes
         )
 
-    $URISuffix = $URISuffix -f $OrgId
-    $URISuffix | Write-Verbose
-    $URISuffix | Write-Debug
 
     [hashtable]$BodyHT = @{}
     if ( -not [string]::IsNullOrEmpty($OrganizationName) )        { $BodyHT.Add('OrgName', $OrganizationName) }
@@ -211,23 +208,24 @@
         [hashtable] $AttributesHT = ConvertFrom-StringData -StringData $Attributes
         $BodyHT.Add('Attributes', $AttributesHT )
     }
-   
-    $Body = $BodyHT | ConvertTo-Json
 
-    $Body | Out-String | Write-Debug
-    $Body | Out-String | Write-Verbose
+    if ( 0 -eq $BodyHT.Count ) {
+        throw "No changes specified!"
+    }
 
-    [hashtable]$Params = @{}
+    [hashtable]$Params = @{
+        URISuffix = $($URISuffix -f $OrgId)
+        Method    = 'PUT'
+        Body = $($BodyHT | ConvertTo-Json -Compress)
+    }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params.Add('URISuffix', $URISuffix)
-    $Params.Add('Method', 'PUT')
-    $Params.Add('Body', $Body)
-
-    $Params | Out-String | Write-Debug
+    if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+        Write-Debug "Update-VSAOrganization. $($Params | Out-String)"
+    }
 
     if($PSCmdlet.ShouldProcess($OrgId)){
-        return Update-VSAItems @Params
+        return Invoke-VSARestMethod @Params
     }
 }
 Export-ModuleMember -Function Update-VSAOrganization

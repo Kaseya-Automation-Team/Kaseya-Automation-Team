@@ -66,7 +66,7 @@ function Get-VSAAudit
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/audit/{0}',
@@ -114,8 +114,6 @@ function Get-VSAAudit
         [string] $AgentID = $PSBoundParameters.AgentID
         if ( [string]::IsNullOrEmpty($AgentID) ) {$AgentID = ''}
 
-        $URISuffix = $URISuffix -f $AgentID
-
         switch ($AuditOf) {
             'Credentials'               {$URISuffix = "$URISuffix/credentials"}
             'Groups'                    {$URISuffix = "$URISuffix/groups"}
@@ -134,15 +132,18 @@ function Get-VSAAudit
         }
 
         [hashtable]$Params = @{
-            URISuffix = $URISuffix
+            URISuffix     = $($URISuffix -f $AgentId)
+            VSAConnection = $VSAConnection
+            Filter        = $Filter
+            Paging        = $Paging
+            Sort          = $Sort
         }
 
-        if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-        if($Filter)        {$Params.Add('Filter', $Filter)}
-        if($Paging)        {$Params.Add('Paging', $Paging)}
-        if($Sort)          {$Params.Add('Sort', $Sort)}
+        foreach ( $key in $Params.Keys.Clone()  ) {
+            if ( -not $Params[$key]) { $Params.Remove($key) }
+        }
 
-        return Get-VSAItems @Params
+        return Invoke-VSARestMethod @Params
     }
 }
 Export-ModuleMember -Function Get-VSAAudit

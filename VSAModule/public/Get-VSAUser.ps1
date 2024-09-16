@@ -43,10 +43,10 @@ function Get-VSAUser
             ParameterSetName = 'Users')]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory = $false, 
+        [parameter(DontShow, Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'CurrentUser')]
-        [parameter(Mandatory = $false, 
+        [parameter(DontShow, Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Users')]
         [ValidateNotNullOrEmpty()] 
@@ -92,11 +92,6 @@ function Get-VSAUser
 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'Users')]
-        [switch] $ResolveIDs,
-
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'CurrentUser')]
         [switch] $CurrentUser
     )
@@ -106,43 +101,18 @@ function Get-VSAUser
     }
     if ($CurrentUser) {$URISuffix = 'api/v1.0/system/currentUser'}
 
-    [hashtable]$Params =@{
-        URISuffix = $URISuffix
+    [hashtable]$Params = @{
+        URISuffix     = $URISuffix
+        VSAConnection = $VSAConnection
+        Filter        = $Filter
+        Paging        = $Paging
+        Sort          = $Sort
     }
 
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-    if($Filter)        {$Params.Add('Filter', $Filter)}
-    if($Paging)        {$Params.Add('Paging', $Paging)}
-    if($Sort)          {$Params.Add('Sort', $Sort)}
-
-    $result = Get-VSAItems @Params
-
-    if ($ResolveIDs)
-    {
-        [hashtable]$ResolveParams =@{}
-        if($VSAConnection) {$ResolveParams.Add('VSAConnection', $VSAConnection)}
-
-        [hashtable]$RolesDictionary = @{}
-        [hashtable]$ScopesDictionary = @{}
-
-        Foreach( $Role in $(Get-VSARoles @ResolveParams -ResolveIDs) )
-        {
-            if ( -Not $RolesDictionary[$Role.RoleId]){
-                $RolesDictionary.Add($Role.RoleId, $($Role | Select-Object * -ExcludeProperty RoleId))
-            }
-        }
-
-        Foreach( $Scope in $(Get-VSAScope @ResolveParams) )
-        {
-            if ( -Not $ScopesDictionary[$Scope.ScopeId]){
-                $ScopesDictionary.Add($Scope.ScopeId, $Scope.ScopeName)
-            }
-        }
-        $result = $result | Select-Object -Property *, `
-            @{Name = 'AdminRoles'; Expression = { $RolesDictionary[$_.AdminRoleIds] }},
-            @{Name = 'AdminScopes'; Expression = { $ScopesDictionary[$_.AdminScopeIds] }}
+    foreach ( $key in $Params.Keys.Clone()  ) {
+        if ( -not $Params[$key]) { $Params.Remove($key) }
     }
 
-    return $result
+    return Invoke-VSARestMethod @Params
 }
 Export-ModuleMember -Function Get-VSAUser

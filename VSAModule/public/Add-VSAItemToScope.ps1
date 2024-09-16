@@ -109,37 +109,44 @@ function Add-VSAItemToScope
         [string] $ScopeId
     )
 
-    [string] $ItemId
+    $ItemId = [string]::Empty
 
-    if( -not [string]::IsNullOrEmpty($OrganizationID)) {
+    [string] $LogStr = 'Add-VSAItemToScope: '
+
+    if( -not [string]::IsNullOrEmpty($OrganizationID) ) {
         $URISuffix = "$URISuffix/orgs/{1}"
         $ItemId = $OrganizationID
-        "Add an organization to a scope" | Write-Verbose
+        $LogStr += "Adding Organization '$ItemId' to Scope '$ScopeId'"
     }
 
-    if( -not [string]::IsNullOrEmpty($MachineGroupId)) {
+    if( -not [string]::IsNullOrEmpty($MachineGroupId) ) {
         $URISuffix = "$URISuffix/machinegroups/{1}"
         $ItemId = $MachineGroupId
-        "Add a machine group to a scope" | Write-Verbose
+        $LogStr += "Adding Machine Group '$ItemId' to Scope '$ScopeId'"
     }
 
-    if( -not [string]::IsNullOrEmpty($UserId)) {
+    if( -not [string]::IsNullOrEmpty($UserId) ) {
         $URISuffix = "$URISuffix/users/{1}"
         $ItemId = $UserId
-        "Add a user to a scope" | Write-Verbose
+        $LogStr += "Adding User '$ItemId' to Scope '$ScopeId'"
     }
 
-    $URISuffix = $URISuffix -f $ScopeId, $ItemId
-    $URISuffix | Write-Verbose
-    $URISuffix | Write-Debug
+    [hashtable]$Params = @{
+        URISuffix = $($URISuffix -f $ScopeId, $ItemId)
+        Method    = 'PUT'
+    }
 
-    [hashtable]$Params = @{}
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params.Add('URISuffix', $URISuffix)
-    $Params.Add('Method', 'PUT')
+    [string]$LogStr += "`n$($Params | Out-String)"
 
-    return Update-VSAItems @Params
+    if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+        Write-Debug $LogStr
+    }
+    if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+        Write-Verbose $LogStr
+    }
+
+    return Invoke-VSARestMethod @Params
 }
 Export-ModuleMember -Function Add-VSAItemToScope
-

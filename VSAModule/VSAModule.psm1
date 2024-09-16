@@ -1,6 +1,6 @@
 ﻿<#
    Kaseya VSA9 REST API Wrapper
-   Version 0.1.3.1
+   Version 0.1.5
    Author: Vladislav Semko
    Description:
    VSAModule for Kaseya VSA 9 REST API is a PowerShell module that provides cmdlets for interacting with the Kaseya VSA 9 platform via its REST API.
@@ -198,7 +198,6 @@ public class VSAConnection
         }
     }
 }
-
 '@
 #endregion Class VSAConnection
 
@@ -299,13 +298,13 @@ function New-VSAConnection {
     $VSAServerUri = New-Object System.Uri -ArgumentList $VSAServer
     $AuthEndpoint = [System.Uri]::new($VSAServerUri, $AuthSuffix) | Select-Object -ExpandProperty AbsoluteUri
 
-    $Msg = "Attempting authentication for user '$UserName' on VSA server '$VSAServer'."
+    $LogMessage = "Attempting authentication for user '$UserName' on VSA server '$VSAServer'."
     
     if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-        Write-Verbose $Msg
+        Write-Verbose $LogMessage
     }
     if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-        Write-Debug $Msg
+        Write-Debug $LogMessage
     }
 
     $AuthParams = @{
@@ -330,23 +329,23 @@ function New-VSAConnection {
         $SessionExpiration = $SessionExpiration.AddMinutes($result.OffSetInMinutes)
         $VSAConnection = [VSAConnection]::new($VSAServer, $result.UserName, $result.Token, $PAT, $SessionExpiration, $IgnoreCertificateErrors, $SetPersistent)
 
-        $Msg = "`tUser '$UserName' authenticated on VSA server '$VSAServer'.`n`tSession token expiration: $SessionExpiration (UTC).`n"
-        Write-Host $Msg
+        $LogMessage = "`tUser '$UserName' authenticated on VSA server '$VSAServer'.`n`tSession token expiration: $SessionExpiration (UTC).`n"
+        Write-Host $LogMessage
         if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-            Write-Verbose $Msg
+            Write-Verbose $LogMessage
         }
         if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-            Write-Debug $Msg
+            Write-Debug $LogMessage
             Write-Debug "New-VSAConnection result: '$($result | ConvertTo-Json)'"
         }
         if ($SetPersistent) {
-            $Msg = "`tConnection to server '$VSAServer' set Persistent during the current session so the VSAModule's cmdlets can use the connection implicitly.`n"
-            Write-Host $Msg
+            $LogMessage = "`tConnection to server '$VSAServer' set Persistent during the current session so the VSAModule's cmdlets can use the connection implicitly.`n"
+            Write-Host $LogMessage
             if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-                Write-Verbose $Msg
+                Write-Verbose $LogMessage
             }
             if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-                Write-Debug $Msg
+                Write-Debug $LogMessage
             }
         }
     }
@@ -361,133 +360,118 @@ function New-VSAConnection {
 
 Export-ModuleMember -Function New-VSAConnection
 
-#region function Update-VSAConnection
-function Update-VSAConnection {
-<#
-.SYNOPSIS
-    Updates the token and session expiration for a VSAConnection object.
-.DESCRIPTION
-    The Update-VSAConnection function updates the authentication token and session expiration for a given VSAConnection object.
-    If no explicit VSAConnection object is provided, it attempts to update the persistent VSAConnection object stored in the environment variable.
-    The function checks if the session is about to expire and renews it by making a new request to the authentication endpoint.
-
-.PARAMETER VSAConnection
-    Specifies the VSAConnection object to be updated. If not provided, the function attempts to use the persistent VSAConnection object.
-.INPUTS
-    VSAConnection
-.OUTPUTS
-    None.
-.NOTES
-    This function is part of the Kaseya VSA 9 REST API Wrapper PowerShell module.
-    Ensure that the VSAConnection object or a persistent connection is available before calling this function.
-
-.EXAMPLE
-    # Example 1: Update an existing VSAConnection object
-    $vsaConnection = New-VSAConnection -VSAServer "https://vsaserver.example.com" -Credential (Get-Credential)
-    Update-VSAConnection -VSAConnection $vsaConnection
-
-    # Example 2: Update the persistent VSAConnection object
-    Update-VSAConnection
-
-    # Example 3: Update the VSAConnection object using the pipeline
-    $vsaConnection | Update-VSAConnection
-#>
-    param (
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true)]
-        [VSAConnection] $VSAConnection,
-
-        [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [string] $AuthSuffix = 'API/v1.0/Auth'
-    )
-
-    if ($null -eq $VSAConnection) {
-        if ([VSAConnection]::IsPersistent) {
-            $SessionExpiration = $([VSAConnection]::GetPersistentSessionExpiration()).AddMinutes(-1)
-        } else {
-            Throw "Update-VSAConnection: Neither explicit VSAConnection provided nor persistent VSAConnection found!"
-        }
-    } else {
-        $SessionExpiration = $($VSAConnection.SessionExpiration.AddMinutes(-1))
-    }
-
-    # Renew the session if it is about to expire
-    if ($SessionExpiration -le [datetime]::Now) {
-
-        if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-            Write-Debug "The REST API Token is about to expire ($SessionExpiration)."
-        }
-        if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-            Write-Verbose "The REST API Token is about to expire ($SessionExpiration)."
-        }
-
-        # Extract the data needed for repeat Token request
-        if ($null -eq $VSAConnection) {
-            # The Connection is persistent
-            $VSAUserPAT = [VSAConnection]::GetPersistentPAT()
-            $VSAUserName = [VSAConnection]::GetPersistentUserName()
-            $VSAServer = [VSAConnection]::GetPersistentURI()
-            $IgnoreCertificateErrors = [VSAConnection]::GetIgnoreCertErrors()
-        } else {
-            $VSAUserPAT = $VSAConnection.PAT
-            $VSAUserName = $VSAConnection.UserName
-            $VSAServer = $VSAConnection.URI
-            $IgnoreCertificateErrors = $VSAConnection.IgnoreCertificateErrors
-        }
-
-        if ([string]::IsNullOrEmpty( $($VSAUserPAT) ) ) {
-            Throw "Update-VSAConnection: No PAT retrieved from the VSAConnection object. Unable to update VSAConnection!"
-        }
-
-        $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$VSAUserName`:$VSAUserPAT"))
-        $AuthString  = "Basic $Encoded"
-
-        $VSAServerUri = New-Object System.Uri -ArgumentList $VSAServer
-        $AuthEndpoint = [System.Uri]::new($VSAServerUri, $AuthSuffix) | Select-Object -ExpandProperty AbsoluteUri
-
-        $AuthParams = @{
-            URI                     = $AuthEndpoint
-            AuthString              = $AuthString
-            IgnoreCertificateErrors = $IgnoreCertificateErrors
-            ErrorAction             = 'Stop'
-        }
-
-        $result =  try {
-            Get-RequestData @AuthParams | Select-Object -ExpandProperty Result
-        } catch {
-            $errorMessage = $_.Exception.Message
-            Throw "Server '$VSAServer' returned error`nUser '$UserName'`n$errorMessage"
-        }
-
-        #Check if Session token was obtained
-        if ([string]::IsNullOrEmpty( $($result.Token) ) ) {
-            Throw "Update-VSAConnection: Unable to update VSAConnection object!"
-        }
-
-        # Extract data from the request result & update the Connection properties
-        $SessionExpiration = [DateTime]::ParseExact($result.SessionExpiration, "yyyy-MM-ddTHH:mm:ssZ", [System.Globalization.CultureInfo]::InvariantCulture)
-
-        if ($null -eq $VSAConnection) {
-            # The Connection is persistent
-            [VSAConnection]::UpdatePersistentToken($($result.Token))
-            [VSAConnection]::UpdatePersistentSessionExpiration($SessionExpiration)
-        } else {
-            $VSAConnection.UpdateToken($($result.Token))
-            $VSAConnection.UpdateSessionExpiration($SessionExpiration)
-        }
-
-        $Msg = "`nUpdate-VSAConnection: Session token renewed.`n`tSession token expiration: $SessionExpiration (UTC).`n"
-        Write-Host $Msg
-        if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-            Write-Verbose $Msg
-        }
-        if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-            Write-Debug $Msg
-        }
-
-    } # the session is about to expire
+# Initialize the $URISuffixMap globally (at the module level)
+$URISuffixGetMap = @{
+    'Get-VSAAuditSum'       = 'api/v1.0/assetmgmt/audit'
+    'Get-VSAAPSettings'     = 'api/v1.0/automation/agentprocs/quicklaunch/askbeforeexecuting'
+    'Get-VSAAPQL'           = 'api/v1.0/automation/agentprocs/quicklaunch'
+    'Get-VSAAPPortal'       = 'api/v1.0/automation/agentprocsportal'
+    'Get-VSAAP'             = 'api/v1.0/automation/agentprocs'
+    'Get-VSAAgentNote'      = 'api/v1.0/assetmgmt/agent/notes'
+    'Get-VSAAgentGW'        = 'api/v1.0/assetmgmt/connectiongatewayips'
+    'Get-VSAEnvironment'    = 'api/v1.0/environment'
+    'Get-VSAInfoMsg'        = 'api/v1.0/infocenter/messages'
+    'Get-VSACBVM'           = 'api/v1.0/kcb/virtualmachines'
+    'Get-VSACBWS'           = 'api/v1.0/kcb/workstations'
+    'Get-VSASD'             = 'api/v1.0/automation/servicedesks'
+    'Get-VSASessionId'      = 'api/v1.0/authx'
+    'Get-VSAActivityType'   = 'api/v1.0/system/customers/activitytypes'
+    'Get-VSAActivityTypes'  = 'api/v1.0/system/customers/activitytypes'
+    'Get-VSAWorkOrderType'  = 'api/v1.0/system/customers/resourcetypes'
+    'Get-VSAWorkOrderTypes' = 'api/v1.0/system/customers/resourcetypes'
+    'Get-VSAAssetType'      = 'api/v1.0/assetmgmt/assettypes'
+    'Get-VSAAssetTypes'     = 'api/v1.0/assetmgmt/assettypes'
+    'Get-VSAAgentView'      = 'api/v1.0/system/views'
+    'Get-VSAAgentViews'     = 'api/v1.0/system/views'
+    'Get-VSAAgentPackage'   = 'api/v1.0/assetmgmt/assets/packages'
+    'Get-VSAAgentPackages'  = 'api/v1.0/assetmgmt/assets/packages'
+    'Get-VSACBServer'       = 'api/v1.0/kcb/servers'
+    'Get-VSACBServers'      = 'api/v1.0/kcb/servers'
+    'Get-VSAFunction'       = 'api/v1.0/functions'
+    'Get-VSAFunctions'      = 'api/v1.0/functions'
+    'Get-VSACustomer'       = 'api/v1.0/system/customers'
+    'Get-VSACustomers'      = 'api/v1.0/system/customers'
+    'Get-VSARole'           = 'api/v1.0/system/roles'
+    'Get-VSARoles'          = 'api/v1.0/system/roles'
+    'Get-VSATenant'         = 'api/v1.0/tenant'
+    'Get-VSATenants'        = 'api/v1.0/tenant'
 }
-#endregion function Update-VSAConnection
 
-Export-ModuleMember -Function Update-VSAConnection
+$URISuffixGetByIdMap = @{
+    'Get-VSAAgent2FA'         = 'api/v1.0/assetmgmt/agent/{0}/twofasettingst'
+    'Get-VSAAgentInView'      = 'api/v1.0/assetmgmt/agentsinview/{0}'
+    'Get-VSAAgentsInView'     = 'api/v1.0/assetmgmt/agentsinview/{0}'
+    'Get-VSAAgentLog'         = 'api/v1.0/assetmgmt/logs/{0}/agent'
+    'Get-VSAAgentOnNet'       = 'api/v1.0/assetmgmt/agentsonnetwork/{0}'
+    'Get-VSAAgentsOnNet'      = 'api/v1.0/assetmgmt/agentsonnetwork/{0}'
+    'Get-VSAAgentPkgPage'     = 'api/v1.0/agent/{0}/deploypagecustomization'
+    'Get-VSAAgentRCNotify'    = 'api/v1.0/remotecontrol/notifypolicy/{0}'
+    'Get-VSAAlarmLog'         = 'api/v1.0/assetmgmt/logs/{0}/alarms'
+    'Get-VSAAgentSettings'    = 'api/v1.0/assetmgmt/agent/{0}/settings'
+    'Get-VSAAPHistory'        = 'api/v1.0/automation/agentprocs/{0}/history'
+    'Get-VSAAPLog'            = 'api/v1.0/assetmgmt/logs/{0}/agentprocedure'
+    'Get-VSAAppEventLog'      = 'api/v1.0/assetmgmt/logs/{0}/eventlog/application'
+    'Get-VSAAPScheduled'      = 'api/v1.0/automation/agentprocs/{0}/scheduledprocs'
+    'Get-VSAScheduledAP'      = 'api/v1.0/automation/agentprocs/{0}/scheduledprocs'
+    'Get-VSACfgChangeLog'     = 'api/v1.0/assetmgmt/logs/{0}/configurationchanges'
+    'Get-VSACfgChangesLog'    = 'api/v1.0/assetmgmt/logs/{0}/configurationchanges'
+    'Get-VSADirEventLog'      = 'api/v1.0/assetmgmt/logs/{0}/eventlog/directoryservice'
+    'Get-VSADNSEventLog'      = 'api/v1.0/assetmgmt/logs/{0}/eventlog/dnsserver'
+    'Get-VSAIEEventLog'       = 'api/v1.0/assetmgmt/logs/{0}/eventlog/internetexplorer'
+    'Get-VSAKaseyaRCLog'      = 'api/v1.0/assetmgmt/logs/{0}/remotecontrol'
+    'Get-VSALegacyRCLog'      = 'api/v1.0/assetmgmt/logs/{0}/legacyremotecontrol'
+    'Get-VSALogMonitoringLog' = 'api/v1.0/assetmgmt/logs/{0}/logmonitoring'
+    'Get-VSAModuleActivated'  = 'api/v1.0/ismoduleactivated/{0}'
+    'Get-VSAModuleStatus'     = 'api/v1.0/ismoduleinstalled/{0}'
+    'Get-VSAMonitorLog'       = 'api/v1.0/assetmgmt/logs/{0}/monitoractions'
+    'Get-VSANetStatLog'       = 'api/v1.0/assetmgmt/logs/{0}/networkstats'
+    'Get-VSAPatchHistory'     = 'api/v1.0/assetmgmt/patch/{0}/history'
+    'Get-VSAPatchStatus'      = 'api/v1.0/assetmgmt/patch/{0}/status'
+    'Get-VSASDCategory'       = 'api/v1.0/automation/servicedesks/{0}/categories'
+    'Get-VSASDCategories'     = 'api/v1.0/automation/servicedesks/{0}/categories'
+    'Get-VSASDCustomField'    = 'api/v1.0/automation/servicedesks/{0}/customfields'
+    'Get-VSASDCustomFields'   = 'api/v1.0/automation/servicedesks/{0}/customfields'
+    'Get-VSASDPriority'       = 'api/v1.0/automation/servicedesks/{0}/priorities'
+    'Get-VSASDPriorities'     = 'api/v1.0/automation/servicedesks/{0}/priorities'
+    'Get-VSASDTicketNote'     = 'api/v1.0/automation/servicedesktickets/{0}/notes'
+    'Get-VSASDTicketNotes'    = 'api/v1.0/automation/servicedesktickets/{0}/notes'
+    'Get-VSASDTicketStatus'   = 'api/v1.0/automation/servicedesks/{0}/status'
+    'Get-VSASecurityEventLog' = 'api/v1.0/assetmgmt/logs/{0}/eventlog/security'
+    'Get-VSASystemEventLog'   = 'api/v1.0/assetmgmt/logs/{0}/eventlog/system'
+    'Get-VSAThirdAppStatus'   = 'api/v1.0/thirdpartyapps/{0}/status'
+    'Get-VSAWorkOrder'        = 'api/v1.0/system/customers/{0}/workorders'
+    'Get-VSAWorkOrders'       = 'api/v1.0/system/customers/{0}/workorders'
+}
+
+$URISuffixRemoveMap = @{
+    'Remove-VSAAgentNote'       = 'api/v1.0/assetmgmt/agent/note/{0}'
+    'Remove-VSAAgentInstallPkg' = 'api/v1.0/assetmgmt/agents/packages/{0}'
+    'Remove-VSAAPQL'            = 'api/v1.0/automation/agentProcs/quicklaunch/{0}'
+    'Remove-VSAAsset'           = 'api/v1.0/assetmgmt/assets/{0}'
+    'Remove-VSADepartment'      = 'api/v1.0/system/departments/{0}'
+    'Remove-VSAInfoMsg'         = 'api/v1.0/infocenter/messages/{0}'
+    'Remove-VSAMachineGroup'    = 'api/v1.0/system/machinegroups/{0}'
+    'Remove-VSAOrganization'    = 'api/v1.0/system/orgs/{0}'
+    'Remove-VSARole'            = 'api/v1.0/system/roles/{0}'
+    'Remove-VSAScope'           = 'api/v1.0/system/scopes/{0}'
+    'Remove-VSAStaff'           = 'api/v1.0/system/staff/{0}'
+    'Remove-VSATenant'          = 'api/v1.0/tenantmanagement/tenant?tenantId={0}'
+    'Remove-VSATenantRoleType'  = 'api/v1.0/tenantmanagement/roletypes/{0}'
+}
+
+# Automatically Create Aliases on Module Load
+
+$URISuffixGetMap.Keys | ForEach-Object {
+    New-Alias -Name $_ -Value Get-VSAItem -Force
+}
+$URISuffixGetByIdMap.Keys | ForEach-Object {
+    New-Alias -Name $_ -Value Get-VSAItemById -Force
+}
+$URISuffixRemoveMap.Keys | ForEach-Object {
+    New-Alias -Name $_ -Value Remove-VSAItem -Force
+}
+
+# Export the functions and aliases
+Export-ModuleMember -Function Get-VSAItem -Alias $($URISuffixGetMap.Keys)
+Export-ModuleMember -Function Get-VSAItemById -Alias $($URISuffixGetByIdMap.Keys)
+Export-ModuleMember -Function Remove-VSAItem -Alias $($URISuffixRemoveMap.Keys)

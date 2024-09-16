@@ -40,19 +40,14 @@
         [string] $AgentId,
 
         [Parameter(Mandatory = $true)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string] $Note
 
         )
 
-    [bool]$result = $false
-
-    $URISuffix = $URISuffix -f $AgentId
-
     [hashtable]$Params = @{
         VSAConnection = $VSAConnection
-        URISuffix     = $URISuffix
+        URISuffix     = $($URISuffix -f $AgentId)
         Method        = 'POST'
         Body          = "`"$Note`""
     }
@@ -68,14 +63,12 @@
     $GetAgentParams = @{ AgentId = $AgentId }
     if ($VSAConnection) {$GetAgentParams.Add('VSAConnection', $VSAConnection)}
 
-    If ( $AgentId -in $(Get-VSAAgent @GetAgentParams | Select-Object -ExpandProperty AgentID) ) {
-        $result = Invoke-VSARestMethod @Params
-    } else {
+    If ( $AgentId -notin $(Get-VSAAgent @GetAgentParams | Select-Object -ExpandProperty AgentID) ) {
         $Message = "Could not find an asset by the Agent ID `'$AgentId`'!"
         throw $Message
+    } else {
+        return Invoke-VSARestMethod @Params
     }
-
-    return $result
 }
 New-Alias -Name Add-VSAAgentNote -Value New-VSAAgentNote
 Export-ModuleMember -Function New-VSAAgentNote -Alias Add-VSAAgentNote

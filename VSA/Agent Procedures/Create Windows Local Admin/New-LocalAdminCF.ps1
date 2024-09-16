@@ -26,7 +26,7 @@
         Indicates whether to ignore certificate errors when connecting to the VSA server.
 
 .NOTES
-   Version 0.2
+   Version 0.3
    Author: Proserv Team - VS
 #>
 
@@ -76,14 +76,36 @@ Param
 Add-Type -AssemblyName System.Web;
 
 #region functions
-function Initialize-Module ($ModuleName)
-{
-    if (-not (Get-Module -ListAvailable -Name $ModuleName)) {
-        Install-Module -Name $ModuleName -Force -Confirm:$false
-    }
-    Import-Module $ModuleName -Force
+#region Installing & loading VSA Module
+$ModuleName = 'VSAModule'
+
+# Check current installed version
+$CurrentVersion = try {
+    (Get-Module -Name $ModuleName -ListAvailable -ErrorAction Stop | Sort-Object -Property Version -Descending | Select-Object -ExpandProperty Version -First 1).ToString()
+} catch {
+    $null
 }
 
+if (-not $CurrentVersion) {
+    # Install module if not present
+    Install-Module -Name $ModuleName -Force
+} else {
+    # Get the latest version available in the repository
+    $latestVersion = (Find-Module -Name $ModuleName | Sort-Object -Property Version -Descending | Select-Object -ExpandProperty Version -First 1).ToString()
+    if ($CurrentVersion -lt $latestVersion) {
+        # Update the module if a newer version is available
+        Update-Module -Name $ModuleName -Force
+        $CurrentVersion = $latestVersion
+    }
+}
+
+# Import the module specifying the version
+try {
+    Import-Module -Name $ModuleName -RequiredVersion $CurrentVersion -Force -ErrorAction Stop
+} catch {
+    throw "Failed to import module '$ModuleName' version '$CurrentVersion'."
+}
+#endregion Installing & loading VSA Module
 
 function New-UniqueUsername {
     param(
@@ -153,14 +175,13 @@ function Set-CustomFieldValue {
 }
 #endregion functions
 
-Initialize-Module 'VSAModule'
-
 #region Detect Available VSA Server & Connect to it
 [securestring]$SecStringPassword = ConvertTo-SecureString $PAT -AsPlainText -Force
 [pscredential]$Credential = New-Object System.Management.Automation.PSCredential ($VSAUser, $SecStringPassword)
 [hashtable] $VSAConnParams  = @{
     VSAServer   = ''
     Credential  = $Credential
+    ErrorAction = 'Stop'
 }
 if ($PSBoundParameters.ContainsKey('IgnoreCertificateErrors')) {
     $VSAConnParams.Add('IgnoreCertificateErrors', $IgnoreCertificateErrors)
@@ -168,15 +189,20 @@ if ($PSBoundParameters.ContainsKey('IgnoreCertificateErrors')) {
 
 [string[]]$VSAServers = $VSAAddress -split ';'
 foreach ($Server in $VSAServers) {
-    [string] $Address = "https://$([regex]::Matches($Server, '.+?(?=\:)').Value)"
+    #Obtain the server address removing protocol and port number if specified
+    [string] $Address = "https://$([regex]::Match($Server, "^(?:https?://)?([^/:]+)").Groups[1].Value)"
     $VSAConnParams.VSAServer = $Address
-    $VSAConnection = try { New-VSAConnection @VSAConnParams -ErrorAction Stop } catch { $null }
+    "Trying to connect to '$Address'" | Write-Output
+    $VSAConnection = try { New-VSAConnection @VSAConnParams } catch { $null }
     if ($null -ne $VSAConnection) {
+        Write-Output "Connection to '$Address': OK"
         break
+    } else {
+        "Unable to connect to '$Address' using the user's '$VSAUser' credentials!" | Write-Output
     }
 }
 if ($null -eq $VSAConnection) {
-    "ERROR: Unable to connect to the '{0}' server(s). The procedure cannot proceed." -f $VSAAddress | Write-Output
+    "ERROR: Unable to connect to the '{0}' server(s) using the user's '$VSAUser' credentials! The procedure cannot proceed." -f $VSAAddress | Write-Output
     return
 }
 #endregion Detect Available VSA Server & Connect to it
@@ -232,12 +258,13 @@ if ( [string]::IsNullOrEmpty($CFUsernameValue) ) {
 } else {
 
     # Reset password for the existing user
-
     $UserAccount = Get-LocalUser -Name $CFUsernameValue
     if ( $null -eq $UserAccount ) {
-        return "ERROR: the Custom Field stores username '$CFUsernameValue'. However, no user '$CFUsernameValue' was found on the system $($env:COMPUTERNAME)"
+        Write-Output "WARNING: the Custom Field '$CFUserName' contains username '$CFUsernameValue'. However, no user '$CFUsernameValue' was found on the system $($env:COMPUTERNAME)!"
+        return
     } else {
         $UserAccount | Set-LocalUser -Password $SecurePassword
+        Write-Output "INFO: the Custom Field '$CFUserName' already contains username '$CFUsernameValue'. Updating password for user '$CFUsernameValue' on the system $($env:COMPUTERNAME)"
     }
     # Save new password to CF
     $Bytes = [System.Text.Encoding]::UTF8.GetBytes($PlainTextPassword);

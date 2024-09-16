@@ -30,7 +30,7 @@
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false)]
+        [parameter(DontShow, Mandatory=$false)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/assetmgmt/customextensions/{0}/{1}',
 
@@ -56,28 +56,19 @@
     $Folder = "//$Folder"
     $Folder = $Folder -replace '\\', '/'
 
-    $URISuffix = $URISuffix -f $AgentId, $Folder
-
     [hashtable]$Params = @{}
+
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    If ( $AgentId -in $(Get-VSAAgent @Params | Select-Object -ExpandProperty AgentID) ) {
-
-        $Params.Add('URISuffix', $URISuffix)
-        $Params.Add('Method', 'DELETE')
-
-        $Params | Out-String | Write-Verbose
-        $Params | Out-String | Write-Debug
-
-        $result = Update-VSAItems @Params
-
+    If ( $AgentId -notin $(Get-VSAAgent @Params | Select-Object -ExpandProperty AgentID) ) {
         #No response for REST API call
-
-    } else {
         $Message = "The asset with Agent ID `'$AgentId`' does not exist"
         throw $Message
-    }
+    } else {
+        $Params.Add('URISuffix', $($URISuffix -f $AgentId, $Folder))
+        $Params.Add('Method', 'DELETE')
 
-    return $result
+        return Invoke-VSARestMethod @Params
+    }
 }
 Export-ModuleMember -Function Remove-VSACustomExtensionFolder

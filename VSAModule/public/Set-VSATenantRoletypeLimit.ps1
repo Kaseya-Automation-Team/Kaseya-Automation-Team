@@ -29,32 +29,20 @@
        True if successful.
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'ById')]
     param ( 
         [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant/roletypes/limits/{0}',
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
                 throw "Non-numeric"
@@ -145,13 +133,12 @@
 
         $URISuffix = $URISuffix -f $TenantId
         [string] $Body = ConvertTo-Json @(
-                            @{
-                                RoleName = $RoleTypeName
-                                RoleType = [decimal]$RoleTypeId
-                                Limit    = [decimal]$Limit
-                            }
-                        )
-        $Body | Write-Debug
+            @{
+                RoleName = $RoleTypeName
+                RoleType = $RoleTypeId
+                Limit    = $Limit
+            }
+        )
 
         [hashtable]$Params =@{
             URISuffix = $URISuffix
@@ -160,9 +147,12 @@
         }
 
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-        $Params | Out-String | Write-Debug
 
-        return Update-VSAItems @Params
+        if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+            Write-Debug "Set-VSATenantRoletypeLimit. $($Body | Out-String)"
+        }
+
+        return Invoke-VSARestMethod @Params
     }#Process
 }
 

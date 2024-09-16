@@ -27,17 +27,14 @@ function Stop-VSAScheduledAP
     [CmdletBinding()]
     param ( 
         [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/automation/agentprocs/{0}/{1}",
+
         [Parameter(Mandatory = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -46,21 +43,26 @@ function Stop-VSAScheduledAP
             return $true
         })]
         [string] $AgentId,
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $AgentProcedureId
 )
-    $URISuffix = $URISuffix -f $AgentId, $AgentProcedureId
 	
     [hashtable]$Params =@{
-        URISuffix = $URISuffix
+        URISuffix = $($URISuffix -f $AgentId, $AgentProcedureId)
         Method = 'DELETE'
     }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Stop-VSAScheduledAP

@@ -33,10 +33,10 @@ function Enable-VSAUser
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
         [ValidateNotNullOrEmpty()] 
@@ -45,7 +45,13 @@ function Enable-VSAUser
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
-        [decimal] $UserId
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
+        [string] $UserId
     )
 
     DynamicParam {
@@ -78,19 +84,23 @@ function Enable-VSAUser
         }
     }# Begin
     Process {
-    $URISuffix = $URISuffix -f $UserId
-    $URISuffix | Write-Debug
-    
+        
+        [hashtable]$Params = @{
+            'URISuffix' = $($URISuffix -f $UserId)
+            'Method'    = 'PUT'
+        }
+        if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+        
+        #region messages to verbose and debug streams
+        if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+            "Enable-VSAUser: $($Params | Out-String)" | Write-Debug
+        }
+        if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+            "Enable-VSAUser: $($Params | Out-String)" | Write-Verbose
+        }
+        #endregion messages to verbose and debug streams
 
-    [hashtable]$Params = @{
-                            'URISuffix' = $URISuffix
-                            'Method'    = 'PUT'
-    }
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-
-    $Params | Out-String | Write-Debug
-
-    return Update-VSAItems @Params
+        return Invoke-VSARestMethod @Params
     }
 }
 Export-ModuleMember -Function Enable-VSAUser

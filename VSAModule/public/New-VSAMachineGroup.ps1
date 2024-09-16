@@ -91,7 +91,6 @@ function New-VSAMachineGroup
             Write-Debug "New-VSAMachineGroup: Found Parent Organization '$($ParentOrganization.OrgRef)' for Machine Group '$MachineGroupName'."
         }
     }
-    $URISuffix = $URISuffix -f $OrgId
 
     [string[]]$AllFields = @('MachineGroupName', 'ParentMachineGroupId', 'Attributes')
 
@@ -101,7 +100,9 @@ function New-VSAMachineGroup
         if ( $key -notin $AllFields )  { $BodyHT.Remove($key) }
     }
 
-    if ( -not [string]::IsNullOrEmpty($ParentMachineGroupId) ) {
+    if ( [string]::IsNullOrEmpty($ParentMachineGroupId) ) {
+        $BodyHT.Remove("ParentMachineGroupId")
+    } else {
         #Check if the Parent Organization exists
         if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
             Write-Debug "New-VSAMachineGroup. Check if the Parent Machine Group exists."
@@ -109,11 +110,10 @@ function New-VSAMachineGroup
 
         $ParentMachineGroup = try {Get-VSAMachineGroup -VSAConnection $VSAConnection -MachineGroupID $ParentMachineGroupId } catch {$null}
             
-        if ( [string]::IsNullOrEmpty($ParentMachineGroup) ) {
+        if ( $null -eq $ParentMachineGroup ) {
             Write-Warning "Could not find find the Parent Machine Group by the ParentMachineGroupId provided '$ParentMachineGroupId' for '$MachineGroupName'."
+            $BodyHT.Remove("ParentMachineGroupId")
         }
-    } else {
-        $BodyHT.Remove("ParentMachineGroupId")
     }
 
     #region Process Attributes
@@ -134,9 +134,9 @@ function New-VSAMachineGroup
     }
     
     [hashtable]$Params =@{
-        URISuffix = $URISuffix
-        Method = 'POST'
-        Body = $Body
+        URISuffix      = $($URISuffix -f $OrgId)
+        Method         = 'POST'
+        Body           = $Body
         ExtendedOutput = $ExtendedOutput
     }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}

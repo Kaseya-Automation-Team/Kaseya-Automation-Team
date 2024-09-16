@@ -34,10 +34,10 @@ function Disable-VSATenant
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory = $false, 
+        [parameter(DontShow, Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ByName')]
-        [parameter(Mandatory = $false, 
+        [parameter(DontShow, Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ById')]
         [ValidateNotNullOrEmpty()] 
@@ -55,7 +55,6 @@ function Disable-VSATenant
         [string] $TenantId
     )
      DynamicParam {
-
             $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
             
             [hashtable] $AuxParameters = @{}
@@ -84,19 +83,23 @@ function Disable-VSATenant
         }
     }# Begin
     Process {
-    $URISuffix = $URISuffix -f $TenantId
-    $URISuffix | Write-Debug
-    
 
-    [hashtable]$Params = @{
-                            'URISuffix' = $URISuffix
-                            'Method'    = 'DELETE'
-    }
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+        [hashtable]$Params = @{
+            'URISuffix' = $($URISuffix -f $TenantId)
+            'Method'    = 'DELETE'
+        }
+        if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params | Out-String | Write-Debug
+        #region messages to verbose and debug streams
+        if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+            "Disable-VSATenant: $($Params | Out-String)" | Write-Debug
+        }
+        if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+            "Disable-VSATenant: $($Params | Out-String)" | Write-Verbose
+        }
+        #endregion messages to verbose and debug streams
 
-    return Update-VSAItems @Params
+        return Invoke-VSARestMethod @Params
     }
 }
 Export-ModuleMember -Function Disable-VSATenant

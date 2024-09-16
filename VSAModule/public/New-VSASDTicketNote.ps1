@@ -65,7 +65,7 @@ function New-VSASDTicketNote
         [switch] $SystemFlag
 )
 	
-    [string]$Body = ConvertTo-Json @{"Hidden"=$Hidden.ToBool(); "SystemFlag"=$SystemFlag.ToBool(); "Text"="$Text";}
+    [string]$Body = ConvertTo-Json @{"Hidden"=$Hidden.ToBool(); "SystemFlag"=$SystemFlag.ToBool(); "Text"="$Text";} -Compress
 
     [hashtable]$Params =@{
         URISuffix = $($URISuffix -f $ServiceDeskTicketId)

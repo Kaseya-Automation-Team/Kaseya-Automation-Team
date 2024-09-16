@@ -36,10 +36,10 @@
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
         [ValidateNotNull()]
@@ -104,27 +104,30 @@
                 'Web Service API'				= 57
             }
     
-            $Body = ConvertTo-Json $TenantModules[$ModuleName]
+            $Body = ConvertTo-Json $TenantModules[$ModuleName] -Depth 5 -Compress
         } else {
-            $Body = ConvertTo-Json $ModuleId
+            $Body = ConvertTo-Json $ModuleId -Depth 5 -Compress
         }
     }# Begin
     Process {
-        $URISuffix = $URISuffix -f $TenantId
-
-        $Body | Out-String | Write-Debug
-
         [hashtable]$Params =@{
-            URISuffix = $URISuffix
+            URISuffix = $($URISuffix -f $TenantId)
             Method    = 'PUT'
             Body      = $Body
         }
 
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
         
-        $Params | Out-String | Write-Debug
+        #region messages to verbose and debug streams
+        if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+            "Enable-VSATenantModule: $($Params | Out-String)" | Write-Debug
+        }
+        if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+            "Enable-VSATenantModule: $($Params | Out-String)" | Write-Verbose
+        }
+        #endregion messages to verbose and debug streams
 
-        return Update-VSAItems @Params
+        return Invoke-VSARestMethod @Params
     }#Process
 }
 

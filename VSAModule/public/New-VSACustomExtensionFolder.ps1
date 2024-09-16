@@ -49,16 +49,17 @@
     )
 
     $Folder = $Folder -replace '\\', '/'
-
-    $URISuffix = $URISuffix -f $AgentId, $Folder
-
-    [hashtable]$Params = @{}
+    
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    If ( $AgentId -in $(Get-VSAAgent @Params | Select-Object -ExpandProperty AgentID) ) {
-        
-        $Params.Add('URISuffix', $URISuffix)
-        $Params.Add('Method', 'PUT')
+    If ( $AgentId -notin $(Get-VSAAgent @Params | Select-Object -ExpandProperty AgentID) ) {
+        $Message = "The asset with Agent ID `'$AgentId`' does not exist"
+        throw $Message
+    } else {
+        [hashtable]$Params = @{
+            URISuffix = $($URISuffix -f $AgentId, $Folder)
+            Method    = 'PUT'
+        }
 
         #region messages to verbose and debug streams
         if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
@@ -69,16 +70,8 @@
         }
         #endregion messages to verbose and debug streams
 
-        $result = Invoke-VSARestMethod @Params
-
-        #No response for REST API call
-
-    } else {
-        $Message = "The asset with Agent ID `'$AgentId`' does not exist"
-        throw $Message
+        return Invoke-VSARestMethod @Params
     }
-
-    return $result
 }
 New-Alias -Name Add-VSACustomExtensionFolder -Value New-VSACustomExtensionFolder
 Export-ModuleMember -Function New-VSACustomExtensionFolder -Alias Add-VSACustomExtensionFolder

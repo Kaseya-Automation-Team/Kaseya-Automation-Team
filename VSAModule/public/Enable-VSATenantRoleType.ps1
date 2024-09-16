@@ -36,10 +36,10 @@
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
         [ValidateNotNull()]
@@ -84,27 +84,31 @@
                 'KDM Admin'					= 117
             }
     
-            $Body = ConvertTo-Json $HTRoleTypes[$RoleType]
+            $Body = ConvertTo-Json $HTRoleTypes[$RoleType] -Depth 5 -Compress
         } else {
-            $Body = ConvertTo-Json $RoleTypeIds
+            $Body = ConvertTo-Json $RoleTypeIds -Depth 5 -Compress
         }
     }# Begin
     Process {
-        $URISuffix = $URISuffix -f $TenantId
-
-        $Body | Out-String | Write-Debug
 
         [hashtable]$Params =@{
-            URISuffix = $URISuffix
+            URISuffix = $($URISuffix -f $TenantId)
             Method    = 'PUT'
             Body      = $Body
         }
 
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
         
-        $Params | Out-String | Write-Debug
+        #region messages to verbose and debug streams
+        if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+            "Enable-VSATenantRoleType: $($Params | Out-String)" | Write-Debug
+        }
+        if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+            "Enable-VSATenantRoleType: $($Params | Out-String)" | Write-Verbose
+        }
+        #endregion messages to verbose and debug streams
 
-        return Update-VSAItems @Params
+        return Invoke-VSARestMethod @Params
     }#Process
 }
 

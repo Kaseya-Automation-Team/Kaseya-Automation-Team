@@ -35,10 +35,10 @@ function Remove-VSAUser
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
         [ValidateNotNullOrEmpty()] 
@@ -47,7 +47,13 @@ function Remove-VSAUser
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
-        [decimal] $UserId
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
+        [string] $UserId
     )
 
     DynamicParam {
@@ -80,19 +86,14 @@ function Remove-VSAUser
         }
     }# Begin
     Process {
-    $URISuffix = $URISuffix -f $UserId
-    $URISuffix | Write-Debug
-    
+   
+        [hashtable]$Params = @{
+            'URISuffix' = $($URISuffix -f $UserId)
+            'Method'    = 'DELETE'
+        }
+        if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    [hashtable]$Params = @{
-                            'URISuffix' = $URISuffix
-                            'Method'    = 'DELETE'
-    }
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-
-    $Params | Out-String | Write-Debug
-
-    return Update-VSAItems @Params
+        return Invoke-VSARestMethod @Params
     }
 }
 Export-ModuleMember -Function Remove-VSAUser

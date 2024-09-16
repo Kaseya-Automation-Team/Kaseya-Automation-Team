@@ -27,10 +27,10 @@
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param (
-        [parameter(Mandatory = $false, 
+        [parameter(DontShow, Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'RenameField')]
-        [parameter(Mandatory = $false, 
+        [parameter(DontShow, Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'UpdateValue')]
         [ValidateNotNull()]
@@ -71,10 +71,10 @@
         })]
         [string] $AgentID,
 
-        [parameter(Mandatory = $false, 
+        [parameter(DontShow, Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'RenameField')]
-        [parameter(Mandatory = $false, 
+        [parameter(DontShow, Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'UpdateValue')]
         [ValidateNotNullOrEmpty()] 
@@ -85,41 +85,32 @@
 
     if ( [string]::IsNullOrEmpty($AgentID) ) { # AgentID is not set. Field renaming
         
-        $Values += '' # The second element of array to actualize URI suffix is an empty string if agent ID is not provided.
+        $Values += '' # The second element of array to actualize URI suffix is an empty string if AgentID is not provided.
         $BodyHT = @(@{"key"="NewFieldName";"value"=$NewFieldName})
 
     } else {                                  # Field value updating
         $Values += $AgentID
         $BodyHT = @(@{"key"="FieldValue";"value"=$FieldValue })
     }
-    $Values | Out-String | Write-Debug    
-    $Values | Out-String | Write-Verbose
-
-    $Body = ConvertTo-Json $BodyHT
-
-    $Body | Out-String | Write-Debug
-    $Body | Out-String | Write-Verbose
     
     $URISuffix = $($URISuffix -f $Values) -replace '//', '/' # URI suffix actualization
-    $URISuffix | Write-Debug
-    $URISuffix | Write-Verbose
 
     [hashtable]$Params =@{
-    URISuffix = $URISuffix
-    Method = 'PUT'
-    Body = $Body
+        URISuffix = $URISuffix
+        Method = 'PUT'
+        Body = $(ConvertTo-Json $BodyHT)
     }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
     switch ($PsCmdlet.ParameterSetName) {
         "RenameField" {
             if( $PSCmdlet.ShouldProcess( $NewFieldName ) ) {
-                return Update-VSAItems @Params
+                return Invoke-VSARestMethod @Params
             }
         }
         "UpdateValue" {
             if( $PSCmdlet.ShouldProcess( $AgentID ) ) {
-                return Update-VSAItems @Params
+                return Invoke-VSARestMethod @Params
             }
         }
     }

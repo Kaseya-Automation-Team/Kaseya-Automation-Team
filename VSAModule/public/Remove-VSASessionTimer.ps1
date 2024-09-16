@@ -11,43 +11,40 @@ function Remove-VSASessionTimer
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .EXAMPLE
-       Remove-VSASessionTimer -Reference "VSA-5210-3" -Description "First New Admin Task" -EnabledFlag -TimeSheetFlag
+       Remove-VSASessionTimer -TimerId 123
     .EXAMPLE
-       Remove-VSASessionTimer -VSAConnection $connection -Reference "VSA-5210-3" -Description "First New Admin Task"
+       Remove-VSASessionTimer -TimerId 123 -VSAConnection $connection -Force
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       Success or failure
+       True if successful.
     #>
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/system/sessiontimers/{0}",
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $TimerId,
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$false)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+
         [switch] $Force
 )
-	
-    $URISuffix = $URISuffix -f $TimerId
-
     [hashtable]$Params =@{
-        URISuffix = $URISuffix
+        URISuffix = $($URISuffix -f $TimerId)
     }
 
     if ($Force) {
@@ -58,7 +55,7 @@ function Remove-VSASessionTimer
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Remove-VSASessionTimer

@@ -51,13 +51,10 @@ function New-VSAAgentInstallLink
         [string] $MachineGroupName
 )
 
-    [string] $Body = @"
-{"PartitionId":"$PartitionId","MachineGroupName":"$MachineGroupName"}
-"@
     [hashtable]$Params =@{
         URISuffix = $URISuffix
         Method = 'POST'
-        Body = $Body
+        Body = "{`"PartitionId`":`"$PartitionId`",`"MachineGroupName`":`"$MachineGroupName`"}"
     }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}

@@ -24,34 +24,37 @@ function Remove-VSAPatch
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/assetmgmt/patch?agentGuids={0}",
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $true)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $true)]
-        [ValidateNotNullOrEmpty()] 
-        [string] $AgentIds
+
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            foreach ($item in $_) {
+                if ( -not [decimal]::TryParse($item, [ref]$null) ) {
+                    throw "All elements must be numeric. '$item' is not a valid number."
+                }
+            }
+            return $true
+        })]
+        [string[]] $AgentIds
 )
 	
-    $URISuffix = $URISuffix -f $AgentIds
+    $URISuffix = 
 
     [hashtable]$Params =@{
-        URISuffix = $URISuffix
+        URISuffix = $($URISuffix -f $AgentIds)
         Method = 'DELETE'
     }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Remove-VSAPatch

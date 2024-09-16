@@ -26,18 +26,15 @@ function Remove-VSAPatchIgnore
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/assetmgmt/patch/{0}/{1}/setignore",
+
         [parameter(Mandatory = $true,  
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
@@ -47,22 +44,26 @@ function Remove-VSAPatchIgnore
             return $true
         })]
         [string] $AgentID,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $true)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $true)]
-        [ValidateNotNullOrEmpty()] 
+
+        [parameter(Mandatory = $true,  
+            ValueFromPipelineByPropertyName = $true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $PatchDataId
 )
-	
-    $URISuffix = $URISuffix -f $AgentId, $PatchDataId
 
     [hashtable]$Params =@{
-        URISuffix = $URISuffix
+        URISuffix = $($URISuffix -f $AgentId, $PatchDataId)
         Method = 'DELETE'
     }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Remove-VSAPatchIgnore

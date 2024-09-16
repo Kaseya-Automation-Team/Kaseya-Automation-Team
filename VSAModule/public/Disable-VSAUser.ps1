@@ -31,11 +31,12 @@ function Disable-VSAUser
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/system/users/{0}/disable',
 
+        [Alias('ID')]
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
@@ -45,21 +46,14 @@ function Disable-VSAUser
             return $true
         })]
         [string] $UserId
-    )
-
-    
-    $URISuffix = $URISuffix -f $UserId
-    $URISuffix | Write-Debug
-    
+    )    
 
     [hashtable]$Params = @{
-                            'URISuffix' = $URISuffix
-                            'Method'    = 'PUT'
+        'URISuffix' = $($URISuffix -f $UserId)
+        'Method'    = 'PUT'
     }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params | Out-String | Write-Debug
-
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 Export-ModuleMember -Function Disable-VSAUser

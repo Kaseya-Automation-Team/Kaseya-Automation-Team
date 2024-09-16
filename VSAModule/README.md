@@ -65,6 +65,10 @@ Visit the [online help](http://help.kaseya.com/webhelp/EN/RESTAPI/9050000/index.
 
 - Updated Copy-VSAMGStructure Function
 
+### Version 0.1.5
+
+- Reduced the number of cmdlets while maintaining functionality
+
 ## Sponsored
 
 Stay secure and compliant with Kaseya's comprehensive IT management solutions. Visit Kaseya today!

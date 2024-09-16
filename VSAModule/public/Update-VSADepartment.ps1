@@ -69,23 +69,23 @@ function Update-VSADepartment
         })]
         [string] $ManagerId
     )
-    $URISuffix = $URISuffix -f $DepartmentId
 
     [hashtable]$BodyHT =    @{}
     if ($DepartmentName)     { $BodyHT.Add('DepartmentName', $DepartmentName) }
     if ($ParentDepartmentId) { $BodyHT.Add('ParentDepartmentId', $ParentDepartmentId) }
     if ($ManagerId)          { $BodyHT.Add('ManagerId', $ManagerId) }
+    
+    if ( 0 -eq $BodyHT.Count) {
+        throw "No changes specified to the Department $DepartmentId"
+    }
 
-    $Body = $BodyHT | ConvertTo-Json
-    $Body | Out-String | Write-Debug
-
-    [hashtable]$Params = @{}
+    [hashtable]$Params = @{
+        URISuffix = $($URISuffix -f $DepartmentId)
+        Method    = 'PUT'
+        Body      = $($BodyHT | ConvertTo-Json)
+    }
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    $Params.Add('URISuffix', $URISuffix)
-    $Params.Add('Method', 'PUT')
-    $Params.Add('Body', $Body)
-
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 Export-ModuleMember -Function Update-VSADepartment

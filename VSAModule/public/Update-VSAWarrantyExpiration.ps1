@@ -45,28 +45,24 @@ function Update-VSAWarrantyExpiration
             return $true
         })]
         [string] $AgentID,
+
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $PurchaseDate,
+
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $WarrantyExpireDate
     )
-    
-    $URISuffix = $URISuffix -f $AgentID
 
     [hashtable]$Params = @{
         URISuffix = $($URISuffix -f $AgentID)
-     
-        Method = 'PUT'
+        Body      = "{`"PurchaseDate`":`"$PurchaseDate`",`"WarrantyExpireDate`":`"$WarrantyExpireDate`"}"
+        Method    = 'PUT'
     }
-
-    $Body = ConvertTo-Json @{"PurchaseDate"="$PurchaseDate"; "WarrantyExpireDate"="$WarrantyExpireDate";}
-
-    $Params.Add('Body', $Body)
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 Export-ModuleMember -Function Update-VSAWarrantyExpiration

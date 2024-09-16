@@ -125,80 +125,59 @@
         [parameter(Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Organization')]
-        [string] $Sort,
-      
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
-            ParameterSetName = 'Staff')]
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
-            ParameterSetName = 'Department')] 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
-            ParameterSetName = 'Organization')]
-        [switch] $ResolveIDs
+        [string] $Sort
         )
 
-        [string] $ItemId = ''
+        $ItemId = [string]::Empty
 
         if( -not [string]::IsNullOrEmpty($OrganizationID)) {
             $URISuffix = "$URISuffix/orgs/{0}/staff"
             $ItemId = $OrganizationID
-            "Look for staff in the organization" | Write-Verbose
+            $LogMsg = "Look for staff in the organization: $ItemId"
         }
 
         if( -not [string]::IsNullOrEmpty($DepartmentId)) {
             $URISuffix = "$URISuffix/departments/{0}/staff"
             $ItemId = $DepartmentId
-            "Look for staff in the department" | Write-Verbose
+            $LogMsg = "Look for staff in the department: $ItemId"
         }
 
         if( -not [string]::IsNullOrEmpty($StaffId)) {
             $URISuffix = "$URISuffix/staff/{0}"
             $ItemId = $StaffId
-            "Look for specific staff id" | Write-Verbose
+            $LogMsg = "Look for specific staff id: $ItemId"
         }
 
         if( [string]::IsNullOrEmpty($DepartmentId) -and [string]::IsNullOrEmpty($StaffId) -and [string]::IsNullOrEmpty($OrganizationID)) {
             $URISuffix = "$URISuffix/staff"
-            "Look for all staff" | Write-Verbose
+            $LogMsg = "Look for all staff"
         }
 
-        $URISuffix = $URISuffix -f $ItemId
-        $URISuffix | Write-Verbose
-        $URISuffix | Write-Debug
+        if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+            $LogMsg | Write-Verbose
+        }
 
-        [hashtable]$Params = @{}
-        if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+        [hashtable]$Params = @{
+            URISuffix     = $( $URISuffix -f $ItemId )
+            VSAConnection = $VSAConnection
+            Filter        = $Filter
+            Paging        = $Paging
+            Sort          = $Sort
+        }
 
-        $Params.Add('URISuffix', $URISuffix)
-        if($Filter)        {$Params.Add('Filter', $Filter)}
-        if($Paging)        {$Params.Add('Paging', $Paging)}
-        if($Sort)          {$Params.Add('Sort', $Sort)}
+        foreach ( $key in $Params.Keys.Clone()  ) {
+            if ( -not $Params[$key]) { $Params.Remove($key) }
+        }
 
-        $Params | Out-String | Write-Verbose
-        $Params | Out-String | Write-Debug
+        #region messages to verbose and debug streams
+        if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+            "Get-VSAStaff: $($Params | Out-String)" | Write-Debug
+        }
+        if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+            "Get-VSAStaff: $($Params | Out-String)" | Write-Verbose
+        }
+        #endregion messages to verbose and debug streams
         
-        $result = Get-VSAItems @Params
-
-        if ($ResolveIDs)
-        {
-            [hashtable]$ResolveParams =@{}
-            if($VSAConnection) {$ResolveParams.Add('VSAConnection', $VSAConnection)}
-
-            [hashtable]$OrganizationDictionary = @{}
-
-            Foreach( $Organization in $(Get-VSAOrganization @ResolveParams) )
-            {
-                if ( -Not $OrganizationDictionary[$Organization.OrgId]) {
-                    $OrganizationDictionary.Add($Organization.OrgId, $($Organization | Select-Object * -ExcludeProperty OrgId))
-                }
-            }
-
-            $result = $result | Select-Object -Property *, `
-                @{Name = 'Organization'; Expression = { $OrganizationDictionary[$_.OrgId] }}
-        }
-    
-        return $result
+        return Invoke-VSARestMethod @Params
 } 
 Export-ModuleMember -Function Get-VSAStaff

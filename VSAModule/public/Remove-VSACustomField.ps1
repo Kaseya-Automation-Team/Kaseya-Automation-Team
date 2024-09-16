@@ -27,44 +27,30 @@
         ConfirmImpact = 'High'
     )]
     param (
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
-        [ValidateNotNullOrEmpty()]
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/assetmgmt/assets/customfields/{0}",
 
         [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $FieldName
-        )
-
-    [bool]$result = $false
-
-    
-    $URISuffix = $URISuffix -f $FieldName
+    )
 
     [hashtable]$Params =@{
-                            'URISuffix' = $URISuffix
-                            'Method'    = 'DELETE'
-                        }
+        URISuffix = $($URISuffix -f $FieldName)
+        Method    = 'DELETE'
+    }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
     if( $PSCmdlet.ShouldProcess( $FieldName ) ) {
-        return Update-VSAItems @Params
+        return Invoke-VSARestMethod @Params
     }
 }
 Export-ModuleMember -Function Remove-VSACustomField

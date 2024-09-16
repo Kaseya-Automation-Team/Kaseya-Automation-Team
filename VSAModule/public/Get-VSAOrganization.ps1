@@ -81,7 +81,12 @@
         [parameter(Mandatory = $false,  
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Filtering')]
-        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $OrgID,
 
         [parameter(Mandatory = $false,  

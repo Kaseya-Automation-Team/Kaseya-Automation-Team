@@ -29,23 +29,15 @@ function Set-VSATenantModuleUsageType {
        Array of tof module licenses
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'ById')]
     param ( 
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ById')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ById')]
+        [parameter(DontShow, Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant/modules/usagetype/{0}?moduleId={1}&usageType={2}',
 
@@ -72,11 +64,7 @@ function Set-VSATenantModuleUsageType {
         [string] $ModuleId,
 
         [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ById')]
+            ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
                 throw "Non-numeric value"
@@ -92,7 +80,7 @@ function Set-VSATenantModuleUsageType {
         [hashtable] $AuxParameters = @{}
         if($VSAConnection) {$AuxParameters.Add('VSAConnection', $VSAConnection)}
 
-        [array] $script:Tenants = try {Get-VSATenants @AuxParameters -ErrorAction Stop | Select-Object Id, Ref } catch { Write-Error $_ }
+        [array] $script:Tenants = try {Get-VSATenant @AuxParameters -ErrorAction Stop | Select-Object Id, Ref } catch { Write-Error $_ }
 
         $ParameterName = 'TenantName' 
         $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
@@ -120,7 +108,7 @@ function Set-VSATenantModuleUsageType {
         #>
         if ( -not [string]::IsNullOrEmpty($TenantId) ) {
             $AuxParameters.Add('TenantId', $TenantId)
-            [array]$script:Modules = Get-VSATenantModuleLicenses @AuxParameters
+            [array]$script:Modules = Get-VSATenantModuleLicense @AuxParameters
 
             $ParameterName = 'ModuleName' 
             $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
@@ -155,18 +143,18 @@ function Set-VSATenantModuleUsageType {
      Process {
         $URISuffix = $URISuffix -f $TenantId, $ModuleId, $UsageType
 
-        [string]$Body
-
         [hashtable]$Params =@{
             URISuffix = $URISuffix
             Method    = 'PUT'
         }
 
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-        
-        $Params | Out-String | Write-Debug
 
-        return Update-VSAItems @Params
+        if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+            Write-Debug "Set-VSATenantModuleUsageType. $($Body | Out-String)"
+        }
+        
+        return Invoke-VSARestMethod @Params
     }#Process
 }
 Export-ModuleMember -Function Set-VSATenantModuleUsageType

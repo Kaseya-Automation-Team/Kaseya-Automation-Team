@@ -36,10 +36,10 @@
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
         [ValidateNotNull()]
@@ -108,18 +108,15 @@
         }
     }# Begin
     Process {
-        $URISuffix = $URISuffix -f $TenantId, $ModuleId
 
         [hashtable]$Params =@{
-            URISuffix = $URISuffix
+            URISuffix = $($URISuffix -f $TenantId, $ModuleId)
             Method    = 'DELETE'
         }
 
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-        
-        $Params | Out-String | Write-Debug
 
-        return Update-VSAItems @Params
+        return Invoke-VSARestMethod @Params
     }#Process
 }
 

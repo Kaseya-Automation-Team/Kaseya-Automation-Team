@@ -1,50 +1,53 @@
 function Get-VSAAgent
 {
     <#
-    .Synopsis
-       Returns all VSA agents or specific one
+    .SYNOPSIS
+        Retrieves all VSA agents or a specified one.
     .DESCRIPTION
-       Returns all VSA agents or specific one if agent id supplie.
-       Takes either persistent or non-persistent connection information.
+        This script returns all VSA agents or a specific agent if an agent ID is supplied. 
+        It supports both persistent and non-persistent connection information.
     .PARAMETER VSAConnection
-        Specifies existing non-persistent VSAConnection.
+        Specifies an existing non-persistent VSA connection.
     .PARAMETER URISuffix
-        Specifies URI suffix if it differs from the default.
+        Specifies the URI suffix if it differs from the default.
     .PARAMETER AgentId
-        Specifies id of agent machine.
+        Specifies the ID of the agent machine.
     .PARAMETER Filter
-        Specifies REST API Filter.
+        Specifies the REST API filter.
     .PARAMETER Paging
-        Specifies REST API Paging.
+        Specifies the REST API paging.
     .PARAMETER Sort
-        Specifies REST API Sorting.
+        Specifies the REST API sorting.
     .EXAMPLE
-       Get-VSAAgent
+        Get-VSAAgent
+        Retrieves all VSA agents.
     .EXAMPLE
-       Get-VSAAgent -AgentId 3423232424
+        Get-VSAAgent -AgentId 3423232424
+        Retrieves the VSA agent with the specified ID.
     .EXAMPLE
-       Get-VSAAgent -VSAConnection $connection
+        Get-VSAAgent -VSAConnection $connection
+        Retrieves VSA agents using the specified non-persistent VSA connection.
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+        Accepts a piped non-persistent VSAConnection.
     .OUTPUTS
-       Array of custom objects that represent existing VSA agents or specific agent
+        Returns an array of custom objects representing the existing VSA agents or a specific agent.
     #>
+
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/assetmgmt/agents',
-        [Parameter(Mandatory = $false)]
+
+        [Alias('ID')]
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
                 throw "Non-numeric Id"
@@ -52,35 +55,42 @@ function Get-VSAAgent
             return $true
         })]
         [string] $AgentId,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Filter,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Paging,
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $false)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
+
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()] 
         [string] $Sort
     )
 
 
     if( -not [string]::IsNullOrWhiteSpace( $AgentId) ) {
-        $URISuffix += "/$AgentId"
+        $URISuffix = "$URISuffix/$AgentId"
     }
 
     [hashtable]$Params =@{
         URISuffix = $URISuffix
     }
 
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-    if($Filter)        {$Params.Add('Filter', $Filter)}
-    if($Paging)        {$Params.Add('Paging', $Paging)}
-    if($Sort)          {$Params.Add('Sort', $Sort)}
+    [hashtable]$Params = @{
+        VSAConnection = $VSAConnection
+        URISuffix     = $URISuffix
+        Filter        = $Filter
+        Paging        = $Paging
+        Sort          = $Sort
+    }
 
-    return Get-VSAItems @Params
+    foreach ( $key in $Params.Keys.Clone()  ) {
+        if ( -not $Params[$key]) { $Params.Remove($key) }
+    }
+
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Get-VSAAgent

@@ -22,15 +22,11 @@ function Test-VSASSL {
     [CmdletBinding()]
     param ( 
         [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/echo'
     )
@@ -41,7 +37,7 @@ function Test-VSASSL {
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Get-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Test-VSASSL

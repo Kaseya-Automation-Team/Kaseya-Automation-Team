@@ -2,64 +2,59 @@ function Update-VSAInfoMsg
 {
     <#
     .Synopsis
-       Closes VSA alarm
+       Sets the IsRead field on messages.
     .DESCRIPTION
-       Switches status of specific VSA alarm from Open to Closed
+       Switches if the specified messages are read.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER Filter
-        Specifies REST API Filter.
-    .PARAMETER Paging
-        Specifies REST API Paging.
-    .PARAMETER Sort
-        Specifies REST API Sorting.
     .PARAMETER Reason
         Optional parameter which specifies reason why alarm has been closed
     .EXAMPLE
-       Close-VSAAlarm
+       Update-VSAInfoMsg -ID 1, 2, 3 -IsRead
     .EXAMPLE
-       Close-VSAAlarm -VSAConnection $connection
+       Update-VSAInfoMsg -ID 1, 2, 3 -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       No output
+       True if update was successful
     #>
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
-        [ValidateNotNullOrEmpty()] 
-        [string] $URISuffix = "api/v1.0/infocenter/messages/true",
-        [Parameter(ParameterSetName = 'Persistent', Mandatory = $true, ValueFromPipelineByPropertyName=$true)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
-        [bigint] $ID
-    )
 
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()] 
+        [string] $URISuffix = "api/v1.0/infocenter/messages/{0}",
+
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true)]
+        [ValidateScript({
+            foreach ($item in $_) {
+                if ( -not [decimal]::TryParse($item, [ref]$null) ) {
+                    throw "All elements must be numeric. '$item' is not a valid number."
+                }
+            }
+            return $true
+        })]
+        [decimal[]] $ID,
+
+        [switch] $IsRead
+    )
      
     [hashtable]$Params =@{
-        URISuffix = $URISuffix
-        Method = 'PUT'
+        URISuffix = $( $URISuffix -f $IsRead.ToString().ToLower() )
+        Method    = 'PUT'
+        Body      = $( $ID | ConvertTo-Json -Compress )
     }
-
-    $Body = "{[$ID]}"
-    $Params.Add('Body', $Body)
-
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Update-VSAInfoMsg

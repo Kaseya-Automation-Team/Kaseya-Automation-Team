@@ -29,109 +29,86 @@
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
+        [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [ValidateNotNull()]
+        [parameter(DontShow, Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant/roletypes/{0}?roleTypeId={1}',
 
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
+        [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName = 'ByName')]
         [ValidateSet('VSA Admin', 'End User', 'Basic Machine', 'Service Desk Admin', 'Service Desk Technician', 'SB Admin', 'KDP Admin', 'KDM Admin')]
         [string] $RoleTypeName,
 
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
+        [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName = 'ById')]
         [ValidateSet(4, 6, 8, 100, 101, 105, 116, 117)]
         [int] $RoleTypeId
     )
     DynamicParam {
-
         $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
-            
-        [hashtable] $AuxParameters = @{}
-        if($VSAConnection) {$AuxParameters.Add('VSAConnection', $VSAConnection)}
 
-        [array] $script:Tenants = try {Get-VSATenants @AuxParameters -ErrorAction Stop | Select-Object Id, Ref } catch { Write-Error $_ }
+        [array] $script:Tenants = try {
+            Get-VSATenants -VSAConnection $VSAConnection -ErrorAction Stop | Select-Object Id, Ref 
+        } catch {
+            Write-Error $_
+        }
 
-        $ParameterName = 'TenantName' 
-        $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-        $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-        $ParameterAttribute.Mandatory = $true
-        $ParameterAttribute.ParameterSetName = 'ByName'
-        $AttributesCollection.Add($ParameterAttribute)
-        [string[]] $ValidateSet = $script:Tenants | Select-Object -ExpandProperty Ref # | ForEach-Object {Write-Output "'$_'"}
-        $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-        $AttributesCollection.Add($ValidateSetAttribute)
-        $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributesCollection)
-        $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
-
-        $ParameterName = 'TenantId' 
-        $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-        $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-        $ParameterAttribute.Mandatory = $true
-        $ParameterAttribute.ParameterSetName = 'ById'
-        $AttributesCollection.Add($ParameterAttribute)
-        [string[]] $ValidateSet = $script:Tenants | Select-Object -ExpandProperty Id
-        $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-        $AttributesCollection.Add($ValidateSetAttribute)
-        $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($ParameterName, [string], $AttributesCollection)
-        $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
+        foreach ($param in @('TenantName', 'TenantId')) {
+            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
+            $ParameterAttribute.Mandatory = $true
+            $ParameterAttribute.ParameterSetName = if ($param -eq 'TenantName') { 'ByName' } else { 'ById' }
+            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
+            $AttributesCollection.Add($ParameterAttribute)
+            $ValidateSet = $script:Tenants | Select-Object -ExpandProperty $(if ($param -eq 'TenantName') { 'Ref' } else { 'Id' })
+            $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
+            $AttributesCollection.Add($ValidateSetAttribute)
+            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($param, [string], $AttributesCollection)
+            $RuntimeParameterDictionary.Add($param, $RuntimeParameter)
+        }
 
         return $RuntimeParameterDictionary
-    }# DynamicParam
+    }
     Begin {
-        if ( [string]::IsNullOrEmpty($TenantId)  ) {
+        if (-not $TenantId) {
             $TenantId = $script:Tenants | Where-Object { $_.Ref -eq $PSBoundParameters.TenantName } | Select-Object -ExpandProperty Id
             $TenantName = $PSBoundParameters.TenantName
         }
-        if ( [string]::IsNullOrEmpty($TenantName)  ) {
+        if (-not $TenantName) {
             $TenantName = $script:Tenants | Where-Object { $_.Id -eq $PSBoundParameters.TenantId } | Select-Object -ExpandProperty Ref
             $TenantId = $PSBoundParameters.TenantId
         }
-        if ( -not [string]::IsNullOrEmpty($RoleTypeName)) {
-                [hashtable] $RoleTypes = @{
-                'VSA Admin'					= 4
-                'End User'					= 6
-                'Basic Machine'				= 8
-                'Service Desk Admin'		= 100
-                'Service Desk Technician'	= 101
-                'SB Admin'					= 105
-                'KDP Admin'					= 116
-                'KDM Admin'					= 117
-            }
-    
-             $RoleTypeId = $RoleTypes[$RoleTypeName]
+        if ($RoleTypeName) {
+            $RoleTypeId = @{
+                'VSA Admin' = 4
+                'End User' = 6
+                'Basic Machine' = 8
+                'Service Desk Admin' = 100
+                'Service Desk Technician' = 101
+                'SB Admin' = 105
+                'KDP Admin' = 116
+                'KDM Admin' = 117
+            }[$RoleTypeName]
         }
-    }# Begin
+    }
     Process {
-        $URISuffix = $URISuffix -f $TenantId, $RoleTypeId
-
-        [hashtable]$Params =@{
-            URISuffix = $URISuffix
+        $Params = @{
+            URISuffix = $($URISuffix -f $TenantId, $RoleTypeId)
             Method    = 'DELETE'
         }
 
         if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-        
-        $Params | Out-String | Write-Debug
 
-        return Update-VSAItems @Params
-    }#Process
+        #region messages to verbose and debug streams
+        if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
+            "Clear-VSATenantRoleType: $($Params | Out-String)" | Write-Debug
+        }
+        if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
+            "Clear-VSATenantRoleType: $($Params | Out-String)" | Write-Verbose
+        }
+        #endregion messages to verbose and debug streams
+
+        return Invoke-VSARestMethod @Params
+    }
 }
-
 Export-ModuleMember -Function Clear-VSATenantRoleType

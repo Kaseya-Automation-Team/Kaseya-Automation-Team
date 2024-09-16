@@ -28,18 +28,15 @@ function Remove-VSAAgent
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/assetmgmt/agents/{0}/{1}",
+
         [Parameter(Mandatory = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -48,21 +45,16 @@ function Remove-VSAAgent
             return $true
         })]
         [string] $AgentId,
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$false)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+
         [switch] $UninstallFirst = $false
 )
-    $URISuffix = $URISuffix -f $AgentId, $UninstallFirst
-	
     [hashtable]$Params =@{
-        URISuffix = $URISuffix
-        Method = 'DELETE'
+        URISuffix = $( $URISuffix -f $AgentId, $UninstallFirst.ToString() )
+        Method    = 'DELETE'
     }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
-
 Export-ModuleMember -Function Remove-VSAAgent

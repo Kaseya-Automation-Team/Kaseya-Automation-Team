@@ -28,29 +28,33 @@ function Rename-VSATenant {
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false)]
+        [parameter(DontShow, Mandatory=$false)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant?tenantId={0}&newTenantRef={1}',
 
         [parameter(Mandatory = $true, 
             ValueFromPipelineByPropertyName = $true)]
-        [decimal] $TenantId,
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
+        [string] $TenantId,
 
         [parameter(Mandatory = $true, 
             ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()] 
         [string] $NewName
     )
-    $URISuffix = $URISuffix -f $TenantId, $NewName
-
     [hashtable]$Params =@{
-        URISuffix = $URISuffix
+        URISuffix = $($URISuffix -f $TenantId, $NewName)
         Method    = 'PUT'
     }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-    $Params | Out-String | Write-Debug
 
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Rename-VSATenant

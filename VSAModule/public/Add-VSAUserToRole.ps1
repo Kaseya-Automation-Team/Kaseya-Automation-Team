@@ -2,9 +2,9 @@ function Add-VSAUserToRole
 {
     <#
     .Synopsis
-       Adds new role to user
+       Adds a new role to user
     .DESCRIPTION
-       Adds new role to specified VSA user.
+       Adds a new role to the specified VSA user.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
@@ -30,7 +30,7 @@ function Add-VSAUserToRole
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false,
+        [parameter(DontShow, Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/system/roles/{0}/users/{1}",
@@ -55,17 +55,15 @@ function Add-VSAUserToRole
         })] 
         [string] $UserId
 )
-    
-    $URISuffix = $URISuffix -f $RoleId, $UserId
 	
 	[hashtable]$Params =@{
-        URISuffix = $URISuffix
+        URISuffix = $($URISuffix -f $RoleId, $UserId)
         Method = 'PUT'
     }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Add-VSAUserToRole

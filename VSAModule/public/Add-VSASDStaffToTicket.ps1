@@ -33,22 +33,28 @@ function Add-VSASDStaffToTicket
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/automation/servicedesks/assign/{0}/{1}",
 
-        [ValidateNotNullOrEmpty()]
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $ServiceDeskTicketId,
 
-        [ValidateNotNullOrEmpty()]
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
         [string] $StaffId
 )
-    
-    $URISuffix = $URISuffix -f $ServiceDeskTicketId, $StaffId
 
     [hashtable]$Params =@{
         VSAConnection = $VSAConnection
-        URISuffix     = $URISuffix
+        URISuffix     = $($URISuffix -f $ServiceDeskTicketId, $StaffId)
         Method        = 'PUT'
     }
     #Remove empty keys

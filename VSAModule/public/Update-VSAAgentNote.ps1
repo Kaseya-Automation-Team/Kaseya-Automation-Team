@@ -20,7 +20,7 @@
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       True if update was successful
+       True if successful
     #>
     [CmdletBinding()]
     param (
@@ -29,12 +29,11 @@
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory=$false)]
+        [parameter(DontShow, Mandatory=$false)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/assetmgmt/agent/notes',
 
         [Parameter(Mandatory = $true)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
                 throw "Non-numeric Id"
@@ -44,32 +43,22 @@
         [string] $NoteId,
 
         [Parameter(Mandatory = $true)]
-        [Parameter(ParameterSetName = 'NonPersistent', Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [string] $Note
 
-        )
-
-    [bool]$result = $false
-
-    [hashtable]$BodyHT=@{}
-    $BodyHT.Add($NoteId, $Note)
-
+    )
     [hashtable]$Params = @{}
-
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
     If ( $NoteId -in $(Get-VSAAgentNote @Params | Select-Object -ExpandProperty ID) ) {
-        $Params.Add('URISuffix', $URISuffix)
-        $Params.Add('Method', 'PUT')
-        $Params.Add('Body', $(ConvertTo-Json $BodyHT))
 
-        $result = Update-VSAItems @Params
+        $Params.URISuffix = $URISuffix
+        $Params.Method    = 'PUT'
+        $Params.Body      = $("{{""{0}"":""{1}""}}"-f $NoteId, $Note)
+
+        return Invoke-VSARestMethod @Params
     } else {
-        $Message = "The agent note with ID `'$NoteId`' does not exist"
-        throw $Message
+        throw "The agent note with ID `'$NoteId`' does not exist"
     }
-
-    return $result
 }
 Export-ModuleMember -Function Update-VSAAgentNote

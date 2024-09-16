@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
-  <Folder name="Create Windows Local Admin" treePres="3" treeFullPath="myProcedures - vladislav.semko@kaseya.com.PathFinder.Create Windows Local Admin">
-    <Procedure name="Create Local Admin to CF" treePres="3" id="272911172" treeFullPath="myProcedures - vladislav.semko@kaseya.com.PathFinder.Create Windows Local Admin">
+  <Folder name="Create Windows Local Admin" treePres="3" treeFullPath="myProcedures - vladislav.semko@kaseya.com.Create Windows Local Admin">
+    <Procedure name="Create Local Admin to CF" treePres="3" id="272911172" treeFullPath="myProcedures - vladislav.semko@kaseya.com.Create Windows Local Admin">
       <Body description="">
-        <Statement description="This procedure facilitates the creation of a local administrator account on a Windows client and securely stores the credentials in the specified Custom fields.&#xD;&#xA;The credentials are encrypted using base64 encoding for security purposes.&#xD;&#xA;The procedure requires Windows Management Framework version 5.1 or newer&#xD;&#xA;Version: 0.2.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Provide your VSA user" name="GetVariable" continueOnFail="false">
+        <Statement description="This procedure facilitates the creation of a local administrator account on a Windows client and securely stores the credentials in the specified Custom fields.&#xD;&#xA;The credentials are encrypted using base64 encoding for security purposes.&#xD;&#xA;The procedure requires Windows Management Framework version 5.1 or newer installed on the endpoint&#xD;&#xA;Version: 0.3&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Provide your VSA REST API user" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="VSAUserName" />
@@ -13,22 +13,27 @@
           <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="VSAUserPAT" />
         </Statement>
-        <Statement description="Provide new user's password length" name="GetVariable" continueOnFail="false">
+        <Statement description="Specify address of the VSA Server, if you don't intend to obtain it from the VSA Environment." name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="#vAgentConfiguration.primaryKServer#;#vAgentConfiguration.secondaryKServer#" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="VSAAddress" />
+        </Statement>
+        <Statement description="Specify new user's password length" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="16" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="PasswordLength" />
         </Statement>
-        <Statement description="Provide new user's username length" name="GetVariable" continueOnFail="false">
+        <Statement description="Specify new user's username length" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="16" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="UsernameLength" />
         </Statement>
-        <Statement description="Provide VSA Custom Field Name to store Local Admin username" name="GetVariable" continueOnFail="false">
+        <Statement description="Specify VSA Custom Field Name to store Local Admin username" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="LocalAdminUsername" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="CFUserName" />
         </Statement>
-        <Statement description="Provide VSA Custom Field Name to store Local Admin's password" name="GetVariable" continueOnFail="false">
+        <Statement description="Specify VSA Custom Field Name to store Local Admin's password" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="LocalAdminPassword" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="CFPassword" />
@@ -52,7 +57,7 @@
           <Then>
             <Statement description="If you are using self-signed certificates, ensure to include the '-IgnoreCertificateErrors' switch after a space character in the 'PoShCommand' variable." name="GetVariable" continueOnFail="false">
               <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
-              <Parameter xsi:type="StringParameter" name="SourceContent" value="#vAgentConfiguration.agentTempSecureDir#\#TheScript# -VSAAddress '#vAgentConfiguration.primaryKServer#;#vAgentConfiguration.secondaryKServer#' -VSAUser '#VSAUserName#' -PAT '#VSAUserPAT#' -AgentId '#vAgentConfiguration.agentGuid#' -UsernameLength #UsernameLength# -PasswordLength #PasswordLength# -CFUserName '#CFUserName#' -CFPassword '#CFPassword#'" />
+              <Parameter xsi:type="StringParameter" name="SourceContent" value="#vAgentConfiguration.agentTempSecureDir#\#TheScript# -VSAAddress '#VSAAddress#' -VSAUser '#VSAUserName#' -PAT '#VSAUserPAT#' -AgentId '#vAgentConfiguration.agentGuid#' -UsernameLength #UsernameLength# -PasswordLength #PasswordLength# -CFUserName '#CFUserName#' -CFPassword '#CFPassword#'" />
               <Parameter xsi:type="StringParameter" name="VariableName" value="PoShCommand" />
             </Statement>
             <If description="Executing the PowerShell script">
@@ -94,7 +99,7 @@
         </If>
       </Body>
     </Procedure>
-    <Procedure name="Save Local Admin credentials to ITGlue" treePres="3" id="1844310260" treeFullPath="myProcedures - vladislav.semko@kaseya.com.PathFinder.Create Windows Local Admin">
+    <Procedure name="Save Local Admin credentials to ITGlue" treePres="3" id="1844310260" treeFullPath="myProcedures - vladislav.semko@kaseya.com.Create Windows Local Admin">
       <Body description="">
         <Statement description="This procedure facilitates saving Local Admin credentials stored in VSA Custom Fields to IT Glue&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS&#xD;&#xA;Provide your VSA user" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />

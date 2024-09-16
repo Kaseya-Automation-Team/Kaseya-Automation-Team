@@ -12,45 +12,37 @@ function Update-VSAAPSettings
     .PARAMETER URISuffix
         Specifies id of the agent machine
     .EXAMPLE
-       Update-VSAAPSettings -Flag true
+       Update-VSAAPSettings -Flag
     .EXAMPLE
-       Update-VSAAPSettings -VSAConnection $connection -Flag false
+       Update-VSAAPSettings -VSAConnection $connection
     .INPUTS
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       No output
+       True if update was successful
     #>
 
     [CmdletBinding()]
     param ( 
-        [parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'NonPersistent')]
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'NonPersistent')]
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'Persistent')]
+
+        [parameter(DontShow, Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = "api/v1.0/automation/agentprocs/quicklaunch/askbeforeexecuting/{0}?flag={0}",
-        [parameter(ParameterSetName = 'Persistent', Mandatory=$true)]
-        [parameter(ParameterSetName = 'NonPersistent', Mandatory=$true)]
-        [ValidateNotNullOrEmpty()] 
-        [string] $Flag
+
+        [Alias("AskBeforeExecuting")]
+        [switch] $Flag
 )
     
-    $URISuffix = $URISuffix -f $Flag
-    
     [hashtable]$Params =@{
-        URISuffix = $URISuffix
+        URISuffix = $( $URISuffix -f $Flag.ToString().ToLower() )
         Method = 'PUT'
     }
-
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
 
-    return Update-VSAItems @Params
+    return Invoke-VSARestMethod @Params
 }
 
 Export-ModuleMember -Function Update-VSAAPSettings

@@ -84,13 +84,13 @@
     $TicketData = New-Object System.Collections.ArrayList
     if ([string]::IsNullOrEmpty($TicketId)) {
         $ParamsCloned = $Params.Clone()
-        $AllTickets = Get-VSAItems @Params
+        $AllTickets = Invoke-VSARestMethod @Params
         Foreach ($Ticket in $AllTickets) {
             $ParamsCloned['URISuffix'] = "{0}/{1}" -f $URISuffix, $Ticket.TicketId
-            $TicketData.Add( $(Get-VSAItems @ParamsCloned) ) | Out-Null
+            $TicketData.Add( $(Invoke-VSARestMethod @ParamsCloned) ) | Out-Null
         }
     } else {
-        $TicketData.Add( $(Get-VSAItems @Params) ) | Out-Null
+        $TicketData.Add( $(Invoke-VSARestMethod @Params) ) | Out-Null
     }
 
     return $TicketData.ToArray()

@@ -149,7 +149,15 @@
                 #endregion message
 
                 #Make the REST API wait while the BackEnd updates the information
-                $null = Get-VSAOrganization @DestinationParams -OrgID $NewOrgId
+                [int]$WaitSec = 0
+                [int]$StopWait = 60
+                [string]$CheckNewOrgId = try {Get-VSAOrganization @DestinationParams -OrgID $NewOrgId -ErrorAction Stop | Select-Object -ExpandProperty OrgID } catch { $null }
+                while ( [string]::IsNullOrEmpty($CheckNewOrgId) ) {
+                    $WaitSec++
+                    Start-Sleep -Seconds 1
+                    $CheckNewOrgId = try {Get-VSAOrganization @DestinationParams -OrgID $NewOrgId -ErrorAction Stop | Select-Object -ExpandProperty OrgID } catch { $null }
+                    if ($WaitSec -ge $StopWait) { break}
+                }
             } else {
                 #region message
                 $Info = "Something went wrong while creating '$($Organization.OrgRef)'. Returned ID: '$NewOrgId'"

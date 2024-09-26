@@ -167,6 +167,18 @@
                 $GetMGParams.Remove('OrgId')
                 $GetMGParams.Add('MachineGroupId', $NewGroupId)
                 $null = Get-VSAMachineGroup @GetMGParams
+
+                #Make the REST API wait while the BackEnd updates the information
+                [int]$WaitSec = 0
+                [int]$StopWait = 60
+                [string]$CheckNewMGId = try {Get-VSAMachineGroup @GetMGParams -ErrorAction Stop | Select-Object -ExpandProperty MachineGroupId } catch { $null }
+                while ( [string]::IsNullOrEmpty($CheckNewMGId) ) {
+                    $WaitSec++
+                    Start-Sleep -Seconds 1
+                    $CheckNewMGId = try {Get-VSAMachineGroup @GetMGParams -ErrorAction Stop | Select-Object -ExpandProperty MachineGroupId } catch { $null }
+                    if ($WaitSec -ge $StopWait) { break}
+                }
+
             } else {
                 #region message
                 $Info = "Something went wrong while creating '$MGName'. Returned ID: '$NewGroupId'"
@@ -174,7 +186,7 @@
                 if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) { Write-Verbose $Info }
                 if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
                     Write-Debug $Info
-                    Write-Debug "JSON data:`n$($MachineGroup | ConvertTo-Json -Depth 3 | Out-String)"
+                    Write-Debug "JSON data:`n$($MachineGroup | ConvertTo-Json -Depth 5 | Out-String)"
                 }
                 #endregion message
             } 

@@ -2,6 +2,8 @@
 
 This module is designed to make it easier to use the Kaseya VSA API in your PowerShell scripts. By handling all the hard work, it allows you to develop your scripts faster and more efficiently. There's no need for a steep learning curve; simply load the module, enter your API keys, and get results within minutes!
 
+**Note:** While this PowerShell module simplifies interaction with the Kaseya VSA REST API, it does not modify or impact the behavior of the API itself. Any issues or glitches that arise within the REST API are unrelated to the module and should be addressed to Kaseya directly.
+
 ## Basics
 
 You can install the module from the [PowerShell Gallery](https://www.powershellgallery.com/packages/VSAModule). Use the example below to get started.

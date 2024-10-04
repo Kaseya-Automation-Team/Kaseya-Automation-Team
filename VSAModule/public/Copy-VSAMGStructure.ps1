@@ -151,10 +151,11 @@
             $NewGroupId = try {
                 $MachineGroup | New-VSAMachineGroup @NewMGParams
             } catch {
-                $_.Exception.Message
+                Write-Host "Error creating Machine Group: $_.Exception.Message" -ForegroundColor Red
+                $null  # Ensure $NewOrgId is null on failure
             }
 
-            if ($NewGroupId -match "^\d+$") {
+            if ($null -ne $NewGroupId -and $NewGroupId -match "^\d+$") {
                 #region message
                 $Info = "Successfully created Machine Group '$MGName' with ID '$NewGroupId'."
                 Write-Host $Info

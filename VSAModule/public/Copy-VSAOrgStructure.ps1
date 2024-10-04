@@ -133,14 +133,16 @@
                 "Organization will be created with the following data:`n'$($Organization | ConvertTo-Json -Depth 3 | Out-String)'" | Write-Debug
             }
             #endregion message
-            
+
             $NewOrgId = try {
                 $Organization | New-VSAOrganization @NewOrgParams
             } catch {
-                $_.Exception.Message
+                Write-Host "Error creating organization: $_.Exception.Message" -ForegroundColor Red
+                $null  # Ensure $NewOrgId is null on failure
             }
 
-            if ($NewOrgId -match "^\d+$") {
+
+            if ($null -ne $NewOrgId -and $NewOrgId -match "^\d+$") {
                 #region message
                 $Info = "Successfully created organization '$($Organization.OrgRef)' with ID '$NewOrgId'."
                 Write-Host $Info

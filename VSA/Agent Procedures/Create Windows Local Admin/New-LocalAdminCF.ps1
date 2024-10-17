@@ -26,7 +26,7 @@
         Indicates whether to ignore certificate errors when connecting to the VSA server.
 
 .NOTES
-   Version 0.3
+   Version 0.4
    Author: Proserv Team - VS
 #>
 
@@ -87,6 +87,11 @@ $CurrentVersion = try {
 }
 
 if (-not $CurrentVersion) {
+    # Install the NuGet provider if it's missed
+    if ( -not $((Get-PackageProvider | Select-Object -ExpandProperty Name) -contains 'NuGet') ) {
+        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force
+    }
+
     # Install module if not present
     Install-Module -Name $ModuleName -Force
 } else {

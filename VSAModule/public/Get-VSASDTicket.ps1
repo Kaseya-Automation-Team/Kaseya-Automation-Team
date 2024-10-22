@@ -39,7 +39,7 @@ function Get-VSASDTicket {
         [string] $URISuffix = 'api/v1.0/automation/servicedesks/{0}/tickets',
 
         [Alias('ID')]
-        [parameter(Mandatory=$true,
+        [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {

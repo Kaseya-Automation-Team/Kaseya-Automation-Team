@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
   <Folder name="Install &amp; Uninstall MS Teams" treePres="3">
-    <Procedure name="Install MS Teams" treePres="3" id="33359079" folderId="444522797430177" treeFullPath="myProcedures - vlad.Install &amp; Uninstall MS Teams">
+    <Procedure name="Install MS Teams Per System" treePres="3" id="480482583" folderId="428778054485465" treeFullPath="myProcedures - vlad.Test.Install &amp; Uninstall MS Teams">
       <Body description="The procedure downloads and installs system-wide MS Teams">
-        <Statement description="The procedure downloads and installs MS Teams for all users on the computer &#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;detect if Teams is already installed" name="GetVariable" continueOnFail="false">
+        <Statement description="The procedure downloads and installs MS Teams Per System (for all users) on the computer &#xD;&#xA;Version: 0.1&#xD;&#xA;Author:  Proserv Team - VS&#xD;&#xA;detect if Teams is already installed" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="Teams" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="Software" />
@@ -112,9 +112,9 @@
         </If>
       </Body>
     </Procedure>
-    <Procedure name="Uninstall MS Teams" treePres="3" id="464578466" folderId="444522797430177" treeFullPath="myProcedures - vlad.Install &amp; Uninstall MS Teams">
+    <Procedure name="Uninstall MS Teams Per System" treePres="3" id="1288360229" folderId="428778054485465" treeFullPath="myProcedures - vlad.Test.Install &amp; Uninstall MS Teams">
       <Body description="The procedure uninstalls system-wide MS Teams">
-        <Statement description="The procedure uninstalls MS Teams&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+        <Statement description="The procedure uninstalls MS Teams installed Per System on the computer&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
           <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
           <Parameter xsi:type="StringParameter" name="SourceContent" value="Teams" />
           <Parameter xsi:type="StringParameter" name="VariableName" value="Software" />
@@ -165,6 +165,45 @@
           <Else>
             <Statement name="WriteScriptLogEntry" continueOnFail="false">
               <Parameter xsi:type="StringParameter" name="Comment" value="INFO: #Software# is absent. No action needed" />
+            </Statement>
+          </Else>
+        </If>
+      </Body>
+    </Procedure>
+    <Procedure name="Uninstall MS Teams Per User" treePres="3" id="1159821136" folderId="428778054485465" treeFullPath="myProcedures - vlad.Test.Install &amp; Uninstall MS Teams">
+      <Body description="">
+        <Statement description="This procedure uninstalls Microsoft Teams (per-user installation) for all user profiles, including MSIX packages, using scheduled tasks&#xD;&#xA;Prior using the Procedure, please create MSTeams folder under Shared Files directory of the Managed Files folder and upload the Remove-MSTeams.ps1 script to the MSTeams folder.&#xD;&#xA;Version: 0.1&#xD;&#xA;Author: Proserv Team - VS" name="GetVariable" continueOnFail="false">
+          <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+          <Parameter xsi:type="StringParameter" name="SourceContent" value="Remove-MSTeams" />
+          <Parameter xsi:type="StringParameter" name="VariableName" value="TheScript" />
+        </Statement>
+        <Statement name="WriteFile" continueOnFail="false">
+          <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+          <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\MSTeams\#TheScript#" />
+          <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+        </Statement>
+        <If description="">
+          <Condition name="TestFile">
+            <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+            <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+            <Parameter xsi:type="StringParameter" name="Value" value="" />
+          </Condition>
+          <Then>
+            <Statement name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Parameter1" value="Powershell.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+              <Parameter xsi:type="StringParameter" name="Parameter2" value="True" />
+              <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+            </Statement>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="#global:cmdresults#" />
+            </Statement>
+            <Statement description="Cleanup" name="DeleteFile" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Path" value="#vAgentConfiguration.agentTempSecureDir#/#TheScript#" />
+            </Statement>
+          </Then>
+          <Else>
+            <Statement name="WriteScriptLogEntry" continueOnFail="false">
+              <Parameter xsi:type="StringParameter" name="Comment" value="ERROR. Could not download '#TheScript#' from the VSA Server" />
             </Statement>
           </Else>
         </If>

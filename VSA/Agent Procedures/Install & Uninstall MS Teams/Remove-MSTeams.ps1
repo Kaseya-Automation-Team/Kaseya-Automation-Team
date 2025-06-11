@@ -138,43 +138,34 @@ function Unload-RegistryHive {
 
 #region Interactive User Detection
 # Define SID pattern for valid user SIDs
-$SIDPattern = '^S-1-(\d+-?){6}$'
-
-# Get SIDs of loaded user profiles from HKEY_USERS
-$LoadedSIDs = Get-ChildItem Registry::HKEY_USERS | Where-Object { $_.PSChildName -match $SIDPattern } | Select-Object -ExpandProperty PSChildName
-#Write-Output "Loaded profile SIDs: $LoadedSIDs"
+[string]$SIDPattern = '^S-1-(\d+-?){6}$'
+[array]$registrySIDs = Get-ChildItem Registry::HKEY_USERS | Where-Object { $_.PSChildName -match $SIDPattern } | Select-Object -ExpandProperty PSChildName
 
 # Get interactive logon sessions (console=2, RDP=10)
-try {
-    $interactiveLogons = Get-CimInstance Win32_LogonSession -ErrorAction Stop | Where-Object { $_.LogonType -in 2, 10 }
-    if (-not $interactiveLogons) {
-        #Write-Warning "No interactive sessions found (LogonType 2 or 10)."
-    }
+[array]$interactiveLogons = try {
+    Get-CimInstance Win32_LogonSession -Filter "LogonType = 2 OR LogonType = 10" -ErrorAction Stop
 } catch {
-    #Write-Warning "Failed to query Win32_LogonSession: $_"
-    $interactiveLogons = @()
+    #Write-Verbose "Error querying Win32_LogonSession: $_"
+    [array]::Empty()
 }
 
 # Get associated user accounts
-$loggedOnUsers = @()
+[array]$loggedOnUsers = @()
 foreach ($session in $interactiveLogons) {
-    try {
-        $users = Get-CimAssociatedInstance -InputObject $session -ResultClassName Win32_Account -ErrorAction Stop
-        $loggedOnUsers += $users
+    [array]$users = try {
+        Get-CimAssociatedInstance -InputObject $session -ResultClassName Win32_Account -ErrorAction Stop
     } catch {
-        #Write-Warning "Failed to get user for session $($session.LogonId): $_"
+        [array]::Empty()
+    }
+    if ( $users.Count -gt 0 ) {
+        $loggedOnUsers += $users
     }
 }
 
-# Filter valid SIDs and remove duplicates
-$uniqueUserSIDs = $loggedOnUsers | Where-Object { $_.SID -match $SIDPattern } | Select-Object -ExpandProperty SID -Unique
-#Write-Output "Interactive session SIDs: $uniqueUserSIDs"
-
-# Final list: interactive users with loaded profiles
-$LoggedInUsersSIDs = $uniqueUserSIDs | Where-Object { $_ -in $LoadedSIDs }
-#if (-not $LoggedInUsersSIDs) {
-    #Write-Warning "No interactive users with loaded profiles found. Tasks will schedule for logon."
-#}
+[array]$LoggedInUsersSIDs = $loggedOnUsers | 
+    Where-Object { $_.SID -match $SIDPattern } | 
+    Select-Object -ExpandProperty SID -Unique | 
+    Where-Object { $_ -in $registrySIDs }
 #endregion Interactive User Detection
 
 #region User Profile Processing
@@ -216,7 +207,7 @@ Get-CimInstance Win32_UserProfile | Where-Object { $_.SID -match $SIDPattern } |
 
     try {
         # Scan Uninstall registry key for Teams
-        $regPath = "Registry::HKEY_USERS\$UserSID\Software\Microsoft\Windows\CurrentVersion\Uninstall"
+        [string]$regPath = "Registry::HKEY_USERS\$UserSID\Software\Microsoft\Windows\CurrentVersion\Uninstall"
         $uninstallKey = Get-ChildItem -Path $regPath -ErrorAction SilentlyContinue | Where-Object {
             (Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue).DisplayName -like "*Teams*"
         }
@@ -227,39 +218,40 @@ Get-CimInstance Win32_UserProfile | Where-Object { $_.SID -match $SIDPattern } |
                 # Parse UninstallString to separate executable and arguments
                 if ($uninstallString -match '^"([^"]+)"(.*)') {
                     $exe = $matches[1]
-                    $args = $matches[2].Trim()
+                    $uninstallArgs = $matches[2].Trim()
                 } elseif ($uninstallString -match '^(\S+)(.*)') {
                     $exe = $matches[1]
-                    $args = $matches[2].Trim()
+                    $uninstallArgs = $matches[2].Trim()
                 } else {
                     $exe = $uninstallString
-                    $args = ""
+                    $uninstallArgs = ""
                 }
 
                 # Ensure silent uninstall by adding -s if not present
-                if ($args -notlike '*-s*') {
-                    $args = "$args -s".Trim()
+                if ($uninstallArgs -notlike '*-s*') {
+                    $uninstallArgs = "$uninstallArgs -s".Trim()
                 }
 
                 # Check if user is interactively logged on
                 $userIsLoggedOn = $LoggedInUsersSIDs -contains $UserSID
 
                 # Set task trigger based on login status
+                [string]$msgDetected = "INFO: Microsoft Teams per-user installation detected for $UserPrincipal"
                 if ($userIsLoggedOn) {
                     $trigger = New-ScheduledTaskTrigger -Once -At ((Get-Date).AddMinutes(1))
-                    Write-Output "INFO: User $UserPrincipal is logged on. Task scheduled for 1 minute from now."
+                    Write-Output "$msgDetected. User is currently logged on; uninstall task scheduled to run in 1 minute."
                 } else {
                     $trigger = New-ScheduledTaskTrigger -AtLogOn -User $UserPrincipal
-                    Write-Output "INFO: User $UserPrincipal is not logged on. Task scheduled for next logon."
+                    Write-Output "$msgDetected. User is not currently logged on; uninstall task scheduled to run at next logon."
                 }
 
                 # Create scheduled task with ServiceAccount
-                $taskName = "UninstallTeams_$($UserSID.Replace('-', ''))"
+                [string]$taskName = "UninstallTeams_$($UserSID.Replace('-', ''))"
                 $TaskParameters = @{
                     TaskName  = $taskName
                     Trigger   = $trigger
-                    Principal = New-ScheduledTaskPrincipal -UserId $UserPrincipal -LogonType ServiceAccount
-                    Action    = New-ScheduledTaskAction -Execute $exe -Argument $args
+                    Principal = New-ScheduledTaskPrincipal -UserId $UserPrincipal # -LogonType ServiceAccount
+                    Action    = New-ScheduledTaskAction -Execute $exe -Argument $uninstallArgs
                 }
 
                 # Overwrite existing task if it exists, but verify it's Teams-related
@@ -280,7 +272,7 @@ Get-CimInstance Win32_UserProfile | Where-Object { $_.SID -match $SIDPattern } |
                 Write-Output "INFO: Uninstall string not found for $UserPrincipal"
             }
         } else {
-            Write-Output "Microsoft Teams not found in uninstall registry hive for $UserPrincipal"
+            Write-Output "INFO: Microsoft Teams not found in uninstall registry hive for $UserPrincipal"
         }
     } catch {
         #Write-Warning "Error accessing uninstall key for $UserPrincipal ($UserSID): $_"
@@ -294,7 +286,6 @@ Get-CimInstance Win32_UserProfile | Where-Object { $_.SID -match $SIDPattern } |
 #endregion User Profile Processing
 
 #region MSIX Package Removal
-# Remove MSIX Teams packages for all users
 try {
     $teamsPackages = Get-AppxPackage -AllUsers -Name "*Teams*" -ErrorAction SilentlyContinue
     if ($teamsPackages) {
@@ -303,17 +294,16 @@ try {
                 Remove-AppxPackage -Package $package.PackageFullName -AllUsers -ErrorAction Stop
                 Write-Output "INFO: Removed Teams MSIX package for user: $($package.PackageUserInformation)"
             } catch {
-                Write-Output "ERROR: Failed to remove Teams MSIX package for user: $($package.PackageUserInformation) - $_"
+                Write-Output "ERROR: Failed to remove Teams MSIX package for user $($package.PackageUserInformation): $_"
             }
         }
     } else {
-        #Write-Output "No Teams MSIX packages found on the system."
+        Write-Output "INFO: No Teams MSIX packages found for any users."
     }
 } catch {
-    Write-Output "Error enumerating MSIX Teams packages: $_"
+    Write-Output "ERROR: Failed to enumerate Teams MSIX packages: $_"
 }
 
-# Remove provisioned MSIX Teams packages
 try {
     $provisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -like "*Teams*" }
     if ($provisionedPackages) {
@@ -322,13 +312,13 @@ try {
                 Remove-AppxProvisionedPackage -Online -PackageName $package.PackageName -ErrorAction Stop
                 Write-Output "INFO: Removed provisioned Teams MSIX package: $($package.PackageName)"
             } catch {
-                Write-Output "ERROR: Failed to remove provisioned package: $($package.PackageName) - $_"
+                Write-Output "ERROR: Failed to remove provisioned package $($package.PackageName): $_"
             }
         }
     } else {
-        #Write-Output "No provisioned Teams MSIX packages found."
+        Write-Output "INFO: No provisioned Teams MSIX packages found."
     }
 } catch {
-    Write-Output "ERROR: failed to enumerate provisioned Teams MSIX packages: $_"
+    Write-Output "ERROR: Failed to enumerate provisioned Teams MSIX packages: $_"
 }
 #endregion MSIX Package Removal

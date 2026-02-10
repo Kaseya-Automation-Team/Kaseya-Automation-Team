@@ -1,17 +1,16 @@
-﻿function Get-VSATicket
-{
+﻿function Get-VSATicket {
     <#
-    .SYNOPSIS
-       Returns Tickets from a VSA environment.
+    .Synopsis
+       Returns an array of ticketing tickets or details on specified ticket.
     .DESCRIPTION
-       Retrieves tickets from a VSA environment.
+       Returns an array of ticketing tickets or details on specified ticket.
        Takes either persistent or non-persistent connection information.
     .PARAMETER VSAConnection
-        Specifies an existing non-persistent VSAConnection object.
+        Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
-        Specifies the URI suffix if it differs from the default.
-    .PARAMETER TicketID
-        Specifies the TicketId to return. All Tickets are returned if no TicketId is specified.
+        Specifies URI suffix if it differs from the default.
+    .PARAMETER TicketId
+        Specifies id of ticket.
     .PARAMETER Filter
         Specifies REST API Filter.
     .PARAMETER Paging
@@ -21,90 +20,70 @@
     .EXAMPLE
        Get-VSATicket
     .EXAMPLE
-       Get-VSATicket -TicketId '10001' -VSAConnection $connection
+       Get-VSATicket -VSAConnection $connection -TicketId 123456
     .INPUTS
-       Accepts piped non-persistent VSAConnection.
+       Accepts piped non-persistent VSAConnection 
     .OUTPUTS
-       Array of objects that represent ticket data.
+       Array of items that represent ticketing tickets or ticket details
     #>
-    [CmdletBinding(DefaultParameterSetName='All')]
-    param ( 
-        
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'All')]
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ById')]
-        [ValidateNotNull()]
+    [CmdletBinding()]
+    param (
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
-        [parameter(DontShow, Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'All')]
-        [parameter(DontShow, Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ById')]
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/automation/tickets',
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()]
+        [Alias('ID')]
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
+        [ValidateScript({
+            if ([string]::IsNullOrWhiteSpace($_)) { throw "TicketId cannot be empty." }
+            if ($_ -notmatch "^\d+$") { throw "TicketId must be a numeric string." }
+            return $true
+        })]
         [string] $TicketId,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
         [string] $Paging,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
 
-    if( -not [string]::IsNullOrEmpty($TicketId)) {
+    # Set URI based on input
+    if (-not [string]::IsNullOrWhiteSpace($TicketId)) {
         $URISuffix = "{0}/{1}" -f $URISuffix, $TicketId
     }
 
+    # Build parameters
     [hashtable]$Params = @{
-        URISuffix = $URISuffix
+        VSAConnection = $VSAConnection
+        URISuffix     = $URISuffix
+        Filter        = $Filter
+        Paging        = $Paging
+        Sort          = $Sort
     }
-    if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-    if($Filter)        {$Params.Add('Filter', $Filter)}
-    if($Paging)        {$Params.Add('Paging', $Paging)}
-    if($Sort)          {$Params.Add('Sort', $Sort)}
 
-    #region messages to verbose and debug streams
-    if ($PSCmdlet.MyInvocation.BoundParameters['Debug']) {
-        "Get-VSATicket: $($Params | Out-String)" | Write-Debug
+    # Remove empty keys
+    foreach ($key in $Params.Keys.Clone()) {
+        if (-not $Params[$key]) { $Params.Remove($key) }
     }
-    if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) {
-        "Get-VSATicket: $($Params | Out-String)" | Write-Verbose
-    }
-    #endregion messages to verbose and debug streams
-    $TicketData = New-Object System.Collections.ArrayList
-    if ([string]::IsNullOrEmpty($TicketId)) {
-        $ParamsCloned = $Params.Clone()
-        $AllTickets = Invoke-VSARestMethod @Params
-        Foreach ($Ticket in $AllTickets) {
-            $ParamsCloned['URISuffix'] = "{0}/{1}" -f $URISuffix, $Ticket.TicketId
-            $TicketData.Add( $(Invoke-VSARestMethod @ParamsCloned) ) | Out-Null
+
+    # Sanitize inputs to prevent injection
+    foreach ($key in @('Filter', 'Paging', 'Sort')) {
+        if ($Params[$key]) {
+            $Params[$key] = $Params[$key] -replace '[<>;]', ''
         }
-    } else {
-        $TicketData.Add( $(Invoke-VSARestMethod @Params) ) | Out-Null
     }
 
-    return $TicketData.ToArray()
+    Invoke-VSARestMethod @Params
 }
+
 Export-ModuleMember -Function Get-VSATicket

@@ -65,9 +65,7 @@
             ValueFromPipelineByPropertyName=$true, 
             ParameterSetName = 'Organization')]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric Id"
-            }
+            if ($_ -notmatch "^\d+$") { throw "OrganizationId must be a numeric string." }
             return $true
         })]
         [string] $OrganizationId, 
@@ -76,9 +74,7 @@
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Department')]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric Id"
-            }
+            if ($_ -notmatch "^\d+$") { throw "DepartmentId must be a numeric string." }
             return $true
         })]
         [string] $DepartmentId,
@@ -87,9 +83,7 @@
             ValueFromPipelineByPropertyName = $true, 
             ParameterSetName = 'Staff')]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric Id"
-            }
+            if ($_ -notmatch "^\d+$") { throw "StaffId must be a numeric string." }
             return $true
         })]
         [string] $StaffId,

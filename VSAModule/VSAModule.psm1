@@ -1,6 +1,6 @@
 ﻿<#
    Kaseya VSA9 REST API Wrapper
-   Version 1.0.0
+   Version 1.0.1
    Author: Vladislav Semko
    Description:
    VSAModule for Kaseya VSA 9 REST API is a PowerShell module that provides cmdlets for interacting with the Kaseya VSA 9 platform via its REST API.
@@ -536,7 +536,7 @@ function New-VSAConnection {
     - Automatic session token renewal implemented
     
     References:
-    - Kaseya VSA 9 REST API: help.kaseya.com/webhelp/EN/RESTAPI/9050000/
+    - Kaseya VSA 9 REST API: https://help.vsa9.kaseya.com/help/Content/Modules/rest-api/home.htm
     - Microsoft DPAPI: https://docs.microsoft.com/en-us/dotnet/standard/security/encrypting-data
 #>
 
@@ -759,6 +759,7 @@ $URISuffixRemoveMap = @{
 }
 
 # Automatically Create Aliases on Module Load
+Export-ModuleMember -Function Get-VSAItem -Alias Get-VSAItemById
 
 $URISuffixGetMap.Keys | ForEach-Object {
     New-Alias -Name $_ -Value Get-VSAItem -Force
@@ -772,5 +773,5 @@ $URISuffixRemoveMap.Keys | ForEach-Object {
 
 # Export the functions and aliases
 Export-ModuleMember -Function Get-VSAItem -Alias $($URISuffixGetMap.Keys)
-Export-ModuleMember -Function Get-VSAItemById -Alias $($URISuffixGetByIdMap.Keys)
+Export-ModuleMember -Function Get-VSAItem -Alias $($URISuffixGetByIdMap.Keys)
 Export-ModuleMember -Function Remove-VSAItem -Alias $($URISuffixRemoveMap.Keys)

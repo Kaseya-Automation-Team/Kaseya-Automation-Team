@@ -47,12 +47,12 @@ function Get-VSAAsset
         [ValidateNotNullOrEmpty()] 
         [string] $URISuffix = 'api/v1.0/assetmgmt/assets',
 
+        [Alias('ID')]
         [Parameter(Mandatory = $false,
             ParameterSetName = 'ById')]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric Id"
-            }
+            if ([string]::IsNullOrWhiteSpace($_)) { throw "AssetId cannot be empty." }
+            if ($_ -notmatch "^\d+$") { throw "AssetId must be a numeric string." }
             return $true
         })]
         [string] $AssetId,

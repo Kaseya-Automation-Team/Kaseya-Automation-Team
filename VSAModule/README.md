@@ -139,7 +139,7 @@ See [SECURITY_HARDENING.md](./SECURITY_HARDENING.md) for complete security detai
 
 ## Kaseya VSA API
 
-Visit the [online help](http://help.kaseya.com/webhelp/EN/RESTAPI/9050000/index.asp#home.htm) to find out more about the Kaseya API. Or use your VSA swagger https://[your vsa url]/api/v1.0/swagger/ui/index to see and test the API.
+Visit the [online help](https://help.vsa9.kaseya.com/help/Content/Modules/rest-api/home.htm) to find out more about the Kaseya API. Or use your VSA swagger https://[your vsa url]/api/v1.0/swagger/ui/index to see and test the API.
 
 ## Release notes
 

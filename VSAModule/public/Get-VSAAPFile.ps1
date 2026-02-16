@@ -32,11 +32,11 @@
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
+        [Alias('ID')]
         [Parameter(Mandatory = $true)]
         [ValidateScript({
-            if( $_ -notmatch "^\d+$" ) {
-                throw "Non-numeric Id"
-            }
+            if ([string]::IsNullOrWhiteSpace($_)) { throw "AgentId cannot be empty." }
+            if ($_ -notmatch "^\d+$") { throw "AgentId must be a numeric string." }
             return $true
         })]
         [string] $AgentId,

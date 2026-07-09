@@ -1,0 +1,567 @@
+<?xml version="1.0" encoding="utf-8"?>
+<helpItems schema="maml" xmlns="http://msh.microsoft.com/maml/2004/10">
+
+  <!-- MODULE OVERVIEW -->
+  <command:command xmlns:maml="http://msh.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>VSAModule</command:name>
+      <command:verb>About</command:verb>
+      <command:noun>VSAModule</command:noun>
+      <maml:description>
+        <maml:para>PowerShell wrapper for the Kaseya VSA 9 REST API.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>The VSAModule provides a comprehensive PowerShell interface to the Kaseya VSA 9 REST API. The module exports 189 commands:</maml:para>
+      <maml:para>- 116 PowerShell functions (public implementations)</maml:para>
+      <maml:para>- 81 dynamic aliases for convenient access to collections and operations</maml:para>
+      <maml:para>Note: The module uses a sophisticated metadata-driven architecture with 3 private wrapper functions that support the 81 aliases. Users never call these wrapper functions directly - use the public aliases instead.</maml:para>
+      <maml:para>ARCHITECTURE LAYERS:</maml:para>
+      <maml:para>1. HTTP Transport (Get-RequestData) - Handles REST API calls</maml:para>
+      <maml:para>2. API Orchestration (Invoke-VSARestMethod) - Manages paging and token renewal</maml:para>
+      <maml:para>3. Generic Wrappers (Get-VSAItem, Get-VSAItemById, Remove-VSAItem) - Private functions mapped via URI hashtables</maml:para>
+      <maml:para>4. Connection Management (Update-VSAConnection) - Manages token lifecycle</maml:para>
+      <maml:para>5. Connection Factory (New-VSAConnection) - Establishes authentication</maml:para>
+      <maml:para>6. Public Business Logic (113 direct functions) - Specific implementations</maml:para>
+      <maml:para>ALIAS CATEGORIES:</maml:para>
+      <maml:para>- Collection Retrieval (30 aliases): Get-VSAActivityType, Get-VSAAgent, Get-VSAAP, etc.</maml:para>
+      <maml:para>- Item Retrieval (44 aliases): Get-VSAPatchHistory, Get-VSASecurityEventLog, etc.</maml:para>
+      <maml:para>- Deletion (13 aliases): Remove-VSAAsset, Remove-VSAOrganization, etc.</maml:para>
+      <maml:para>- Function-Specific (5 aliases): Get-VSAAlarms, Copy-VSAMachineGroupStructure, etc.</maml:para>
+    </maml:description>
+    <command:examples>
+      <command:example>
+        <maml:title>Example 1: Create a persistent connection</maml:title>
+        <dev:code>$cred = Get-Credential
+New-VSAConnection -VSAServer "https://vsa.example.com" -Credential $cred -SetPersistent</dev:code>
+      </command:example>
+      <command:example>
+        <maml:title>Example 2: Get all agents</maml:title>
+        <dev:code>Get-VSAAgent</dev:code>
+      </command:example>
+      <command:example>
+        <maml:title>Example 3: Get organization by ID</maml:title>
+        <dev:code>Get-VSAOrganizationById -ID 12345</dev:code>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <!-- CONNECTION FACTORY -->
+  <command:command xmlns:maml="http://msh.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>New-VSAConnection</command:name>
+      <command:verb>New</command:verb>
+      <command:noun>VSAConnection</command:noun>
+      <maml:description>
+        <maml:para>Creates a VSAConnection object for authenticating to the Kaseya VSA server.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>This function establishes a connection to a Kaseya VSA 9 server using Basic Authentication with Personal Authentication Tokens (PAT). The connection can be stored persistently in the session environment variable or returned as an object for explicit use with other cmdlets.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>New-VSAConnection</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1">
+          <maml:name>VSAServer</maml:name>
+          <maml:description>
+            <maml:para>The URL of the VSA server (e.g., 'https://vsa.example.com' or 'https://vsa.example.com:443').</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Uri</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="2">
+          <maml:name>Credential</maml:name>
+          <maml:description>
+            <maml:para>PSCredential object with username and Personal Authentication Token (PAT). Use Get-Credential to create this securely.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">PSCredential</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False">
+          <maml:name>IgnoreCertificateErrors</maml:name>
+          <maml:description>
+            <maml:para>When specified, SSL certificate validation errors are ignored. Use only for internal lab environments with self-signed certificates.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False">
+          <maml:name>SetPersistent</maml:name>
+          <maml:description>
+            <maml:para>When specified, the VSAConnection is stored in the environment variable, making it available to all subsequent VSAModule cmdlets automatically.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:examples>
+      <command:example>
+        <maml:title>Example 1: Create persistent connection</maml:title>
+        <dev:code>$cred = Get-Credential
+New-VSAConnection -VSAServer "https://vsa.example.com" -Credential $cred -SetPersistent</dev:code>
+        <maml:description>
+          <maml:para>Creates a connection and stores it persistently in the session.</maml:para>
+        </maml:description>
+      </command:example>
+      <command:example>
+        <maml:title>Example 2: Create non-persistent connection</maml:title>
+        <dev:code>$cred = Get-Credential
+$conn = New-VSAConnection -VSAServer "https://vsa.example.com" -Credential $cred
+$agents = Get-VSAAgent -VSAConnection $conn</dev:code>
+        <maml:description>
+          <maml:para>Creates a connection object returned for explicit use with other cmdlets.</maml:para>
+        </maml:description>
+      </command:example>
+    </command:examples>
+    <command:returnValues>
+      <command:returnValue>
+        <dev:type>
+          <maml:name>VSAConnection</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para>Returns a VSAConnection object containing server, credentials, and session information.</maml:para>
+        </maml:description>
+      </command:returnValue>
+    </command:returnValues>
+  </command:command>
+
+  <!-- COLLECTION RETRIEVAL ALIASES (30) -->
+  <command:command xmlns:maml="http://msh.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-VSAActivityType</command:name>
+      <command:verb>Get</command:verb>
+      <command:noun>VSAActivityType</command:noun>
+      <maml:description>
+        <maml:para>Retrieves all available Activity Types from the VSA system.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Retrieves a list of all Activity Types defined in the VSA system. Activity Types are used to categorize different types of activities and events.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Get-VSAActivityType</maml:name>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True" position="0">
+          <maml:name>VSAConnection</maml:name>
+          <maml:description>
+            <maml:para>VSAConnection object. If omitted, uses the persistent connection.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">VSAConnection</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False">
+          <maml:name>Filter</maml:name>
+          <maml:description>
+            <maml:para>OData filter expression (e.g., 'ActivityTypeID eq 5').</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False">
+          <maml:name>Sort</maml:name>
+          <maml:description>
+            <maml:para>OData sort expression (e.g., 'ActivityTypeID asc').</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:examples>
+      <command:example>
+        <maml:title>Get all activity types</maml:title>
+        <dev:code>Get-VSAActivityType</dev:code>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://msh.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-VSAAgent</command:name>
+      <command:verb>Get</command:verb>
+      <command:noun>VSAAgent</command:noun>
+      <maml:description>
+        <maml:para>Retrieves all VSA Agent information from organizations in scope.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Retrieves information about all agents deployed across the VSA system. Results are automatically paginated.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Get-VSAAgent</maml:name>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True" position="0">
+          <maml:name>VSAConnection</maml:name>
+          <maml:description>
+            <maml:para>VSAConnection object. If omitted, uses the persistent connection.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">VSAConnection</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False">
+          <maml:name>Filter</maml:name>
+          <maml:description>
+            <maml:para>OData filter expression (e.g., 'AgentStatus eq 1' for online agents).</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False">
+          <maml:name>Sort</maml:name>
+          <maml:description>
+            <maml:para>OData sort expression.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:examples>
+      <command:example>
+        <maml:title>Get all agents</maml:title>
+        <dev:code>Get-VSAAgent</dev:code>
+      </command:example>
+      <command:example>
+        <maml:title>Get agents by status</maml:title>
+        <dev:code>Get-VSAAgent -Filter "AgentStatus eq 1"</dev:code>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://msh.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-VSAAudit</command:name>
+      <command:verb>Get</command:verb>
+      <command:noun>VSAAudit</command:noun>
+      <maml:description>
+        <maml:para>Retrieves audit log entries from the VSA system.</maml:para>
+      </maml:description>
+    </command:details>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Get-VSAAudit</maml:name>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True" position="0">
+          <maml:name>VSAConnection</maml:name>
+          <maml:description>
+            <maml:para>VSAConnection object. If omitted, uses the persistent connection.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">VSAConnection</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:examples>
+      <command:example>
+        <maml:title>Get audit logs</maml:title>
+        <dev:code>Get-VSAAudit</dev:code>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://msh.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-VSAOrganization</command:name>
+      <command:verb>Get</command:verb>
+      <command:noun>VSAOrganization</command:noun>
+      <maml:description>
+        <maml:para>Retrieves all organizations from the VSA system.</maml:para>
+      </maml:description>
+    </command:details>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Get-VSAOrganization</maml:name>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True" position="0">
+          <maml:name>VSAConnection</maml:name>
+          <maml:description>
+            <maml:para>VSAConnection object. If omitted, uses the persistent connection.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">VSAConnection</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False">
+          <maml:name>Filter</maml:name>
+          <maml:description>
+            <maml:para>OData filter expression.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:examples>
+      <command:example>
+        <maml:title>Get all organizations</maml:title>
+        <dev:code>Get-VSAOrganization</dev:code>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <!-- ITEM RETRIEVAL ALIASES (representative samples of 44 total) -->
+  <command:command xmlns:maml="http://msh.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-VSAAgentLog</command:name>
+      <command:verb>Get</command:verb>
+      <command:noun>VSAAgentLog</command:noun>
+      <maml:description>
+        <maml:para>Retrieves agent log entries by agent ID.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Retrieves detailed log entries for a specific agent identified by AgentID.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Get-VSAAgentLog</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>The AgentID of the agent whose logs to retrieve.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True" position="0">
+          <maml:name>VSAConnection</maml:name>
+          <maml:description>
+            <maml:para>VSAConnection object. If omitted, uses the persistent connection.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">VSAConnection</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:examples>
+      <command:example>
+        <maml:title>Get agent logs</maml:title>
+        <dev:code>Get-VSAAgentLog -ID "12345"</dev:code>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://msh.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-VSAPatchHistory</command:name>
+      <command:verb>Get</command:verb>
+      <command:noun>VSAPatchHistory</command:noun>
+      <maml:description>
+        <maml:para>Retrieves patch history for an agent.</maml:para>
+      </maml:description>
+    </command:details>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Get-VSAPatchHistory</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>The AgentID for patch history retrieval.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True" position="0">
+          <maml:name>VSAConnection</maml:name>
+          <maml:description>
+            <maml:para>VSAConnection object. If omitted, uses the persistent connection.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">VSAConnection</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:examples>
+      <command:example>
+        <maml:title>Get patch history</maml:title>
+        <dev:code>Get-VSAPatchHistory -ID "12345"</dev:code>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <!-- DELETION ALIASES (representative samples of 13 total) -->
+  <command:command xmlns:maml="http://msh.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Remove-VSAAsset</command:name>
+      <command:verb>Remove</command:verb>
+      <command:noun>VSAAsset</command:noun>
+      <maml:description>
+        <maml:para>Removes an asset from the VSA system.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Deletes an asset identified by AssetID from the VSA system. This operation cannot be undone.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Remove-VSAAsset</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>The AssetID of the asset to remove.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True" position="0">
+          <maml:name>VSAConnection</maml:name>
+          <maml:description>
+            <maml:para>VSAConnection object. If omitted, uses the persistent connection.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">VSAConnection</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:examples>
+      <command:example>
+        <maml:title>Remove an asset</maml:title>
+        <dev:code>Remove-VSAAsset -ID "12345"</dev:code>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://msh.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Remove-VSAOrganization</command:name>
+      <command:verb>Remove</command:verb>
+      <command:noun>VSAOrganization</command:noun>
+      <maml:description>
+        <maml:para>Removes an organization from the VSA system.</maml:para>
+      </maml:description>
+    </command:details>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Remove-VSAOrganization</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>The OrgID of the organization to remove.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True" position="0">
+          <maml:name>VSAConnection</maml:name>
+          <maml:description>
+            <maml:para>VSAConnection object. If omitted, uses the persistent connection.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">VSAConnection</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:examples>
+      <command:example>
+        <maml:title>Remove an organization</maml:title>
+        <dev:code>Remove-VSAOrganization -ID "5"</dev:code>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <!-- PUBLIC FUNCTIONS (representative samples of 113 total) -->
+  <command:command xmlns:maml="http://msh.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>New-VSATenant</command:name>
+      <command:verb>New</command:verb>
+      <command:noun>VSATenant</command:noun>
+      <maml:description>
+        <maml:para>Creates a new tenant in the VSA system.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Creates a new tenant in the VSA system with specified configuration and properties.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>New-VSATenant</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1">
+          <maml:name>Body</maml:name>
+          <maml:description>
+            <maml:para>Hashtable containing the tenant properties.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True" position="0">
+          <maml:name>VSAConnection</maml:name>
+          <maml:description>
+            <maml:para>VSAConnection object. If omitted, uses the persistent connection.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">VSAConnection</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:examples>
+      <command:example>
+        <maml:title>Create a new tenant</maml:title>
+        <dev:code>$body = @{
+    TenantName = 'NewTenant'
+    TenantCode = 'NT001'
+}
+New-VSATenant -Body $body</dev:code>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://msh.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Update-VSAUser</command:name>
+      <command:verb>Update</command:verb>
+      <command:noun>VSAUser</command:noun>
+      <maml:description>
+        <maml:para>Updates an existing VSA user's properties.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Modifies properties of an existing user account in the VSA system.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Update-VSAUser</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>The UserID of the user to update.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="2">
+          <maml:name>Body</maml:name>
+          <maml:description>
+            <maml:para>Hashtable containing the user properties to update.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True" position="0">
+          <maml:name>VSAConnection</maml:name>
+          <maml:description>
+            <maml:para>VSAConnection object. If omitted, uses the persistent connection.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">VSAConnection</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:examples>
+      <command:example>
+        <maml:title>Update a user</maml:title>
+        <dev:code>$update = @{ UserName = 'newname' }
+Update-VSAUser -ID "123" -Body $update</dev:code>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://msh.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Enable-VSAUser</command:name>
+      <command:verb>Enable</command:verb>
+      <command:noun>VSAUser</command:noun>
+      <maml:description>
+        <maml:para>Enables a disabled VSA user account.</maml:para>
+      </maml:description>
+    </command:details>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Enable-VSAUser</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1">
+          <maml:name>ID</maml:name>
+          <maml:description>
+            <maml:para>The UserID of the user to enable.</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="True" position="0">
+          <maml:name>VSAConnection</maml:name>
+          <maml:description>
+            <maml:para>VSAConnection object. If omitted, uses the persistent connection.</maml:para>
+          </maml:description>
+          <command:parameterValue required="false" variableLength="false">VSAConnection</command:parameterValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:examples>
+      <command:example>
+        <maml:title>Enable a user</maml:title>
+        <dev:code>Enable-VSAUser -ID "123"</dev:code>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+</helpItems>

@@ -1,0 +1,60 @@
+function Update-VSAAgentTempDir
+{
+    <#
+    .Synopsis
+       Updates the temp directory for an agent.
+    .DESCRIPTION
+       Updates the temp directory for an agentt.
+       Takes either persistent or non-persistent connection information.
+    .PARAMETER VSAConnection
+        Specifies existing non-persistent VSAConnection.
+    .PARAMETER URISuffix
+        Specifies URI suffix if it differs from the default.
+    .PARAMETER AgentId
+        Specifies numeric id of agent machine
+    .PARAMETER TempDir
+        Specifies temp directory path
+    .EXAMPLE
+       Update-VSAAgentTempDir -AgentId 342343222 -TempDir "c:\temp"
+    .EXAMPLE
+       Update-VSAAgentTempDir -VSAConnection $VSAConnection -AgentId 342343222 -TempDir "c:\temp"
+    .INPUTS
+       Accepts piped non-persistent VSAConnection 
+    .OUTPUTS
+       True if successful
+    #>
+
+    [CmdletBinding()]
+    param ( 
+        [parameter(Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNull()]
+        [VSAConnection] $VSAConnection,
+
+        [parameter(DontShow, Mandatory=$false)]
+        [ValidateNotNullOrEmpty()] 
+        [string] $URISuffix = "api/v1.0/assetmgmt/agents/{0}/settings/tempdir",
+
+        [Parameter(Mandatory = $true)]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
+        [string] $AgentId,
+
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true)]
+        [ValidateNotNullOrEmpty()] 
+        [string] $TempDir
+)
+    process {
+    # [Regex]::Escape (the previous approach) escapes characters that are special in a *regex
+    # pattern* (e.g. '(', ')', '.', '+'), not in a JSON string, and would corrupt any temp path
+    # containing them (F-43). ConvertTo-Json performs the correct JSON string escaping.
+    return Invoke-VSAWriteRequest -Body (ConvertTo-Json @( @{ key = $TempDir; value = $TempDir } ) -Compress) -Method 'PUT' -URISuffix ($($URISuffix -f $AgentId)) -VSAConnection $VSAConnection
+    }
+}
+
+Export-ModuleMember -Function Update-VSAAgentTempDir

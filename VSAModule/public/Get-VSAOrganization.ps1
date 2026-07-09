@@ -1,0 +1,138 @@
+function Get-VSAOrganization
+{
+    <#
+    .Synopsis
+        Returns Organizations Data.
+    .DESCRIPTION
+        Returns Organizations Data.
+        Takes either persistent or non-persistent connection information.
+    .PARAMETER VSAConnection
+        Specifies an established VSAConnection.
+    .PARAMETER URISuffix
+        Specifies URI suffix if it differs from the default.
+    .PARAMETER OrgID
+        Specifies OrgID to return. All Organizations are returned if no OrgID specified.
+        Not Compatible with -GetLocations, -GetTypes, -Filter, -Sort parameters.
+    .PARAMETER GetLocations
+        Returns Organizations' Location.
+        Not Compatible with -GetTypes, -OrgID, -Filter, -Sort parameters.
+    .PARAMETER GetTypes
+        Returns Organizations' Types.
+        Not Compatible with -GetLocations, -OrgID, -Filter, -Sort parameters.
+    .PARAMETER Filter
+        Specifies REST API Filter.
+    .PARAMETER Sort
+        Specifies REST API Sorting.
+    .EXAMPLE
+       Get-VSAOrganization -VSAConnection $VSAConnection
+    .EXAMPLE
+       Get-VSAOrganization -VSAConnection $VSAConnection -GetLocations
+    .EXAMPLE
+       Get-VSAOrganization -VSAConnection $VSAConnection -GetTypes
+    .EXAMPLE
+       Get-VSAOrganization -VSAConnection $VSAConnection -OrgID '10001'
+    .INPUTS
+       Accepts piped VSAConnection 
+    .OUTPUTS
+       Array of objects that represent Organizations' Data.
+    .NOTES
+        Version 1.0.0
+    #>
+    [CmdletBinding()]
+    param ( 
+        
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Locations')] 
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Types')]
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Filtering')]
+        [ValidateNotNull()]
+        [VSAConnection] $VSAConnection,
+
+        [parameter(DontShow, Mandatory = $false,  
+             
+            ParameterSetName = 'Locations')] 
+        [parameter(DontShow, Mandatory = $false,  
+             
+            ParameterSetName = 'Types')]
+        [parameter(DontShow, Mandatory = $false,  
+             
+            ParameterSetName = 'Filtering')]
+        [ValidateNotNullOrEmpty()] 
+        [string] $URISuffix = 'api/v1.0/system/orgs',
+
+        [parameter(Mandatory = $true,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Locations')]
+        [switch] $GetLocations,
+
+        [parameter(Mandatory = $true,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Types')]
+        [switch] $GetTypes,
+
+        [Alias('OrganizationId','Id')]
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Filtering')]
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
+        [string] $OrgId,
+
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Filtering')]
+        [ValidateNotNullOrEmpty()] 
+        [string] $Filter,
+
+        [parameter(Mandatory = $false,  
+            ValueFromPipelineByPropertyName = $true, 
+            ParameterSetName = 'Filtering')]
+        [ValidateNotNullOrEmpty()] 
+        [string] $Sort
+    )
+    process {
+
+    if( -not [string]::IsNullOrEmpty($OrgId)) {
+        $URISuffix = "{0}/{1}" -f $URISuffix, $OrgId
+    }
+
+    if( $GetLocations ) {
+        $URISuffix = "{0}/{1}" -f $URISuffix, 'locations'
+    }
+
+    if( $GetTypes) {
+        $URISuffix = "{0}/{1}" -f $URISuffix, 'types'
+    }
+
+    [hashtable]$Params = @{
+        VSAConnection = $VSAConnection
+        URISuffix     = $URISuffix
+        Filter        = $Filter
+        Sort          = $Sort
+    }
+
+    #Remove empty keys
+    foreach ( $key in @($Params.Keys)  ) {
+        if ( -not $Params[$key]) { $Params.Remove($key) }
+    }
+
+    #region messages to verbose and debug streams
+            "Get-VSAOrganization: $($Params | Out-String)" | Write-Debug
+    
+            "Get-VSAOrganization: $($Params | Out-String)" | Write-Verbose
+    
+    #endregion messages to verbose and debug streams
+
+    return Invoke-VSARestMethod @Params
+    }
+}
+Export-ModuleMember -Function Get-VSAOrganization

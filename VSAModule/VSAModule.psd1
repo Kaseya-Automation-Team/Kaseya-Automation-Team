@@ -13,7 +13,7 @@
     GUID = 'd0697c18-0238-4427-bd14-1dace2ba29a7'
 
     # Author of this module
-    Author = 'Vladislav.Semko'
+    Author = 'Vladislav Semko'
 
     # Company or vendor of this module
     CompanyName = 'Kaseya'

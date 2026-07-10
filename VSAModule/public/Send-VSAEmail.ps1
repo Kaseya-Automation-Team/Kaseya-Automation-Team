@@ -36,7 +36,7 @@ function Send-VSAEmail
        Success or failure
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -65,7 +65,7 @@ function Send-VSAEmail
         [ValidateNotNullOrEmpty()] 
         [string] $Body,
 
-        [parameter(Mandatory=$true,
+        [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         [string] $UniqueTag,
@@ -88,7 +88,7 @@ function Send-VSAEmail
     $Body = $BodyHT | ConvertTo-Json -Compress
 	
 
-    return Invoke-VSAWriteRequest -Body $Body -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body $Body -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }
 
 New-Alias -Name Add-VSAEmail -Value Send-VSAEmail

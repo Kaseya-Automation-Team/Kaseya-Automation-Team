@@ -26,7 +26,7 @@ function Update-VSASDTicketCustomField
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -60,7 +60,7 @@ function Update-VSASDTicketCustomField
 )
     process {
 
-    return Invoke-VSAWriteRequest -Body ("`"$Value`"") -Method 'PUT' -URISuffix ($($URISuffix -f $ServiceDeskTicketId, $CustomFieldId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body ("`"$Value`"") -Method 'PUT' -URISuffix ($($URISuffix -f $ServiceDeskTicketId, $CustomFieldId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

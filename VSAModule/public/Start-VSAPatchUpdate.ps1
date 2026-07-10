@@ -50,7 +50,7 @@ function Start-VSAPatchUpdate
        Success or failure
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -221,7 +221,7 @@ function Start-VSAPatchUpdate
             $BodyHT.Add('Exclusion', $Exclusion)
         }
 
-        return Invoke-VSAWriteRequest -Body ($($BodyHT | ConvertTo-Json)) -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Body ($($BodyHT | ConvertTo-Json)) -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 
 }

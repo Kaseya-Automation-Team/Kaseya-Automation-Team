@@ -24,7 +24,7 @@ function New-VSANotification
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -46,7 +46,7 @@ function New-VSANotification
 )
     process {
 	
-    return Invoke-VSAWriteRequest -Body (ConvertTo-Json @{ Title = $Title; Body = $Text } -Compress) -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body (ConvertTo-Json @{ Title = $Title; Body = $Text } -Compress) -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

@@ -25,9 +25,9 @@ function Publish-VSACustomExtensionFile
     .OUTPUTS
        True if successful.
     #>
-    [CmdletBinding()]
-    param ( 
-        [parameter(Mandatory = $false, 
+    [CmdletBinding(SupportsShouldProcess)]
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
@@ -88,11 +88,13 @@ function Publish-VSACustomExtensionFile
     if ($VSAConnection) { $Params.Add('VSAConnection', $VSAConnection) }
 
             Write-Debug "Publish-VSACustomExtensionFile: $($Params | Out-String)"
-    
-            Write-Verbose "Publish-VSACustomExtensionFile: $($Params | Out-String)"
-    
 
-    return Invoke-VSARestMethod @Params
+            Write-Verbose "Publish-VSACustomExtensionFile: $($Params | Out-String)"
+
+
+    if ($PSCmdlet.ShouldProcess($URISuffix, "PUT (upload '$FileName')")) {
+        return Invoke-VSARestMethod @Params
+    }
 }
 New-Alias -Name Add-VSACustomExtensionFile -Value Publish-VSACustomExtensionFile
 Export-ModuleMember -Function Publish-VSACustomExtensionFile -Alias Add-VSACustomExtensionFile

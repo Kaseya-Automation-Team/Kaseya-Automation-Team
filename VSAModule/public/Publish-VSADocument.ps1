@@ -26,9 +26,9 @@ function Publish-VSADocument
     .NOTES
         Version 1.0.0
     #>
-    [CmdletBinding()]
-    param ( 
-        [parameter(Mandatory = $false, 
+    [CmdletBinding(SupportsShouldProcess)]
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
@@ -97,9 +97,11 @@ function Publish-VSADocument
     $Params.Add('Body', $BodyBytes)
 
             Write-Debug "Publish-VSADocument. $($Params | Out-String)"
-    
 
-    return Invoke-VSARestMethod @Params
+
+    if ($PSCmdlet.ShouldProcess($URISuffix, "PUT (upload '$FileName')")) {
+        return Invoke-VSARestMethod @Params
+    }
 }
 New-Alias -Name Add-VSADocument -Value Publish-VSADocument
 Export-ModuleMember -Function Publish-VSADocument -Alias Add-VSADocument

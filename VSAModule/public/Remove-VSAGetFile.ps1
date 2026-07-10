@@ -21,7 +21,7 @@ function Remove-VSAGetFile
     .OUTPUTS
        True if successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -49,7 +49,7 @@ function Remove-VSAGetFile
 
     $Path = $Path -replace '\\', '/'
 
-    return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $AgentId, (Format-VSAPathSegment $Path))) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $AgentId, (Format-VSAPathSegment $Path))) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 Export-ModuleMember -Function Remove-VSAGetFile

@@ -303,7 +303,12 @@ function New-VSAOrganization {
     }
     $BodyHT.Remove('CustomFields')
     if ( 0 -lt $CFArrayList.Count )  {
-        $BodyHT.Add('CustomFields', $($CFArrayList.ToArray()) )
+        # Do NOT wrap ToArray() in a $(...) subexpression here: PowerShell unwraps a single-element
+        # array to its bare scalar element when a subexpression's output is consumed as a single
+        # argument value, so a lone custom field would serialize CustomFields as a bare {..} object
+        # instead of a [{..}] array -- the VSA API then rejects the POST with a 400 (live-confirmed
+        # against the sandbox: -CustomFields with exactly one field 400'd; two fields worked).
+        $BodyHT.Add('CustomFields', $CFArrayList.ToArray())
     }
     #endregion Process Custom Fields
 
@@ -333,7 +338,7 @@ function New-VSAOrganization {
     }
 
     return Invoke-VSAWriteRequest -Body $BodyHT -Method POST -URISuffix $URISuffix `
-        -VSAConnection $VSAConnection -ExtendedOutput:$ExtendedOutput
+        -VSAConnection $VSAConnection -ExtendedOutput:$ExtendedOutput -Caller $PSCmdlet
     }
 }
 New-Alias -Name Add-VSAOrganization -Value New-VSAOrganization

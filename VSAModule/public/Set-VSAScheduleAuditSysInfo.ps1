@@ -51,7 +51,7 @@ function Set-VSAScheduleAuditSysInfo
     .OUTPUTS
        True if start of baseline audit was successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -200,7 +200,7 @@ function Set-VSAScheduleAuditSysInfo
                     Write-Debug "Set-VSAScheduleAuditSysInfo. $($Body | Out-String)"
         
 
-        return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($URISuffix -f $AgentID) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($URISuffix -f $AgentID) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }# Process
 }
 New-Alias -Name Add-VSAScheduleAuditSysInfo -Value Set-VSAScheduleAuditSysInfo

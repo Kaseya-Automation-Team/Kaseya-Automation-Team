@@ -25,7 +25,7 @@ function Enable-VSATenantModule {
        True if successful.
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
@@ -87,7 +87,7 @@ function Enable-VSATenantModule {
         }
     }# Begin
     Process {
-        return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($($URISuffix -f $TenantId)) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($($URISuffix -f $TenantId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }#Process
 }
 

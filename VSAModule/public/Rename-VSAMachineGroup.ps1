@@ -48,7 +48,7 @@ function Rename-VSAMachineGroup
         [string] $MachineGroupName
 )
      
-    return Invoke-VSAWriteRequest -Body (ConvertTo-Json @{ MachineGroupName = $MachineGroupName } -Compress) -Method 'PUT' -URISuffix ($($URISuffix -f $MachineGroupId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body (ConvertTo-Json @{ MachineGroupName = $MachineGroupName } -Compress) -Method 'PUT' -URISuffix ($($URISuffix -f $MachineGroupId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }
 New-Alias -Name Update-VSAMachineGroup -Value Rename-VSAMachineGroup
 Export-ModuleMember -Function Rename-VSAMachineGroup -Alias Update-VSAMachineGroup

@@ -28,7 +28,7 @@ function New-VSAAdminTask
        Success or failure
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -62,7 +62,7 @@ function New-VSAAdminTask
 	
     $Body = ConvertTo-Json @{"Reference"=$Reference; "Description"=$Description; "EnabledFlag"=$EnabledFlag.ToBool(); "TimeSheetFlag"=$TimeSheetFlag.ToBool()} -Compress
 
-    return Invoke-VSAWriteRequest -Body $Body -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body $Body -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 New-Alias -Name Add-VSAAdminTask -Value New-VSAAdminTask

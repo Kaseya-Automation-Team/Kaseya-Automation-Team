@@ -20,8 +20,13 @@ function Enable-VSAUser
        Accepts piped non-persistent VSAConnection 
     .OUTPUTS
        True if addition was successful.
-    #>
-    [CmdletBinding(DefaultParameterSetName = 'ById')]
+        .NOTES
+        On hardened (post-2021) VSA builds this user-mutation endpoint may be blocked at the network
+        layer. The call then fails with a VSAApiException whose .ConnectionReset is $true and
+        .StatusCode is 0 (the connection is reset before any HTTP status is returned) -- it is not a
+        403/404. Read-only user cmdlets (Get-VSAUser) are unaffected.
+#>
+    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
     #[CmdletBinding()]
     param ( 
         [parameter(Mandatory = $false, 
@@ -65,7 +70,7 @@ function Enable-VSAUser
                     Select-Object -ExpandProperty AdminName |
                     Where-Object { $_ -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
-            } catch { }
+            } catch { Write-Debug "Argument completer suppressed error: $_" }
         })]
         [ValidateNotNullOrEmpty()]
         [string] $AdminName
@@ -86,7 +91,7 @@ function Enable-VSAUser
     }# Begin
     Process {
 
-        return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $UserId)) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $UserId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 Export-ModuleMember -Function Enable-VSAUser

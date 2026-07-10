@@ -23,7 +23,7 @@ function Rename-VSADocument
     .OUTPUTS
        Array of objects that represent Custom Extension Folders and Files.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -63,7 +63,7 @@ function Rename-VSADocument
             # Method confirmed against the official Kaseya REST API docs (Rename Document,
             # help.vsa9.kaseya.com/help/Content/Modules/rest-api/38166.htm): the documented
             # operation is genuinely DELETE, not PUT (T-6.9 / F-50).
-            return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $AgentId, (Format-VSAPathSegment $Source), (Format-VSAPathSegment $Destination))) -VSAConnection $VSAConnection
+            return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $AgentId, (Format-VSAPathSegment $Source), (Format-VSAPathSegment $Destination))) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 Export-ModuleMember -Function Rename-VSADocument

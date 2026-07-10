@@ -24,7 +24,7 @@ function Update-VSASDTicketPriority
        True if successful
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -56,7 +56,7 @@ function Update-VSASDTicketPriority
 )
     process {
 
-    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $ServiceDeskTicketId, $PriorityId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $ServiceDeskTicketId, $PriorityId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

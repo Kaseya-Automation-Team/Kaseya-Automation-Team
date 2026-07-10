@@ -22,7 +22,7 @@ function Add-VSASDStaffToTicket
     .OUTPUTS
        No output
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -51,7 +51,7 @@ function Add-VSASDStaffToTicket
         [string] $StaffId
 )
 
-    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $ServiceDeskTicketId, $StaffId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $ServiceDeskTicketId, $StaffId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }
 New-Alias -Name Add-VSASDStaff -Value Add-VSASDStaffToTicket
 Export-ModuleMember -Function Add-VSASDStaffToTicket -Alias Add-VSASDStaff

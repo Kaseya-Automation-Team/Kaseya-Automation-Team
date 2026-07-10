@@ -21,7 +21,7 @@ function Update-VSAAPSettings
        True if update was successful
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -41,7 +41,7 @@ function Update-VSAAPSettings
 )
     process {
     
-    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($( $URISuffix -f $Flag.ToString().ToLower() )) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($( $URISuffix -f $Flag.ToString().ToLower() )) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

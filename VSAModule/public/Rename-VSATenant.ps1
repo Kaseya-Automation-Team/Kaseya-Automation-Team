@@ -21,7 +21,7 @@ function Rename-VSATenant {
        Array of tenant's properties
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -47,7 +47,7 @@ function Rename-VSATenant {
         [ValidateNotNullOrEmpty()] 
         [string] $NewName
     )
-    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $TenantId, $NewName)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $TenantId, $NewName)) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }
 
 Export-ModuleMember -Function Rename-VSATenant

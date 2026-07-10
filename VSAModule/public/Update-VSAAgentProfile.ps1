@@ -34,7 +34,7 @@ function Update-VSAAgentProfile
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -101,7 +101,7 @@ function Update-VSAAgentProfile
             Notes             = $Notes
             ShowToolTip       = $ShowToolTip
             AutoAssignTickets = $AutoAssignTickets.ToString()
-        } -Compress) -Method 'PUT' -URISuffix ($($URISuffix -f $AgentId)) -VSAConnection $VSAConnection
+        } -Compress) -Method 'PUT' -URISuffix ($($URISuffix -f $AgentId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

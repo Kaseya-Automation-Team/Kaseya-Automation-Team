@@ -23,7 +23,7 @@ function Move-VSADocument
     .OUTPUTS
        True if successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -60,7 +60,7 @@ function Move-VSADocument
         return $false
     } else {
 
-        return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($URISuffix -f $AgentId, (Format-VSAPathSegment $Source), (Format-VSAPathSegment $Destination)) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($URISuffix -f $AgentId, (Format-VSAPathSegment $Source), (Format-VSAPathSegment $Destination)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 Export-ModuleMember -Function Move-VSADocument

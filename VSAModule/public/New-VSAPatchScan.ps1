@@ -52,7 +52,7 @@ function New-VSAPatchScan
        Success or failure
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -240,7 +240,7 @@ function New-VSAPatchScan
         if ( -not [string]::IsNullOrEmpty($PatchIds) )   {  $BodyHT.Add('PatchIds', $PatchIds) }
         if ( (-not [string]::IsNullOrEmpty($ExcludeFrom)) -and (-not [string]::IsNullOrEmpty($ExcludeTo)))  {  $BodyHT.Add('Exclusion', $Exclusion) }
 
-        return Invoke-VSAWriteRequest -Body ($($BodyHT | ConvertTo-Json -Compress)) -Method 'PUT' -URISuffix ($($URISuffix -f $AgentId)) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Body ($($BodyHT | ConvertTo-Json -Compress)) -Method 'PUT' -URISuffix ($($URISuffix -f $AgentId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 
 }

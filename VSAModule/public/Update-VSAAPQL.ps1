@@ -22,7 +22,7 @@ function Update-VSAAPQL
        True if successful
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -43,7 +43,7 @@ function Update-VSAAPQL
 )
     process {
     
-    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $AgentProcedureId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $AgentProcedureId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

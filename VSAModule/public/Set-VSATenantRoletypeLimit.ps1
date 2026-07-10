@@ -29,7 +29,7 @@ function Set-VSATenantRoletypeLimit {
        True if successful.
     #>
 
-    [CmdletBinding(DefaultParameterSetName = 'ById')]
+    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
     param ( 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
@@ -60,7 +60,7 @@ function Set-VSATenantRoletypeLimit {
                     Select-Object -ExpandProperty RoleTypeName |
                     Where-Object { $_ -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new("'$_'", $_, 'ParameterValue', $_) }
-            } catch { }
+            } catch { Write-Debug "Argument completer suppressed error: $_" }
         })]
         [ValidateNotNullOrEmpty()]
         [string] $RoleTypeName,
@@ -75,7 +75,7 @@ function Set-VSATenantRoletypeLimit {
                     Select-Object -ExpandProperty RoleTypeId |
                     Where-Object { "$_" -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
-            } catch { }
+            } catch { Write-Debug "Argument completer suppressed error: $_" }
         })]
         [ValidateNotNullOrEmpty()]
         [string] $RoleTypeId,
@@ -90,7 +90,7 @@ function Set-VSATenantRoletypeLimit {
                     Select-Object -ExpandProperty Ref |
                     Where-Object { $_ -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
-            } catch { }
+            } catch { Write-Debug "Argument completer suppressed error: $_" }
         })]
         [ValidateNotNullOrEmpty()]
         [string] $TenantName,
@@ -105,7 +105,7 @@ function Set-VSATenantRoletypeLimit {
                     Select-Object -ExpandProperty Id |
                     Where-Object { "$_" -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
-            } catch { }
+            } catch { Write-Debug "Argument completer suppressed error: $_" }
         })]
         [ValidateNotNullOrEmpty()]
         [string] $TenantId
@@ -144,7 +144,7 @@ function Set-VSATenantRoletypeLimit {
             }
         )
 
-        return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }#Process
 }
 

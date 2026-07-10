@@ -24,7 +24,7 @@ function Remove-VSAPatchIgnore
        Success or failure
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -56,7 +56,7 @@ function Remove-VSAPatchIgnore
 )
     process {
 
-    return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $AgentId, $PatchDataId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $AgentId, $PatchDataId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

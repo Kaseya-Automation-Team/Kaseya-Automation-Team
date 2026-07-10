@@ -23,7 +23,7 @@ function New-VSACustomExtensionFolder
     .OUTPUTS
        Array of objects that represent Custom Extension Folders and Files.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -51,7 +51,7 @@ function New-VSACustomExtensionFolder
 
     $Folder = $Folder -replace '\\', '/'
 
-    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $AgentId, $Folder)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $AgentId, $Folder)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 New-Alias -Name Add-VSACustomExtensionFolder -Value New-VSACustomExtensionFolder

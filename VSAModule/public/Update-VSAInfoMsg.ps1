@@ -22,7 +22,7 @@ function Update-VSAInfoMsg
        True if update was successful
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -47,7 +47,7 @@ function Update-VSAInfoMsg
     )
     process {
      
-    return Invoke-VSAWriteRequest -Body ($( $ID | ConvertTo-Json -Compress )) -Method 'PUT' -URISuffix ($( $URISuffix -f $IsRead.ToString().ToLower() )) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body ($( $ID | ConvertTo-Json -Compress )) -Method 'PUT' -URISuffix ($( $URISuffix -f $IsRead.ToString().ToLower() )) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

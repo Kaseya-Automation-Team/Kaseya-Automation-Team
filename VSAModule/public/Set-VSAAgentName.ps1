@@ -24,7 +24,7 @@ function Set-VSAAgentName
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -52,7 +52,7 @@ function Set-VSAAgentName
     process {
 	
     return Invoke-VSAWriteRequest -Method PUT -VSAConnection $VSAConnection `
-        -URISuffix ($URISuffix -f $AgentId, (Format-VSAPathSegment $Name))
+        -URISuffix ($URISuffix -f $AgentId, (Format-VSAPathSegment $Name)) -Caller $PSCmdlet
     }
 }
 

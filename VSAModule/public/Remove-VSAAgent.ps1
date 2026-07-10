@@ -26,7 +26,7 @@ function Remove-VSAAgent
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -48,7 +48,7 @@ function Remove-VSAAgent
         [switch] $UninstallFirst = $false
 )
     process {
-    return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($( $URISuffix -f $AgentId, $UninstallFirst.ToString() )) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($( $URISuffix -f $AgentId, $UninstallFirst.ToString() )) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 Export-ModuleMember -Function Remove-VSAAgent

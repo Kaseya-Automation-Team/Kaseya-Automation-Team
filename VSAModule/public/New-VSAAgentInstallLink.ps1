@@ -24,7 +24,7 @@ function New-VSAAgentInstallLink
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -51,7 +51,7 @@ function New-VSAAgentInstallLink
 )
     process {
 
-    return Invoke-VSAWriteRequest -Body (ConvertTo-Json @{ PartitionId = $PartitionId; MachineGroupName = $MachineGroupName } -Compress) -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body (ConvertTo-Json @{ PartitionId = $PartitionId; MachineGroupName = $MachineGroupName } -Compress) -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

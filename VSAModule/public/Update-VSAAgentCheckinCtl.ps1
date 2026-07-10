@@ -34,7 +34,7 @@ function Update-VSAAgentCheckinCtl
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -122,7 +122,7 @@ function Update-VSAAgentCheckinCtl
         $BodyHT.Add('SecondaryKServerPort', $SecondaryKServerPort)
     }
 
-    return Invoke-VSAWriteRequest -Body ($($BodyHT | ConvertTo-Json)) -Method 'PUT' -URISuffix ($($URISuffix -f $AgentId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body ($($BodyHT | ConvertTo-Json)) -Method 'PUT' -URISuffix ($($URISuffix -f $AgentId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

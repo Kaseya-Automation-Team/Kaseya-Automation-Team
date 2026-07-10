@@ -28,7 +28,7 @@ function Update-VSAThirdApp
        Success or failure
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -70,7 +70,7 @@ function Update-VSAThirdApp
         $EnableOrDisable = "false"
     }
 
-    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $Id, $EnableOrDisable)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $Id, $EnableOrDisable)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

@@ -35,7 +35,7 @@ function Update-VSAStaff
     .OUTPUTS
        True if addition was successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -202,7 +202,7 @@ function Update-VSAStaff
         $BodyHT.Add('ContactInfo', $ContactInfoHT )
     }
 
-    return Invoke-VSAWriteRequest -Body ($($BodyHT | ConvertTo-Json -Depth 5 -Compress)) -Method 'PUT' -URISuffix ($($URISuffix -f $OrgStaffId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body ($($BodyHT | ConvertTo-Json -Depth 5 -Compress)) -Method 'PUT' -URISuffix ($($URISuffix -f $OrgStaffId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 Export-ModuleMember -Function Update-VSAStaff

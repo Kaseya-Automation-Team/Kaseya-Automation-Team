@@ -24,7 +24,7 @@ function Close-VSAAlarm
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -56,7 +56,7 @@ function Close-VSAAlarm
         $Body = ConvertTo-Json @(@{"key"="notes";"value"=$Reason }) -Compress
     }
 
-    return Invoke-VSAWriteRequest -Body $Body -Method 'PUT' -URISuffix ($URISuffix -f $AlarmId) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body $Body -Method 'PUT' -URISuffix ($URISuffix -f $AlarmId) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }
 
 Export-ModuleMember -Function Close-VSAAlarm

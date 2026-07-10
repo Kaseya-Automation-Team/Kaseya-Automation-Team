@@ -1,56 +1,52 @@
-# About
+# VSAModule
 
-This module is designed to make it easier to use the Kaseya VSA API in your PowerShell scripts. By handling all the hard work, it allows you to develop your scripts faster and more efficiently. There's no need for a steep learning curve; simply load the module, enter your API keys, and get results within minutes!
+A PowerShell wrapper for the Kaseya VSA 9 REST API. It handles authentication, token renewal, retry, paging, and secure credential storage so you can automate VSA tasks from PowerShell without hand-rolling REST calls.
 
-**Note:** While this PowerShell module simplifies interaction with the Kaseya VSA REST API, it does not modify or impact the behavior of the API itself. Any issues or glitches that arise within the REST API are unrelated to the module and should be addressed to Kaseya directly.
+**Note:** This module simplifies interaction with the Kaseya VSA REST API; it does not modify or impact the behavior of the API itself. Issues or glitches within the REST API are unrelated to the module and should be addressed to Kaseya directly.
 
-## 🎉 Version 1.2.0 - Production Ready
+**Current version:** 1.3.2 · **License:** [MIT](LICENSE.txt)
 
-**Released: January 27, 2026 · Updated: July 6, 2026**
+## Contents
 
-VSAModule v1.2.0 is a production-ready release with comprehensive REST API coverage, enterprise-grade reliability, and advanced security features.
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Key Features](#key-features)
+- [Security](#security)
+- [API Limits](#api-limits)
+- [Getting Help](#getting-help)
+- [Release Notes](#release-notes)
+- [Author](#author)
+- [Support and Contributions](#support-and-contributions)
 
-### ✨ What's New in v1.0
+## Requirements
 
-- **Automatic Retry Logic**: Transient HTTP errors (502, 503, 504) automatically retry with exponential backoff (1s, 2s, 4s, 8s...)
-- **Automatic Token Renewal**: Session tokens are renewed transparently before making paged/long-running requests
-- **Enhanced Security**: Platform-detected encryption for persistent connections (DPAPI on Windows, AES on Linux/macOS), OData injection prevention, HTTPS enforcement
-- **112 REST API Cmdlets**: Complete coverage of organizations, agents, assets, tickets, staff, roles, scopes, tenants, and more
-- **Comprehensive Testing**: Pester test suite covering transport, auth, structure, and security behavior
-- **Zero Dependencies**: Fully self-contained PowerShell module, no external packages required
+| | Support |
+|---|---|
+| Windows PowerShell 5.1 | Windows only (5.1 never shipped for any other OS) |
+| PowerShell 7.x | Windows, Linux, and macOS |
+| Dependencies | None — fully self-contained, no external packages required |
 
-## Security
+Persistent-connection encryption is platform-detected: Windows uses DPAPI (user- and machine-bound); Linux/macOS use AES with a key derived at runtime from per-user + per-machine identifiers (weaker than DPAPI, but appropriate since the store itself is only a process-scoped environment variable — see [Security](#security)).
 
-**Version 1.0 includes enterprise security features:**
-- OData Injection Prevention - User input in filters is automatically escaped
-- Parameter Validation - All ID parameters validated against injection attacks
-- Credential Encryption - Persistent connections use DPAPI (Windows) or a runtime-derived-key AES (Linux/macOS)
-- Secure Cleanup - Credentials cleared from memory after use
-- Automatic Retry Protection - Prevents cascading failures with exponential backoff
+## Installation
 
-## Platform Support
+Install from the [PowerShell Gallery](https://www.powershellgallery.com/packages/VSAModule):
 
-Windows PowerShell 5.1 is Windows-only (it never shipped for any other OS). PowerShell 7.x is supported on **Windows, Linux, and macOS**. Persistent-connection encryption is platform-detected: Windows uses DPAPI (user- and machine-bound); Linux/macOS use AES with a key derived at runtime from per-user + per-machine identifiers (weaker than DPAPI, but appropriate since the store itself is only a process-scoped environment variable — see the Release Notes below).
+```powershell
+Install-Module -Name VSAModule -Scope CurrentUser
+```
 
-## API Limits
-
-The Kaseya VSA REST API caps every collection response at **100 records per request**, regardless of the `-Top`/`$top` value requested. The module pages through larger result sets automatically using `$skip`/`$top`.
-
-## Basics
-
-You can install the module from the [PowerShell Gallery](https://www.powershellgallery.com/packages/VSAModule). Use the example below to get started.
+## Quick Start
 
 ### Recommended: Non-Persistent Connection (Most Secure)
 
 ```powershell
 begin {
-    # Load the VSAModule
-    $ModuleName = 'VSAModule'
-    Import-Module -Name $ModuleName -Force
+    Import-Module -Name VSAModule -Force
 
-    # Get credentials
     $VSAUserName = '<Kaseya VSA REST API User Name>'
-    $VSAUserPAT =  '<Kaseya VSA REST API User PAT>'
+    $VSAUserPAT  = '<Kaseya VSA REST API User PAT>'
 
     [securestring]$secStringPassword = ConvertTo-SecureString $VSAUserPAT -AsPlainText -Force
     [pscredential]$VSACred = New-Object System.Management.Automation.PSCredential ($VSAUserName, $secStringPassword)
@@ -62,12 +58,10 @@ begin {
         IgnoreCertificateErrors = $false  # Use $true only for testing with self-signed certificates
     }
 
-    # Establish connection to the VSA Environment
     $VSAConnection = New-VSAConnection @VSAConnParams
 }
 
 process {
-    # Get VSA Organizations Information
     $VSAOrganizations = Get-VSAOrganization -VSAConnection $VSAConnection
 }
 
@@ -79,74 +73,114 @@ process {
 **WARNING: Use persistent connections only in secure, interactive PowerShell sessions. Not recommended for automated scripts.**
 
 ```powershell
-# Create persistent connection (credentials encrypted with DPAPI on Windows, or a
-# runtime-derived-key AES on Linux/macOS)
+# Credentials encrypted with DPAPI on Windows, or a runtime-derived-key AES on Linux/macOS
 $VSAConnection = New-VSAConnection `
     -VSAServer 'https://your-vsa9-server.com' `
     -Credential (Get-Credential) `
     -SetPersistent
 
-# Later commands can use implicit connection
+# Later commands can use the implicit connection
 $agents = Get-VSAAgent
 
-# IMPORTANT: Clear persistent connection when done
+# IMPORTANT: Clear the persistent connection when done
 [VSAConnection]::ClearPersistentConnection()
 # or
 Remove-Item env:\VSAConnection -ErrorAction SilentlyContinue
 ```
 
-### Production Best Practice: Use Windows Credential Manager
+### Production Best Practice: Use a Credential Store
 
-For service accounts and production automation:
+For service accounts and production automation, keep the PAT out of the script entirely:
 
 ```powershell
 # Store credentials securely (one-time setup)
 cmdkey /add:vsaserver /user:vsauser /pass:token
 
 # Retrieve and use in script
-$credential = Get-StoredCredential -Target vsaserver  # Requires CredentialManager module
+$credential = Get-StoredCredential -Target vsaserver  # Requires the CredentialManager module
 $VSAConnection = New-VSAConnection -VSAServer 'https://vsa.example.com' -Credential $credential
 ```
 
-## Security Features
+## Key Features
 
-### OData Injection Prevention
+- **115 cmdlets, 138 aliases** covering organizations, agents, assets, tickets, staff, roles, scopes, tenants, custom fields, agent procedures, and more.
+- **Automatic paging** — collections are paged transparently via `$skip`/`$top`; no manual loop needed for large result sets.
+- **Automatic retry** — transient HTTP errors (429, 502, 503, 504) retry automatically with exponential backoff (and `Retry-After` support).
+- **Automatic token renewal** — session tokens are renewed transparently before paged/long-running requests.
+- **Uniform `-WhatIf` / `-Confirm`** — every state-changing cmdlet supports `ShouldProcess`.
+- **Typed errors** — failed calls throw a `VSAApiException` with `.StatusCode`, `.ConnectionReset`, and `.VSAError`, so scripts can branch on failure kind instead of parsing message text (see [Release Notes](#release-notes), v1.3.0).
+- **Native object parameters** — nested request bodies (`-ContactInfo`, `-Attributes`, `-CustomFields`, …) accept a `[hashtable]`/`[pscustomobject]` directly.
+- **Zero dependencies** — fully self-contained PowerShell module.
 
-Filter parameters are automatically escaped to prevent OData injection:
+## Security
+
+- **OData injection prevention** — filter values are automatically escaped:
+
+  ```powershell
+  # Safe: special characters are automatically escaped
+  $agents = Get-VSAAgent -Filter "ComputerName eq 'O''Brien''s Computer'"
+
+  # Safe: an injection attempt is escaped and treated as a literal
+  $agents = Get-VSAAgent -Filter "Status eq 'online' or 1 eq 1"
+  ```
+
+- **Parameter validation** — ID parameters accept only positive integers:
+
+  ```powershell
+  Remove-VSAAgentNote -ID 12345    # Valid
+  Remove-VSAAgentNote -ID "ABC123" # Rejected with a clear validation error
+  ```
+
+- **Credential handling:**
+  - Non-persistent connections keep credentials in memory only, for the life of the session.
+  - Persistent connections are encrypted via `ConvertTo-SecureString` using a platform-detected strategy: DPAPI on Windows, runtime-derived-key AES on Linux/macOS.
+  - The PAT is cleared from memory via SecureString marshaling after use.
+- **HTTPS enforcement** and automatic retry protection against cascading failures.
+
+## API Limits
+
+The Kaseya VSA REST API caps every collection response at **100 records per request**, regardless of the `-Top`/`$top` value requested. The module pages through larger result sets automatically using `$skip`/`$top`.
+
+## Getting Help
 
 ```powershell
-# Safe: Special characters are automatically escaped
-$agents = Get-VSAAgent -Filter "ComputerName eq 'O''Brien''s Computer'"
+# List all commands
+Get-Command -Module VSAModule | Format-Table Name, Synopsis
 
-# Safe: Attempted injection is escaped and treated as literal
-$agents = Get-VSAAgent -Filter "Status eq 'online' or 1 eq 1"
+# Full help for a specific command
+Get-Help Get-VSAAgent -Full
+Get-Help New-VSAConnection -Full
 ```
 
-### Parameter Validation
+Comment-based help is available on every public cmdlet. For the underlying REST API itself, see the [Kaseya VSA REST API documentation](http://help.kaseya.com/webhelp/EN/RESTAPI/9050000/index.asp#home.htm) or your VSA server's own Swagger UI at `https://<your-vsa-url>/api/v1.0/swagger/ui/index`.
 
-All ID parameters are validated to accept only positive integers:
+## Release Notes
 
-```powershell
-# Valid: Numeric IDs only
-Remove-VSAAgentNote -ID 12345
+### Version 1.3.2 (Current)
 
-# Error: Non-numeric values are rejected with clear message
-Remove-VSAAgentNote -ID "ABC123"  # Generates validation error
-```
+Fixes found during a full-module acceptance test against a live VSA server (no cmdlets added or removed):
+- **Fix: Cloud Backup cmdlets returned no data.** `Get-VSACBServer(s)`, `Get-VSACBWS`, and `Get-VSACBVM` always threw *"Unexpected API response"*. The Cloud Backup (`kcb/*`) endpoints return a bare JSON object — a flat `{ <agentId>: <status> }` map — with none of the standard `{Result, ResponseCode, Status, Error}` envelope fields, and the transport mistook that for a broken envelope. The transport now recognizes a genuinely non-enveloped payload and returns it as-is (a status-only envelope still yields an empty result, unchanged).
+- **Fix: tenant role-type cmdlets couldn't target instance-specific role types.** `Enable-VSATenantRoleType` / `Clear-VSATenantRoleType` validated `-RoleType`/`-RoleTypeName` against a hardcoded list and resolved names via a static name→Id map, so real role types that exist on an instance (e.g. `Multi-Tenant`, `Multi-Tenant Admin`, or any custom/tenant role type) could never be selected. Both now resolve names to Ids at runtime via `Get-VSARoleType` (with tab-completion and a clear error listing the available role types) — matching `Set-VSATenantRoletypeLimit`, which already worked this way. The stale `$TenantRoleTypeIdMap` was removed.
+- **Fix: `New-VSALCAuditLog -Message`** was documented as required but declared optional; omitting it sent a null log message and the server returned HTTP 400. It is now mandatory.
+- **Fix: `Send-VSAEmail -UniqueTag`** was declared mandatory but the function body already treats it as optional; it is now optional, so a `UniqueTag` is no longer forced on every email.
+- **Fix: `Set-VSATenantModuleUsageType` parameter sets were cross-wired.** `TenantId`/`ModuleName` were grouped in one set and `ModuleId`/`TenantName` in the other, so the two natural calls — `-TenantId <id> -ModuleId <id>` and `-TenantName <name> -ModuleName <name>` — could not be satisfied (*"Parameter set cannot be resolved"*); only awkward id-of-one-with-name-of-the-other combinations worked. The sets are now `ById = {TenantId, ModuleId}` and `ByName = {TenantName, ModuleName}` (and the examples were corrected). Found during a full 115-function / 138-alias coverage sweep.
+- **Fix: `New-VSASDTicketNote -Hidden` and `-SystemFlag` were mandatory switches.** A `[switch]` that must always be supplied is a contradiction — it forced `-Hidden -SystemFlag` on every call just to create an ordinary ticket note. Both are now optional and default to `$false` (which the body already handled).
+- **Fix: the multipart upload cmdlets ignored `-WhatIf`/`-Confirm`.** `Publish-VSADocument` and `Publish-VSACustomExtensionFile` (which build a raw multipart body and don't route through the shared write dispatcher) did not support `ShouldProcess`, unlike every other write cmdlet. They now honor `-WhatIf`/`-Confirm`, so a dry run no longer uploads.
+- Adds `Tests/VSAModule.RawPayload.Tests.ps1` and `Tests/VSAModule.ParamContract.Tests.ps1`.
 
-### Credential Security
+### Version 1.3.1
 
-- **Non-persistent connections**: Credentials stored only in memory during authentication
-- **Persistent connections**: Encrypted via ConvertTo-SecureString using a platform-detected strategy (DPAPI on Windows, runtime-derived-key AES on Linux/macOS)
-- **Automatic cleanup**: PAT cleared from memory using SecureString marshaling
+- **Fix: `New-VSAOrganization -CustomFields` with a single field.** A lone custom field was serialized as a bare JSON object instead of a one-element array, which the VSA API rejected with an HTTP 400. Passing two or more fields worked, so this only affected the single-field case. (Root cause: a `$(...)` subexpression around `ToArray()` unwrapped the single-element array to its scalar element. Live-found during full-module acceptance testing against a VSA server; the offline mock hid it because a bare object round-trips through `ConvertFrom-Json` like a one-element array.) Adds raw-JSON-shape regression tests.
 
-## Kaseya VSA API
+### Version 1.3.0
 
-Visit the [online help](http://help.kaseya.com/webhelp/EN/RESTAPI/9050000/index.asp#home.htm) to find out more about the Kaseya API. Or use your VSA swagger https://[your vsa url]/api/v1.0/swagger/ui/index to see and test the API.
+Uniform `-WhatIf`/`-Confirm`, typed API errors, and structural cleanup:
+- **Uniform ShouldProcess.** Every state-changing cmdlet now honors `-WhatIf`/`-Confirm`. The gate is centralized in `Invoke-VSAWriteRequest` (via a `-Caller $PSCmdlet` hand-off), so `-WhatIf` short-circuits the request before it is sent. This also fixes the cmdlets that previously *declared* `SupportsShouldProcess` but never called it (so `-WhatIf` was silently ignored).
+- **Typed API errors.** Failed calls now throw a `VSAApiException` inside a properly-categorized `ErrorRecord`, so callers can branch programmatically instead of parsing message strings: `$_.Exception.StatusCode` (int; `0` = no HTTP response), `$_.Exception.ConnectionReset` (`$true` when the socket was reset), `$_.Exception.VSAError`, and `$_.CategoryInfo.Category` (`PermissionDenied` for 403, `ObjectNotFound` for 404, `ConnectionError` for a reset). **Note:** on hardened (post-2021) VSA builds, user-mutation endpoints (`Update`/`Remove`/`Enable`/`Disable-VSAUser`, `Add-VSAUserToRole`) are blocked at the network layer — the connection is reset (`ConnectionReset = $true`, `StatusCode = 0`) rather than returning a 403/404. Read-only user cmdlets are unaffected. This is a VSA-side restriction, not a module limitation.
+- **Structural cleanup.** Endpoint/id maps extracted from the `.psm1` monolith into a dot-sourced `private/VSAEndpointMaps.ps1`; the 17 empty completer `catch {}` blocks now emit a `Write-Debug` diagnostic; dead `-CustomFields` parameter removed from `Update-VSAOrganization`.
+- Adds `Tests/VSAModule.TypedError.Tests.ps1` (9 tests) and `-WhatIf` gate tests. Full suite green; live-verified against a VSA server (404 → `ObjectNotFound`, blocked user writes → `ConnectionReset`).
 
-## Release notes
-
-### Version 1.2.0 (Current)
+### Version 1.2.0
 
 Write-path (New/Update/Set/…) unified behind two internal helpers:
 - **`Invoke-VSAWriteRequest` — one dispatch tail for every write cmdlet.** ~79 `New`/`Update`/`Set`/`Add`/`Enable`/`Disable`/`Start`/`Stop`/`Rename`/`Close`/`Move`/`Send`/`Remove`/`Clear` cmdlets previously hand-copied the same tail (assemble `$Params`, forward the connection, prune the body, serialize JSON, invoke, expand `ExtendedOutput`). That tail now lives in one tested helper, eliminating two whole bug classes by construction: **F-31** (a cmdlet forgetting to forward `-VSAConnection`, so it was silently ignored — this had already bitten `New-VSAAgentInstallPkg`) and **F-52** (pruning a body with `-not $BodyHT[$key]`, which dropped a legitimate `0`/`$false`/`''` — now only `$null`/empty-string are pruned, so an explicit `0`/`$false` is transmitted). JSON is also serialized at a single consistent depth (10) rather than the old per-cmdlet default of 2, which silently truncated deeper bodies.
@@ -182,45 +216,12 @@ Security- and reliability-hardened rewrite of the transport, authentication, and
 - Automatic session-token renewal ahead of paged/long-running requests
 - Mandatory-`VSAConnection` requirement removed from all public cmdlets; every public function accepts either an explicit or a persistent connection
 
-## Getting Help
+## Author
 
-### View Available Commands
-
-```powershell
-Get-Command -Module VSAModule | Format-Table Name, Synopsis
-```
-
-### Get Help for a Specific Command
-
-```powershell
-Get-Help Get-VSAAgent -Full
-Get-Help New-VSAConnection -Full
-```
-
-### Security Questions?
-
-See the "Security" and "Security Features" sections above, or run `Get-Help New-VSAConnection -Full` for credential-handling guidance.
-
-## Sponsored
-
-Stay secure and compliant with Kaseya's comprehensive IT management solutions. Visit Kaseya today!
-
----
+Vladislav Semko
 
 ## Support and Contributions
 
 For issues, feature requests, or security concerns, please refer to the project repository. Security vulnerabilities should be reported responsibly and not disclosed publicly until a fix is available.
 
-### Documentation Files
-
-- **README.md** (this file) - Quick start and overview
-- **VSAModule.psd1** - Module manifest with metadata
-- Comment-based help on every public cmdlet (`Get-Help <CmdletName> -Full`)
-
-### Version Information
-
-- **Current Version**: 1.2.0
-- **Module Type**: PowerShell 5.1+ (5.1 is Windows-only; PowerShell 7.x also runs on Linux/macOS)
-- **Dependencies**: None (built-in PowerShell only)
-- **Tested On**: Windows PowerShell 5.1 (Windows), PowerShell 7.x (Windows, Linux)
-
+Built for Kaseya VSA 9 automation — Kaseya offers a broader suite of IT management solutions at [kaseya.com](https://www.kaseya.com).

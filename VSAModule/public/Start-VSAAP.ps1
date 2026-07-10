@@ -24,7 +24,7 @@ function Start-VSAAP
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -56,7 +56,7 @@ function Start-VSAAP
     
     $URISuffix = $URISuffix -f $AgentId, $AgentProcedureId
     
-    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }
 
 Export-ModuleMember -Function Start-VSAAP

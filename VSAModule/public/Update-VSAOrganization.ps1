@@ -160,11 +160,6 @@ function Update-VSAOrganization {
         [parameter(DontShow,
             Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [string[]] $CustomFields = @(),
-
-        [parameter(DontShow,
-            Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
         # Accepts a [hashtable]/[pscustomobject] (preferred) or the legacy "Key=value" string.
         [object] $Attributes

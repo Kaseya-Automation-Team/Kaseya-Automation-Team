@@ -24,7 +24,7 @@ function Update-VSASDTicketStatus
        True if successful
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -56,7 +56,7 @@ function Update-VSASDTicketStatus
 )
     process {
 
-    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $ServiceDeskTicketId, $StatusId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $ServiceDeskTicketId, $StatusId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

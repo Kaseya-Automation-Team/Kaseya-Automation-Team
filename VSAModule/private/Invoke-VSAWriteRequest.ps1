@@ -44,6 +44,10 @@ function Invoke-VSAWriteRequest {
     .OUTPUTS
         Whatever the transport returns for the request (bool status, created id, envelope, or $null).
     #>
+    # This helper gates on the CALLER's ShouldProcess (via -Caller), not its own -- the caller is the
+    # advanced function that declares SupportsShouldProcess. Suppress the rule that expects the
+    # attribute here.
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '')]
     [CmdletBinding()]
     param(
         [parameter(Mandatory = $false)]
@@ -69,7 +73,17 @@ function Invoke-VSAWriteRequest {
         [switch] $KeepEmpty,
 
         [parameter(Mandatory = $false)]
-        [int] $Depth = 10
+        [int] $Depth = 10,
+
+        # The calling cmdlet's $PSCmdlet. When supplied (and the caller declares
+        # SupportsShouldProcess), the write is gated through ShouldProcess so -WhatIf / -Confirm are
+        # honored uniformly across every write cmdlet without each one re-implementing the check.
+        [parameter(Mandatory = $false)]
+        [System.Management.Automation.PSCmdlet] $Caller,
+
+        # The ShouldProcess action description; defaults to the HTTP method.
+        [parameter(Mandatory = $false)]
+        [string] $Operation
     )
 
     [hashtable] $Params = @{
@@ -101,6 +115,13 @@ function Invoke-VSAWriteRequest {
     # Forward the explicit connection only when present (F-31): the transport falls back to the
     # persistent connection when it is absent.
     if ($VSAConnection) { $Params['VSAConnection'] = $VSAConnection }
+
+    # Uniform -WhatIf / -Confirm gate: when the caller passed its $PSCmdlet, honor ShouldProcess.
+    # -WhatIf short-circuits here so no request is sent.
+    if ($Caller) {
+        $action = if ([string]::IsNullOrEmpty($Operation)) { $Method } else { $Operation }
+        if (-not $Caller.ShouldProcess($URISuffix, $action)) { return }
+    }
 
     Write-Debug ("Invoke-VSAWriteRequest. {0} {1}`n{2}" -f $Method, $URISuffix, ($Params | Out-String))
 

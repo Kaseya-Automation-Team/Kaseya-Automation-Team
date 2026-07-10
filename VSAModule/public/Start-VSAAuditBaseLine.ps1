@@ -19,7 +19,7 @@ function Start-VSAAuditBaseLine
     .OUTPUTS
        True if start of baseline audit was successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -41,6 +41,6 @@ function Start-VSAAuditBaseLine
     )
     
 
-    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $AgentID)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $AgentID)) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }
 Export-ModuleMember -Function Start-VSAAuditBaseLine

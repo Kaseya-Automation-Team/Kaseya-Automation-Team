@@ -20,7 +20,7 @@ function Remove-VSASessionTimer
        True if successful.
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -45,7 +45,7 @@ function Remove-VSASessionTimer
     process {
     $Method = if ($Force) { 'PATCH' } else { 'DELETE' }
 
-    return Invoke-VSAWriteRequest -Method $Method -URISuffix ($URISuffix -f $TimerId) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method $Method -URISuffix ($URISuffix -f $TimerId) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

@@ -30,7 +30,7 @@ function New-VSASDTicketNote
        Success or failure
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -55,11 +55,11 @@ function New-VSASDTicketNote
         [ValidateNotNullOrEmpty()] 
         [string] $Text,
 
-        [parameter(Mandatory=$true,
-            ValueFromPipelineByPropertyName=$true)] 
+        [parameter(Mandatory=$false,
+            ValueFromPipelineByPropertyName=$true)]
         [switch] $Hidden,
 
-        [parameter(Mandatory=$true,
+        [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [switch] $SystemFlag
 )
@@ -67,7 +67,7 @@ function New-VSASDTicketNote
 	
     [string]$Body = ConvertTo-Json @{"Hidden"=$Hidden.ToBool(); "SystemFlag"=$SystemFlag.ToBool(); "Text"="$Text";} -Compress
 
-    return Invoke-VSAWriteRequest -Body ($Body) -Method 'POST' -URISuffix ($($URISuffix -f $ServiceDeskTicketId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body ($Body) -Method 'POST' -URISuffix ($($URISuffix -f $ServiceDeskTicketId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

@@ -23,7 +23,7 @@ function Disable-VSATenant
     .OUTPUTS
        True if successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true,
@@ -66,7 +66,7 @@ function Disable-VSATenant
                     Select-Object -ExpandProperty Ref |
                     Where-Object { $_ -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
-            } catch { }
+            } catch { Write-Debug "Argument completer suppressed error: $_" }
         })]
         [ValidateNotNullOrEmpty()]
         [string] $TenantName
@@ -86,7 +86,7 @@ function Disable-VSATenant
     }# Begin
     Process {
 
-        return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $TenantId)) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $TenantId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 Export-ModuleMember -Function Disable-VSATenant

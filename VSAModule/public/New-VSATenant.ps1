@@ -40,7 +40,7 @@
     .OUTPUTS
        True if creation was successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams','')]
     param ( 
         [parameter(Mandatory = $false, 
@@ -205,7 +205,7 @@
         Write-Debug "New-VSATenant. Body: $RedactedBody"
     }
 
-    return Invoke-VSAWriteRequest -Body $Body -Method POST -URISuffix $URISuffix -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body $Body -Method POST -URISuffix $URISuffix -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 New-Alias -Name Add-VSATenant -Value New-VSATenant

@@ -21,7 +21,7 @@ function New-VSADocumentFolder
     .OUTPUTS
        True if successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -50,7 +50,7 @@ function New-VSADocumentFolder
     $Folder            = $Folder -replace '\\', '/'
     $URISuffix         = $URISuffix -f $AgentId, $Folder
 
-    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 New-Alias -Name Add-VSADocumentFolder -Value New-VSADocumentFolder

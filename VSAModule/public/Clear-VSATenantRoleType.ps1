@@ -27,7 +27,7 @@ function Clear-VSATenantRoleType {
        True if successful.
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNull()]
@@ -38,11 +38,32 @@ function Clear-VSATenantRoleType {
         [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant/roletypes/{0}?roleTypeId={1}',
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName = 'ByName')]
-        [ValidateSet('VSA Admin', 'End User', 'Basic Machine', 'Service Desk Admin', 'Service Desk Technician', 'SB Admin', 'KDP Admin', 'KDM Admin')]
+        [ArgumentCompleter({
+            param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+            try {
+                $CompleterParams = @{}
+                if ($fakeBoundParameters['VSAConnection']) { $CompleterParams['VSAConnection'] = $fakeBoundParameters['VSAConnection'] }
+                Get-VSARoleType @CompleterParams -ErrorAction Stop |
+                    Select-Object -ExpandProperty RoleTypeName |
+                    Where-Object { $_ -like "$wordToComplete*" } |
+                    ForEach-Object { [System.Management.Automation.CompletionResult]::new("'$_'", $_, 'ParameterValue', $_) }
+            } catch { Write-Debug "Argument completer suppressed error: $_" }
+        })]
+        [ValidateNotNullOrEmpty()]
         [string] $RoleTypeName,
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName = 'ById')]
-        [ValidateSet(4, 6, 8, 100, 101, 105, 116, 117)]
+        [ArgumentCompleter({
+            param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+            try {
+                $CompleterParams = @{}
+                if ($fakeBoundParameters['VSAConnection']) { $CompleterParams['VSAConnection'] = $fakeBoundParameters['VSAConnection'] }
+                Get-VSARoleType @CompleterParams -ErrorAction Stop |
+                    Select-Object -ExpandProperty RoleTypeId |
+                    Where-Object { "$_" -like "$wordToComplete*" } |
+                    ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
+            } catch { Write-Debug "Argument completer suppressed error: $_" }
+        })]
         [int] $RoleTypeId,
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName = 'ByName')]
@@ -55,7 +76,7 @@ function Clear-VSATenantRoleType {
                     Select-Object -ExpandProperty Ref |
                     Where-Object { $_ -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
-            } catch { }
+            } catch { Write-Debug "Argument completer suppressed error: $_" }
         })]
         [ValidateNotNullOrEmpty()]
         [string] $TenantName,
@@ -70,7 +91,7 @@ function Clear-VSATenantRoleType {
                     Select-Object -ExpandProperty Id |
                     Where-Object { "$_" -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
-            } catch { }
+            } catch { Write-Debug "Argument completer suppressed error: $_" }
         })]
         [ValidateNotNullOrEmpty()]
         [string] $TenantId
@@ -91,13 +112,20 @@ function Clear-VSATenantRoleType {
         if (-not $TenantName) {
             $TenantName = $Tenants | Where-Object { $_.Id -eq $TenantId } | Select-Object -First 1 -ExpandProperty Ref
         }
-        # $TenantRoleTypeIdMap is a module-scope map shared with Enable-VSATenantRoleType (F-53).
+        # Resolve the role-type name to its Id from the live VSA (F-64): role types are
+        # instance-specific, so the former hardcoded name->id map went stale. Reuse the roles fetched
+        # for the tenant lookup is not possible (different endpoint), so make one targeted call.
         if ($RoleTypeName) {
-            $RoleTypeId = $TenantRoleTypeIdMap[$RoleTypeName]
+            [hashtable]$RoleLookupParams = @{}
+            if ($VSAConnection) { $RoleLookupParams['VSAConnection'] = $VSAConnection }
+            $RoleTypeId = Get-VSARoleType @RoleLookupParams | Where-Object { $_.RoleTypeName -eq $RoleTypeName } | Select-Object -First 1 -ExpandProperty RoleTypeId
+            if ([string]::IsNullOrEmpty("$RoleTypeId")) {
+                throw "Clear-VSATenantRoleType: No role type found with name '$RoleTypeName' on this VSA."
+            }
         }
     }
     Process {
-        return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $TenantId, $RoleTypeId)) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $TenantId, $RoleTypeId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 Export-ModuleMember -Function Clear-VSATenantRoleType

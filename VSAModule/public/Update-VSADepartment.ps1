@@ -25,7 +25,7 @@ function Update-VSADepartment
     .OUTPUTS
        True if update was successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -79,7 +79,7 @@ function Update-VSADepartment
         throw "No changes specified to the Department $DepartmentId"
     }
 
-    return Invoke-VSAWriteRequest -Body ($($BodyHT | ConvertTo-Json)) -Method 'PUT' -URISuffix ($($URISuffix -f $DepartmentId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body ($($BodyHT | ConvertTo-Json)) -Method 'PUT' -URISuffix ($($URISuffix -f $DepartmentId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 Export-ModuleMember -Function Update-VSADepartment

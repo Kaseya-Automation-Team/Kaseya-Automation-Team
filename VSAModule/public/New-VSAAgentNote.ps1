@@ -19,7 +19,7 @@ function New-VSAAgentNote {
     .OUTPUTS
        True if creation was successful
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -46,7 +46,7 @@ function New-VSAAgentNote {
         )
     process {
 
-    return Invoke-VSAWriteRequest -Body (ConvertTo-Json $Note -Compress) -Method 'POST' -URISuffix ($($URISuffix -f $AgentId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body (ConvertTo-Json $Note -Compress) -Method 'POST' -URISuffix ($($URISuffix -f $AgentId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 New-Alias -Name Add-VSAAgentNote -Value New-VSAAgentNote

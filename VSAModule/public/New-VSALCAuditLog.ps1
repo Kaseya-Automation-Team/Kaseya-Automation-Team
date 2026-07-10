@@ -31,7 +31,7 @@ function New-VSALCAuditLog
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -61,16 +61,16 @@ function New-VSALCAuditLog
         [ValidateNotNullOrEmpty()] 
         [string] $AgentName,
 
-		[Parameter(Mandatory = $false,
+		[Parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Message
     )
     process {
 	
 	$URISuffix = $URISuffix -f $AgentId
      
-    return Invoke-VSAWriteRequest -Body ($(ConvertTo-Json @{'UserName'=$UserName;'AgentName'=$AgentName;'LogMessage'=$Message })) -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body ($(ConvertTo-Json @{'UserName'=$UserName;'AgentName'=$AgentName;'LogMessage'=$Message })) -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

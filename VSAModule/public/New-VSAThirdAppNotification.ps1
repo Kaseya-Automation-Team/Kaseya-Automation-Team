@@ -30,7 +30,7 @@ function New-VSAThirdAppNotification
        Success or failure
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -80,7 +80,7 @@ function New-VSAThirdAppNotification
     $Body = $BodyHT | ConvertTo-Json
 
 
-    return Invoke-VSAWriteRequest -Body $Body -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body $Body -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 New-Alias -Name Add-VSAThirdAppNotification -Value New-VSAThirdAppNotification

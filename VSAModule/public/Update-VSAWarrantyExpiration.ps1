@@ -25,7 +25,7 @@ function Update-VSAWarrantyExpiration
     .OUTPUTS
        Success or failure.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -55,7 +55,7 @@ function Update-VSAWarrantyExpiration
     )
     process {
 
-    return Invoke-VSAWriteRequest -Body (ConvertTo-Json @{ PurchaseDate = $PurchaseDate; WarrantyExpireDate = $WarrantyExpireDate } -Compress) -Method 'PUT' -URISuffix ($($URISuffix -f $AgentID)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body (ConvertTo-Json @{ PurchaseDate = $PurchaseDate; WarrantyExpireDate = $WarrantyExpireDate } -Compress) -Method 'PUT' -URISuffix ($($URISuffix -f $AgentID)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 Export-ModuleMember -Function Update-VSAWarrantyExpiration

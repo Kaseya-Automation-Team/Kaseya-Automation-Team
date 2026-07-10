@@ -25,7 +25,7 @@ function Remove-VSATenantModule {
        True if successful.
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
@@ -83,7 +83,7 @@ function Remove-VSATenantModule {
     }# Begin
     Process {
 
-        return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $TenantId, $ModuleId)) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $TenantId, $ModuleId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }#Process
 }
 

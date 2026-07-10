@@ -53,7 +53,7 @@ function New-VSAScheduleAuditBaseLine
     .NOTES
         Version 1.0.0
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -192,7 +192,7 @@ function New-VSAScheduleAuditBaseLine
                     Write-Debug "New-VSAScheduleAuditBaseLine. $($Body | Out-String)"
         
 
-        return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($URISuffix -f $AgentID) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($URISuffix -f $AgentID) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }# Process
 }
 New-Alias -Name Add-VSAScheduleAuditBaseLine -Value New-VSAScheduleAuditBaseLine

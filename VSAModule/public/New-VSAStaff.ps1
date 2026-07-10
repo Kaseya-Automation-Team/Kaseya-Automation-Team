@@ -35,7 +35,7 @@ function New-VSAStaff
     .OUTPUTS
        True if addition was successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -203,7 +203,7 @@ function New-VSAStaff
             Write-Debug "New-VSAStaff. Body: $Body"
     
 
-    return Invoke-VSAWriteRequest -Body ($Body) -Method 'POST' -URISuffix ($($URISuffix -f $DepartmentId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body ($Body) -Method 'POST' -URISuffix ($($URISuffix -f $DepartmentId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 New-Alias -Name Add-VSAStaff -Value New-VSAStaff

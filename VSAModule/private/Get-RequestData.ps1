@@ -54,6 +54,75 @@ function Get-VSARetryAfterSeconds {
     return $null
 }
 
+# Typed API exception so callers can branch programmatically on the failure kind instead of parsing
+# the message string. Guarded against re-import type collision (F-30), like the VSAConnection class.
+# Defined here (dot-sourced at import) because it is only referenced at runtime, never in a param type.
+if (-not ('VSAApiException' -as [type])) {
+Add-Type -TypeDefinition @'
+using System;
+
+public class VSAApiException : Exception
+{
+    // HTTP status code of the failed call. 0 means no HTTP response was received at all
+    // (the socket was reset / the endpoint was unreachable or blocked) -- see ConnectionReset.
+    public int StatusCode;
+    public string HttpMethod;
+    public string RequestUri;
+    // The VSA-specific "Error" field parsed from the response body, when present.
+    public string VSAError;
+    // True when no HTTP response arrived (connection reset / blocked / unreachable). On hardened
+    // (post-2021) VSA builds, user-mutation endpoints reset the connection, surfacing here.
+    public bool ConnectionReset;
+
+    public VSAApiException(string message) : base(message) { }
+    public VSAApiException(string message, Exception inner) : base(message, inner) { }
+}
+'@
+}
+
+function New-VSAApiError {
+    <#
+    .SYNOPSIS
+        Builds a typed [System.Management.Automation.ErrorRecord] (wrapping a VSAApiException) so
+        callers can branch on $_.Exception.StatusCode / .ConnectionReset or on $_.CategoryInfo.Category.
+    #>
+    # Pure object factory -- constructs and returns an ErrorRecord, changes no system state; the
+    # 'New' verb here does not warrant ShouldProcess.
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')]
+    [CmdletBinding()]
+    [OutputType([System.Management.Automation.ErrorRecord])]
+    param(
+        [Parameter(Mandatory)] [string] $Message,
+        [int]       $StatusCode = 0,
+        [string]    $Method,
+        [string]    $Uri,
+        [string]    $VSAError,
+        [Exception] $InnerException,
+        # Set only when no HTTP response arrived (socket reset / blocked / unreachable).
+        [switch]    $ConnectionReset
+    )
+    $ex = if ($InnerException) {
+        New-Object VSAApiException($Message, $InnerException)
+    } else {
+        New-Object VSAApiException($Message)
+    }
+    $ex.StatusCode      = $StatusCode
+    $ex.HttpMethod      = $Method
+    $ex.RequestUri      = $Uri
+    $ex.VSAError        = $VSAError
+    $ex.ConnectionReset = $ConnectionReset.IsPresent
+
+    $category = switch ($StatusCode) {
+        401     { [System.Management.Automation.ErrorCategory]::AuthenticationError }
+        403     { [System.Management.Automation.ErrorCategory]::PermissionDenied }
+        404     { [System.Management.Automation.ErrorCategory]::ObjectNotFound }
+        0       { [System.Management.Automation.ErrorCategory]::ConnectionError }
+        default { [System.Management.Automation.ErrorCategory]::InvalidOperation }
+    }
+    $errorId = if ($StatusCode -eq 0) { 'VSAConnectionReset' } else { "VSAHttp$StatusCode" }
+    return New-Object System.Management.Automation.ErrorRecord($ex, $errorId, $category, $Uri)
+}
+
 function Get-RequestData
 {
     <#
@@ -215,16 +284,32 @@ function Get-RequestData
 
             # Application-level error carried inside an HTTP 200 envelope.
             if ($Response.ResponseCode -match "(^40\d|^50\d)") {
-                throw "API Error (Code: $($Response.ResponseCode)) for $Method $URI. Error: '$($Response.Error)'. Result: '$($Response.Result)'."
+                $code = 0; [void][int]::TryParse([string]$Response.ResponseCode, [ref]$code)
+                throw (New-VSAApiError -Message "API Error (Code: $($Response.ResponseCode)) for $Method $URI. Error: '$($Response.Error)'. Result: '$($Response.Result)'." `
+                    -StatusCode $code -Method $Method -Uri $URI -VSAError ([string]$Response.Error))
             }
 
             if (($Response.ResponseCode -match "(^0$)|(^20\d+$)") -or ('OK' -eq $Response.Status)) {
                 return $Response
             }
 
-            throw "Unexpected API response for $Method $URI. Response Code: '$($Response.ResponseCode)'. Error: '$($Response.Error)'."
+            # Some VSA modules do NOT wrap their payload in the standard {Result, ResponseCode, Status,
+            # Error} envelope. Cloud Backup (kcb/servers, kcb/workstations, kcb/virtualmachines) returns
+            # a bare JSON object -- a flat { <agentId>: <statusString> } map -- with none of those
+            # fields. A response that carries neither ResponseCode nor Status is such a raw payload, not
+            # a broken envelope: it is a successful HTTP 200 result, so return it as-is (F-63).
+            if (($null -eq $Response.PSObject.Properties['ResponseCode']) -and
+                ($null -eq $Response.PSObject.Properties['Status'])) {
+                return $Response
+            }
+
+            throw (New-VSAApiError -Message "Unexpected API response for $Method $URI. Response Code: '$($Response.ResponseCode)'. Error: '$($Response.Error)'." `
+                -StatusCode 0 -Method $Method -Uri $URI -VSAError ([string]$Response.Error))
         }
         catch {
+            # Application-level errors thrown above are already typed and classified -- re-throw as-is.
+            if ($_.Exception -is [VSAApiException]) { throw $_ }
+
             $statusCode = Get-VSAHttpStatus -ErrorRecord $_
 
             if (($retryStatuses -contains $statusCode) -and ($RetryCount -lt $MaxRetries)) {
@@ -257,17 +342,34 @@ function Get-RequestData
                 }
             }
 
+            if ($null -eq $statusCode) {
+                # No HTTP response at all: the socket was reset / the endpoint is unreachable or
+                # blocked. On hardened (post-2021) VSA builds, user-mutation endpoints reset the
+                # connection here rather than returning a 403/404.
+                $detail = @(
+                    "No HTTP response for $Method $URI."
+                    "The connection was reset or the endpoint is unreachable -- it may be blocked or"
+                    "restricted on this VSA build (common for user-mutation endpoints on hardened,"
+                    "post-2021 instances)."
+                    "Underlying error: $($_.Exception.Message)"
+                    if ($errorBody) { "Response Body: $errorBody" }
+                ) -join "`n"
+                throw (New-VSAApiError -Message $detail -StatusCode 0 -Method $Method -Uri $URI `
+                    -VSAError $vsaError -InnerException $_.Exception -ConnectionReset)
+            }
+
             $detail = @(
                 "Failed to call REST API endpoint."
                 "Method: $Method"
                 "URI: $URI"
-                if ($null -ne $statusCode) { "HTTP Status: $statusCode" }
+                "HTTP Status: $statusCode"
                 "Error: $($_.Exception.Message)"
                 if ($vsaError)   { "VSA Error: $vsaError" }
                 elseif ($errorBody) { "Response Body: $errorBody" }
             ) -join "`n"
 
-            throw $detail
+            throw (New-VSAApiError -Message $detail -StatusCode ([int]$statusCode) -Method $Method -Uri $URI `
+                -VSAError $vsaError -InnerException $_.Exception)
         }
         finally {
             if ($certBypassPushed) {

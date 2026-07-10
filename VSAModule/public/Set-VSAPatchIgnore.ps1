@@ -52,7 +52,7 @@ function Set-VSAPatchIgnore
        Success or failure
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -230,7 +230,7 @@ function Set-VSAPatchIgnore
                     Write-Debug "New-VSAScheduleAuditBaseLine. $($Body | Out-String)"
         
 
-        return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($URISuffix -f $AgentID) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($URISuffix -f $AgentID) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }# Process
 
 }

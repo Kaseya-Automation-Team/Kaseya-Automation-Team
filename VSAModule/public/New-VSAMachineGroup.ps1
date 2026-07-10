@@ -125,7 +125,7 @@ function New-VSAMachineGroup
     
     
     return Invoke-VSAWriteRequest -Body $Body -Method POST -URISuffix ($URISuffix -f $OrgId) `
-        -VSAConnection $VSAConnection -ExtendedOutput:$ExtendedOutput
+        -VSAConnection $VSAConnection -ExtendedOutput:$ExtendedOutput -Caller $PSCmdlet
     }
 }
 New-Alias -Name Add-VSAMachineGroup -Value New-VSAMachineGroup

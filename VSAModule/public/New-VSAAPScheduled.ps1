@@ -55,7 +55,7 @@ function New-VSAAPScheduled {
         Version 1.0.0
     #>
     
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
@@ -239,7 +239,7 @@ function New-VSAAPScheduled {
         if ($ScriptPrompts)   { $BodyHT.ScriptPrompts = @($ScriptPrompts) }
         if ($ExcludeFrom -and $ExcludeTo) { $BodyHT.Exclusion = @{ From = $ExcludeFrom; To = $ExcludeTo } }
 
-        return Invoke-VSAWriteRequest -Body ($BodyHT | ConvertTo-Json) -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Body ($BodyHT | ConvertTo-Json) -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 New-Alias -Name Add-VSAScheduledAP -Value New-VSAAPScheduled

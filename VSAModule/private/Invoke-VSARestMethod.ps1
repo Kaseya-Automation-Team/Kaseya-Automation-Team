@@ -175,6 +175,17 @@ function Invoke-VSARestMethod {
     try {
         $response = Get-RequestData @WebRequestParams
     } catch {
+        # Preserve the typed API error (StatusCode / ConnectionReset / Category) so callers can
+        # branch programmatically -- e.g. distinguish 403 vs 404 vs a blocked/reset endpoint --
+        # rather than flattening everything into an opaque string. The transport already recorded
+        # Method + URI on the exception; the extra request context goes to the verbose stream.
+        if ($_.Exception -is [VSAApiException]) {
+            Write-Verbose ("Invoke-VSARestMethod failed. URISuffix: {0}; Filter: {1}; Sort: {2}; Skip: {3}; RecordsPerPage: {4}" -f `
+                $URISuffix, $(if ($Filter) { $Filter } else { 'None' }), $(if ($Sort) { $Sort } else { 'None' }), $(if ($Skip) { $Skip } else { '0' }), $RecordsPerPage)
+            throw $_
+        }
+
+        # Non-API failure (e.g. bad URI construction): keep the contextual string throw.
         $contextInfo = @(
             "Failed to retrieve data from VSA API"
             "URI Suffix: $URISuffix"
@@ -196,6 +207,18 @@ function Invoke-VSARestMethod {
     # non-existent .Result property, which would throw on the success path (F-21).
     if ($null -eq $response) {
         return $null
+    }
+
+    # A raw (non-enveloped) payload -- e.g. Cloud Backup's flat { <agentId>: <status> } map -- carries
+    # its data directly and has none of the standard envelope fields (Result/ResponseCode/Status).
+    # There is no '.Result' to unwrap and nothing to page, so return it as-is (F-63). A status-only
+    # envelope (has ResponseCode/Status but no Result) is NOT raw and still flows through below, where
+    # its absent '.Result' correctly yields an empty result set (F-23).
+    $isEnvelope = ($null -ne $response.PSObject.Properties['Result']) -or
+                  ($null -ne $response.PSObject.Properties['ResponseCode']) -or
+                  ($null -ne $response.PSObject.Properties['Status'])
+    if (-not $isEnvelope) {
+        return $response
     }
 
     # Use member access, not Select-Object -ExpandProperty: some write endpoints (e.g. the

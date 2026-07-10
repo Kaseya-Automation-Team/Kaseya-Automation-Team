@@ -20,16 +20,16 @@ function Set-VSATenantModuleUsageType {
     .PARAMETER UsageType
         Specifies a usage type
     .EXAMPLE
-       Set-VSATenantModuleUsageType -TenantId 10001 -ModuleName 'Anti-Malware' -UsageType 1
+       Set-VSATenantModuleUsageType -TenantId 10001 -ModuleId 20002 -UsageType 1
     .EXAMPLE
-       Set-VSATenantModuleUsageType -TenantName 'Your Tenant' -ModuleId 20002 -UsageType 1
+       Set-VSATenantModuleUsageType -TenantName 'Your Tenant' -ModuleName 'Anti-Malware' -UsageType 1
     .INPUTS
        Accepts piped non-Tenant VSAConnection 
     .OUTPUTS
        Array of tof module licenses
     #>
 
-    [CmdletBinding(DefaultParameterSetName = 'ById')]
+    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
     param ( 
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -53,7 +53,7 @@ function Set-VSATenantModuleUsageType {
 
         [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ByName')]
+            ParameterSetName = 'ById')]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
                 throw "Non-numeric value"
@@ -82,12 +82,12 @@ function Set-VSATenantModuleUsageType {
                     Select-Object -ExpandProperty Ref |
                     Where-Object { $_ -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
-            } catch { }
+            } catch { Write-Debug "Argument completer suppressed error: $_" }
         })]
         [ValidateNotNullOrEmpty()]
         [string] $TenantName,
 
-        [parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'ById')]
+        [parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'ByName')]
         [ArgumentCompleter({
             param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
             try {
@@ -98,7 +98,7 @@ function Set-VSATenantModuleUsageType {
                     Select-Object -ExpandProperty Name |
                     Where-Object { $_ -like "$wordToComplete*" } |
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
-            } catch { }
+            } catch { Write-Debug "Argument completer suppressed error: $_" }
         })]
         [ValidateNotNullOrEmpty()]
         [string] $ModuleName
@@ -129,7 +129,7 @@ function Set-VSATenantModuleUsageType {
      Process {
         $URISuffix = $URISuffix -f $TenantId, $ModuleId, $UsageType
 
-        return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+        return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }#Process
 }
 Export-ModuleMember -Function Set-VSATenantModuleUsageType

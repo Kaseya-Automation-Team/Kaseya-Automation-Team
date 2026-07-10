@@ -24,7 +24,7 @@ function Update-VSAAgentTempDir
        True if successful
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -53,7 +53,7 @@ function Update-VSAAgentTempDir
     # [Regex]::Escape (the previous approach) escapes characters that are special in a *regex
     # pattern* (e.g. '(', ')', '.', '+'), not in a JSON string, and would corrupt any temp path
     # containing them (F-43). ConvertTo-Json performs the correct JSON string escaping.
-    return Invoke-VSAWriteRequest -Body (ConvertTo-Json @( @{ key = $TempDir; value = $TempDir } ) -Compress) -Method 'PUT' -URISuffix ($($URISuffix -f $AgentId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body (ConvertTo-Json @( @{ key = $TempDir; value = $TempDir } ) -Compress) -Method 'PUT' -URISuffix ($($URISuffix -f $AgentId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

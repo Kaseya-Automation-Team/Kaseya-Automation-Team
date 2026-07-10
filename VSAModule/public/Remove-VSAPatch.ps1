@@ -22,7 +22,7 @@ function Remove-VSAPatch
        Success or failure
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -53,7 +53,7 @@ function Remove-VSAPatch
     # into {0} and silently dropped the rest. NOTE: the comma separator has NOT been confirmed by a
     # live mutating call (validation was GET-only); if the server rejects raw commas, URL-encode.
 
-    return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f ($AgentIds -join ','))) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f ($AgentIds -join ','))) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 

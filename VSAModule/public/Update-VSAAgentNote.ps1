@@ -22,7 +22,7 @@ function Update-VSAAgentNote {
     .OUTPUTS
        True if successful
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -48,7 +48,7 @@ function Update-VSAAgentNote {
 
     )
     process {
-    return Invoke-VSAWriteRequest -Body (ConvertTo-Json @{ $NoteId = $Note } -Compress) -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body (ConvertTo-Json @{ $NoteId = $Note } -Compress) -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 Export-ModuleMember -Function Update-VSAAgentNote

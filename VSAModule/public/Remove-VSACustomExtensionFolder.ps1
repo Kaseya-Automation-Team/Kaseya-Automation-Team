@@ -23,7 +23,7 @@ function Remove-VSACustomExtensionFolder
     .OUTPUTS
        Array of objects that represent Custom Extension Folders and Files.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -63,7 +63,7 @@ function Remove-VSACustomExtensionFolder
     # No collection-wide existence pre-check (F-38): a nonexistent AgentId now surfaces as the
     # API's own 4xx error (via the transport's improved error handling) instead of a second,
     # wasteful GET-the-whole-collection call before every removal.
-    return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $AgentId, $FolderPath)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $AgentId, $FolderPath)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 Export-ModuleMember -Function Remove-VSACustomExtensionFolder

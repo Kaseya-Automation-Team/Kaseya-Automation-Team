@@ -32,7 +32,7 @@ function Add-VSAItemToScope
     .OUTPUTS
        True if addition was successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true, 
@@ -131,6 +131,6 @@ function Add-VSAItemToScope
         $LogStr += "Adding User '$ItemId' to Scope '$ScopeId'"
     }
 
-    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $ScopeId, $ItemId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $ScopeId, $ItemId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }
 Export-ModuleMember -Function Add-VSAItemToScope

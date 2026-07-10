@@ -34,7 +34,7 @@ function New-VSAAgentInstallPkg
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -112,7 +112,7 @@ foreach ($key in $optionalParams.Keys) {
     }
 }
 
-    return Invoke-VSAWriteRequest -Body ($BodyHT | ConvertTo-Json) -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body ($BodyHT | ConvertTo-Json) -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 New-Alias -Name Add-VSAAgentInstallPkg -Value New-VSAAgentInstallPkg

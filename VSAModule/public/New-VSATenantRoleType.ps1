@@ -27,7 +27,7 @@ function New-VSATenantRoleType
     .OUTPUTS
        True if creation was successful.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false, 
             ValueFromPipelineByPropertyName = $true)]
@@ -91,7 +91,7 @@ function New-VSATenantRoleType
     
     [string]$Body = $BodyHT| ConvertTo-Json
 
-    return Invoke-VSAWriteRequest -Body ($Body) -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body ($Body) -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 New-Alias -Name Add-VSATenantRoleType -Value New-VSATenantRoleType

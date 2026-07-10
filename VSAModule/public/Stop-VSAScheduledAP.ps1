@@ -24,7 +24,7 @@ function Stop-VSAScheduledAP
        No output
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param ( 
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -54,7 +54,7 @@ function Stop-VSAScheduledAP
         [string] $AgentProcedureId
 )
 	
-    return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $AgentId, $AgentProcedureId)) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $AgentId, $AgentProcedureId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }
 
 Export-ModuleMember -Function Stop-VSAScheduledAP

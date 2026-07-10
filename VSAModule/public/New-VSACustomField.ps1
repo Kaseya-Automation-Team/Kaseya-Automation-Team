@@ -56,7 +56,7 @@ function New-VSACustomField {
         @{ key = 'FieldType'; value = $FieldType }
     ) -Compress
 
-    return Invoke-VSAWriteRequest -Body ($Body) -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection
+    return Invoke-VSAWriteRequest -Body ($Body) -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }
 New-Alias -Name Add-VSACustomField -Value New-VSACustomField

@@ -29,20 +29,20 @@ function Update-VSAAgentProfile
     .EXAMPLE
        Update-VSAAgentProfile -VSAConne-AgentId 323232323 -AdminEmail "support@yourcompany.com" -UserName "admin" -UserEmail "admin@yourcompany.com" -UserPhone "+183234334" -Notes "Alan's computer" -ShowToolTip 0
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/assetmgmt/agent/{0}/settings/userprofile",
 
         [Parameter(Mandatory = $true)]
@@ -56,7 +56,7 @@ function Update-VSAAgentProfile
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $AdminEmail,
 
         [parameter(Mandatory=$true,
@@ -66,7 +66,7 @@ function Update-VSAAgentProfile
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $UserEmail,
 
         [parameter(Mandatory=$true,
@@ -92,7 +92,7 @@ function Update-VSAAgentProfile
         [switch] $AutoAssignTickets
 )
     process {
-	
+
     return Invoke-VSAWriteRequest -Body (ConvertTo-Json @{
             AdminEmail        = $AdminEmail
             UserName          = $UserName

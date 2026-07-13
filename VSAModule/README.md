@@ -4,7 +4,7 @@ A PowerShell wrapper for the Kaseya VSA 9 REST API. It handles authentication, t
 
 **Note:** This module simplifies interaction with the Kaseya VSA REST API; it does not modify or impact the behavior of the API itself. Issues or glitches within the REST API are unrelated to the module and should be addressed to Kaseya directly.
 
-**Current version:** 1.3.2 · **License:** [MIT](LICENSE.txt)
+**Current version:** 1.3.3 · **License:** [MIT](LICENSE.txt)
 
 ## Contents
 
@@ -103,7 +103,7 @@ $VSAConnection = New-VSAConnection -VSAServer 'https://vsa.example.com' -Credent
 
 ## Key Features
 
-- **115 cmdlets, 138 aliases** covering organizations, agents, assets, tickets, staff, roles, scopes, tenants, custom fields, agent procedures, and more.
+- **139 cmdlets, 169 aliases** covering organizations, agents, assets, tickets, staff, roles, scopes, tenants, custom fields, agent procedures, remote-control services, temporary agents, alerts, and more.
 - **Automatic paging** — collections are paged transparently via `$skip`/`$top`; no manual loop needed for large result sets.
 - **Automatic retry** — transient HTTP errors (429, 502, 503, 504) retry automatically with exponential backoff (and `Retry-After` support).
 - **Automatic token renewal** — session tokens are renewed transparently before paged/long-running requests.
@@ -156,14 +156,44 @@ Comment-based help is available on every public cmdlet. For the underlying REST 
 
 ## Release Notes
 
-### Version 1.3.2 (Current)
+### Version 1.4.0 (Current)
+
+Broad coverage expansion driven by a full diff against the live VSA Swagger: **31 new read/remove commands** added as endpoint-map entries on the existing data-driven dispatchers (no new files), plus **24 new write functions** built on the shared write path. Everything was exercised against a live VSA server. The internal machine-to-machine surface (agent↔server replication, BMS/IT Glue integration, clustering, policy/event-set editor internals) is intentionally excluded — it is not admin-callable.
+
+- **31 new commands (aliases on the generic dispatchers):**
+  - *Remote control:* `Get-VSARCService`, `Get-VSARCServiceByAsset`, `Get-VSARCMachine`, `Get-VSARCMachineByView`
+  - *Temporary agents:* `Get-VSATemporaryAgent`, `Get-VSATemporaryAgentConfig`, `Remove-VSATemporaryAgent`
+  - *Agent procedures:* `Get-VSAAPList`, `Get-VSAAPProcHistory`, `Get-VSAAPExecHistory`, `Get-VSAAPPrompt`, `Get-VSAAPPromptById`, `Get-VSAAPVariable`
+  - *Agents / assets:* `Get-VSAAgentActiveAdmin`, `Get-VSAAgentUserProfile`, `Get-VSAAgentUpdateSchedule`, `Get-VSAAssetById`, `Get-VSAAssetAudit`
+  - *Alerts, orgs, tenants:* `Get-VSAAlertDefinition`, `Get-VSAOrgType`, `Get-VSAOrgLocation`, `Get-VSATenantLogonPolicy`, `Get-VSATenantDefaultSetting`
+  - *Service desk, backup, misc:* `Get-VSASDTicketByDesk`, `Get-VSASDTicketById`, `Get-VSACBStatus`, `Get-VSAFunctionById`, and the document aggregations `Get-VSADocumentServiceAudit` / `Get-VSADocumentVolumeLabel` / `Get-VSADocumentServiceName` / `Get-VSADocumentDistinctVolumeLabel`
+- **24 new write functions** (real cmdlets on the shared `Invoke-VSAWriteRequest` / `ConvertTo-VSARequestBody` base, with uniform `-WhatIf`/`-Confirm`):
+  - *Remote control services:* `New-VSARCService`, `Set-VSARCService`, `Remove-VSARCService`, `Set-VSAAssetProxy`, `Set-VSAAssetService`
+  - *Temporary agents:* `New-VSATemporaryAgent`, `Set-VSATemporaryAgentName`, `New-VSATemporaryAgentNote`, `Send-VSATemporaryAgentEmail`
+  - *Agent / asset lifecycle:* `Suspend-VSAAgent`, `Start-VSAAgentUpgrade`, `Convert-VSAAssetToDevice`, `Convert-VSADeviceToAsset`, `Publish-VSADevice`
+  - *Alerts:* `Set-VSAAgentAlert`, `Set-VSASystemAlert`, `Get-VSAAlertTracking`
+  - *Automation / patch / service desk / org:* `Start-VSAAPReturnId`, `Stop-VSAPatchSchedule`, `New-VSASDTicket`, `Get-VSAOrgNetwork`
+  - *User management:* `Set-VSAUserPassword`, `Reset-VSAUserPassword`, `Close-VSAUserSession` (user-mutation endpoints; may be network-blocked on hardened post-2021 builds)
+- Adds `Tests/VSAModule.EndpointMaps.Tests.ps1`, which enforces that every map alias resolves to the right dispatcher and is declared in the manifest's `AliasesToExport`.
+
+### Version 1.3.3
+
+Maintenance and help-accuracy release — dead-code cleanup, packaging tidy-up, and fixes to advertised-but-broken behavior. No cmdlets or parameters added or removed, nothing breaking:
+- **Fix: `Get-Help` showed no synopsis or description for five user cmdlets.** `Disable-VSAUser`, `Enable-VSAUser`, `Remove-VSAUser`, `Update-VSAUser`, and `Add-VSAUserToRole` displayed only auto-generated syntax. Their `.NOTES` prose wrapped so a line began with `.StatusCode …`, which PowerShell's comment-based-help parser read as an unknown help directive and used to discard the entire help block. The wording was adjusted so no line starts with a `.token`; `Get-Help` now shows the intended help.
+- **Fix: `Get-VSATenantModuleLicense` and `Get-VSATenantRoletypeFunclist` ignored `-Filter`/`-Sort`.** Both cmdlets declared and documented these parameters but never passed them to the transport, so they were silently discarded. They are now forwarded as the OData `$filter`/`$orderby` query the rest of the module uses (verified live: the server accepts them). The stale `.PARAMETER ResolveIDs` help entry — which described a parameter neither cmdlet has — was removed.
+- **Maintenance: removed redundant packaging and dead files.** Deleted the checked-in `VSAModule.nuspec` — a generated packaging snapshot that only duplicated `VSAModule.psd1` (which is the authoritative source of the id, version, description, URLs, release notes, and tags) and is ignored by `Publish-Module`, which regenerates its own from the manifest. Also removed the leftover NuGet OPC artifacts (`_rels/`, `package/`, `[Content_Types].xml`) and the inert external MAML help file (`en-US/VSAModule-help.xml`) — comment-based help always shadowed it, so `Get-Help` never surfaced it — plus a few dead `#[CmdletBinding()]` comment lines and a duplicate `Export-ModuleMember` line. No public surface changed.
+- **Maintenance: de-duplicated the dynamic-parameter helper.** Six schedule/recurrence cmdlets (`Set-VSAAuditSchedule`, `Set-VSAScheduleAuditSysInfo`, `Set-VSAPatchIgnore`, `New-VSAScheduleAuditBaseLine`, `New-VSAAPScheduled`, `Start-VSAPatchUpdate`) each carried an identical copy of a `New-VSARuntimeParameter` helper inside their `DynamicParam` block (one was even named differently). They now share a single private helper (`private/New-VSARuntimeParameter.ps1`), which is visible to each `DynamicParam` block because those run in module scope. No behavior change — the dynamic recurrence parameters (`DaysOfWeek`, `DayOfMonth`, `MonthOfYear`, `Times`, …) and their validation are identical; verified live against a VSA server.
+- **Maintenance: normalized source formatting.** A whitespace-only pass across the module stripped trailing whitespace, re-indented the debug/verbose logging lines to their block depth, and collapsed stray multi-blank-line runs. Every file was verified token-equivalent (parsed before/after; all non-whitespace tokens identical), so the change is provably behavior-preserving.
+- **Tests:** the help suite (`Tests/VSAModule.Help.Tests.ps1`) was rewritten to validate the comment-based help actually surfaced by `Get-Help` for every public function, rather than the removed MAML file. Adds `Tests/VSAModule.RuntimeParameter.Tests.ps1` and `Tests/VSAModule.FilterSort.Tests.ps1`.
+
+### Version 1.3.2
 
 Fixes found during a full-module acceptance test against a live VSA server (no cmdlets added or removed):
 - **Fix: Cloud Backup cmdlets returned no data.** `Get-VSACBServer(s)`, `Get-VSACBWS`, and `Get-VSACBVM` always threw *"Unexpected API response"*. The Cloud Backup (`kcb/*`) endpoints return a bare JSON object — a flat `{ <agentId>: <status> }` map — with none of the standard `{Result, ResponseCode, Status, Error}` envelope fields, and the transport mistook that for a broken envelope. The transport now recognizes a genuinely non-enveloped payload and returns it as-is (a status-only envelope still yields an empty result, unchanged).
 - **Fix: tenant role-type cmdlets couldn't target instance-specific role types.** `Enable-VSATenantRoleType` / `Clear-VSATenantRoleType` validated `-RoleType`/`-RoleTypeName` against a hardcoded list and resolved names via a static name→Id map, so real role types that exist on an instance (e.g. `Multi-Tenant`, `Multi-Tenant Admin`, or any custom/tenant role type) could never be selected. Both now resolve names to Ids at runtime via `Get-VSARoleType` (with tab-completion and a clear error listing the available role types) — matching `Set-VSATenantRoletypeLimit`, which already worked this way. The stale `$TenantRoleTypeIdMap` was removed.
 - **Fix: `New-VSALCAuditLog -Message`** was documented as required but declared optional; omitting it sent a null log message and the server returned HTTP 400. It is now mandatory.
 - **Fix: `Send-VSAEmail -UniqueTag`** was declared mandatory but the function body already treats it as optional; it is now optional, so a `UniqueTag` is no longer forced on every email.
-- **Fix: `Set-VSATenantModuleUsageType` parameter sets were cross-wired.** `TenantId`/`ModuleName` were grouped in one set and `ModuleId`/`TenantName` in the other, so the two natural calls — `-TenantId <id> -ModuleId <id>` and `-TenantName <name> -ModuleName <name>` — could not be satisfied (*"Parameter set cannot be resolved"*); only awkward id-of-one-with-name-of-the-other combinations worked. The sets are now `ById = {TenantId, ModuleId}` and `ByName = {TenantName, ModuleName}` (and the examples were corrected). Found during a full 115-function / 138-alias coverage sweep.
+- **Fix: `Set-VSATenantModuleUsageType` parameter sets were cross-wired.** `TenantId`/`ModuleName` were grouped in one set and `ModuleId`/`TenantName` in the other, so the two natural calls — `-TenantId <id> -ModuleId <id>` and `-TenantName <name> -ModuleName <name>` — could not be satisfied (*"Parameter set cannot be resolved"*); only awkward id-of-one-with-name-of-the-other combinations worked. The sets are now `ById = {TenantId, ModuleId}` and `ByName = {TenantName, ModuleName}` (and the examples were corrected). Found during a full coverage sweep of every function and alias.
 - **Fix: `New-VSASDTicketNote -Hidden` and `-SystemFlag` were mandatory switches.** A `[switch]` that must always be supplied is a contradiction — it forced `-Hidden -SystemFlag` on every call just to create an ordinary ticket note. Both are now optional and default to `$false` (which the body already handled).
 - **Fix: the multipart upload cmdlets ignored `-WhatIf`/`-Confirm`.** `Publish-VSADocument` and `Publish-VSACustomExtensionFile` (which build a raw multipart body and don't route through the shared write dispatcher) did not support `ShouldProcess`, unlike every other write cmdlet. They now honor `-WhatIf`/`-Confirm`, so a dry run no longer uploads.
 - Adds `Tests/VSAModule.RawPayload.Tests.ps1` and `Tests/VSAModule.ParamContract.Tests.ps1`.

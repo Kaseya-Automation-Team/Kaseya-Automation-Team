@@ -18,7 +18,7 @@ function Remove-VSACustomField {
     .EXAMPLE
         Remove-VSACustomField -FieldName 'DeleteWithoutConfirmation' -Confirm:$false
     .INPUTS
-        Accepts piped non-persistent VSAConnection 
+        Accepts piped non-persistent VSAConnection
     .OUTPUTS
         True if removing was successful
     #>
@@ -27,17 +27,17 @@ function Remove-VSACustomField {
         ConfirmImpact = 'High'
     )]
     param (
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/assetmgmt/assets/customfields/{0}",
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $FieldName
     )
     process {

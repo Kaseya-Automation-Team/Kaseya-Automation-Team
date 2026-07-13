@@ -31,22 +31,22 @@ function Update-VSAStaff
     .EXAMPLE
        Update-VSAStaff -OrgStaffId 10001 -OrgIdNumber 20002 -StaffFullName 'John Doe'
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if addition was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/staff/{0}',
 
-        [Parameter(Mandatory = $true, 
+        [Parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -56,7 +56,7 @@ function Update-VSAStaff
         })]
         [string] $OrgStaffId,
 
-        [Parameter(Mandatory = $false, 
+        [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -66,7 +66,7 @@ function Update-VSAStaff
         })]
         [string] $DepartmentId,
 
-        [Parameter(Mandatory = $true, 
+        [Parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -101,7 +101,7 @@ function Update-VSAStaff
         [ValidateNotNullOrEmpty()]
         [string] $Function = '',
 
-        [Parameter(Mandatory = $false, 
+        [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {

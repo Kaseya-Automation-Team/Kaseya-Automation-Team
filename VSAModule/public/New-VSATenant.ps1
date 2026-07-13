@@ -36,20 +36,20 @@
        $securePassword = ConvertTo-SecureString 'YourLongPasswordHere!' -AsPlainText -Force
        New-VSATenant -Ref 'NewTenantName' -AdminUserName 'NewTenantUser' -EMail 'NewTenantUser@domain.mail' -Password $securePassword
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if creation was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams','')]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant',
 
         [Parameter(Mandatory = $true,
@@ -125,14 +125,14 @@
         [object] $Attributes
     )
     process {
-    
+
     [string] $HashName = 'SHA256'
-    
+
     # Convert SecureString password to plaintext for hashing and API transmission
     $passwordPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToGlobalAllocUnicode($Password)
     $PlainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringUni($passwordPtr)
     [System.Runtime.InteropServices.Marshal]::ZeroFreeGlobalAllocUnicode($passwordPtr)
-    
+
     $HashStringBuilder = New-Object System.Text.StringBuilder
     [System.Security.Cryptography.HashAlgorithm]::Create($HashName).ComputeHash([System.Text.Encoding]::UTF8.GetBytes("$PlainPassword$AdminUserName")) | `
     Foreach-Object  {
@@ -186,7 +186,6 @@
     if ( -not [string]::IsNullOrEmpty($TimeZoneOffset) ) { $BodyHT.Add('TimeZoneOffset', [int]$TimeZoneOffset) }
     if ( -not [string]::IsNullOrEmpty($Type) ) { $BodyHT.Add('Type', $Type) }
     if ( -not [string]::IsNullOrEmpty($ForcePasswordChange) ) { $BodyHT.Add('ForcePasswordChange', [int]$ForcePasswordChange) }
-
 
     if ( 0 -lt $NamedRoleTypeLimits.Count ) { $BodyHT.Add('NamedRoleTypeLimits', $NamedRoleTypeLimits) }
 

@@ -165,12 +165,11 @@ function Invoke-VSARestMethod {
         $WebRequestParams.Add('OutFile', $OutFile)
     }
 
-            Write-Debug "$($MyInvocation.MyCommand)"
-        Write-Debug "Invoke-VSARestMethod. Request details:"
-        $WebRequestParams | ConvertTo-Json -Depth 3 | Out-String | Write-Debug
-    
-            Write-Verbose "Invoke-VSARestMethod. Calling Get-RequestData on URI: $($WebRequestParams.Uri)"
-    
+    Write-Debug "$($MyInvocation.MyCommand)"
+    Write-Debug "Invoke-VSARestMethod. Request details:"
+    $WebRequestParams | ConvertTo-Json -Depth 3 | Out-String | Write-Debug
+
+    Write-Verbose "Invoke-VSARestMethod. Calling Get-RequestData on URI: $($WebRequestParams.Uri)"
 
     try {
         $response = Get-RequestData @WebRequestParams
@@ -199,8 +198,7 @@ function Invoke-VSARestMethod {
         throw $contextInfo
     }
 
-            Write-Debug "Invoke-VSARestMethod. Response:`n$($response | Out-String)"
-
+    Write-Debug "Invoke-VSARestMethod. Response:`n$($response | Out-String)"
 
     # A successful empty-body 2xx (HTTP 204 No Content from DELETE / some PUT) comes back as $null
     # -- there is no envelope to expand or page. Return nothing rather than trying to expand a
@@ -231,8 +229,7 @@ function Invoke-VSARestMethod {
         $paginated = $true
         [int]$TotalRecords = $response.TotalRecords
 
-                    Write-Verbose "Invoke-VSARestMethod. TotalRecords: $TotalRecords"
-        
+        Write-Verbose "Invoke-VSARestMethod. TotalRecords: $TotalRecords"
 
         $resultCollection = [System.Collections.ArrayList]@($result)
 
@@ -248,8 +245,8 @@ function Invoke-VSARestMethod {
             $WebRequestParams.Uri = '{0}{1}{2}' -f $URI, $UriSeparator, (ConvertTo-VSAQueryString -Parameters $ApiSearchParams)
 
             if ($skipValue -ge $RenewThreshold) {
-                                    Write-Verbose "Fetching in progress... So far fetched $RenewThreshold records. Renewing session token."
-                
+                Write-Verbose "Fetching in progress... So far fetched $RenewThreshold records. Renewing session token."
+
                 if ($null -eq $VSAConnection) {
                     Update-VSAConnection -Force
                     $UsersToken = "Bearer $( Get-VSAPersistentToken )"
@@ -272,8 +269,7 @@ function Invoke-VSARestMethod {
         $result = $resultCollection.ToArray()
     }
 
-            Write-Debug "Invoke-VSARestMethod. Result`n $($result | Out-String)"
-    
+    Write-Debug "Invoke-VSARestMethod. Result`n $($result | Out-String)"
 
     if ($ExtendedOutput) {
         if ($paginated) {

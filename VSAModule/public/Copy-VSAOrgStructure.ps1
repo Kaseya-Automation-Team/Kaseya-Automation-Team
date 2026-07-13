@@ -21,11 +21,11 @@ function Copy-VSAOrgStructure {
     #>
     [CmdletBinding()]
     param (
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $SourceVSA,
 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $DestinationVSA,
 
@@ -44,12 +44,12 @@ function Copy-VSAOrgStructure {
     [array] $DestinationOrgs = Get-VSAOrganization @DestinationParams
 
     #region message
-            "Organizations to be created: [$($OrgsToTransfer.OrgRef -join '; ')]" | Write-Debug
-        "Organizations already present in the destination: [$($DestinationOrgs.OrgRef -join '; ')]" | Write-Debug
-    
-            "Organizations to be created: [$($OrgsToTransfer.OrgRef -join '; ')]" | Write-Verbose
-        "Organizations already present in the destination: [$($DestinationOrgs.OrgRef -join '; ')]" | Write-Verbose
-    
+    "Organizations to be created: [$($OrgsToTransfer.OrgRef -join '; ')]" | Write-Debug
+    "Organizations already present in the destination: [$($DestinationOrgs.OrgRef -join '; ')]" | Write-Debug
+
+    "Organizations to be created: [$($OrgsToTransfer.OrgRef -join '; ')]" | Write-Verbose
+    "Organizations already present in the destination: [$($DestinationOrgs.OrgRef -join '; ')]" | Write-Verbose
+
     #endregion message
 
     Foreach ($Organization in $OrgsToTransfer | Sort-Object -Property @{
@@ -63,8 +63,8 @@ function Copy-VSAOrgStructure {
 
         [string]$Info = "Processing Organization: '$($Organization.OrgRef)'"
         #region message
-         Write-Debug $Info 
-         Write-Verbose $Info 
+        Write-Debug $Info
+        Write-Verbose $Info
         #endregion message
 
         #region Define the current Organiztion's own OrgRef and the parent organization OrgRef (if exists)
@@ -76,9 +76,9 @@ function Copy-VSAOrgStructure {
         if (0 -lt $strLength ) {
             [string] $ParentOrgRef = $organization.OrgRef.Substring( 0, $strLength )
         }
-        
+
         $Organization.OrgRef = $OwnOrgRef
-        
+
         #endregion Define the current Organization's own OrgRef and the parent organization OrgRef (if exists)
 
         # Check if the Parent Organization already exists in the destination.
@@ -87,10 +87,10 @@ function Copy-VSAOrgStructure {
             $DestinationParentOrgId =  Get-VSAOrganization @DestinationParams -Filter "OrgRef eq '$(ConvertTo-ODataString $ParentOrgRef)'" | Select-Object -ExpandProperty OrgId
 
             #region message
-                            Write-Debug "Parent Organization for '$($Organization.OrgRef)' : '$ParentOrgRef'. Destination ParentOrgId: '$DestinationParentOrgId'."
-            
-                            Write-Verbose "Parent Organization for '$($Organization.OrgRef)' : '$ParentOrgRef'. Destination ParentOrgId: '$DestinationParentOrgId'."
-            
+            Write-Debug "Parent Organization for '$($Organization.OrgRef)' : '$ParentOrgRef'. Destination ParentOrgId: '$DestinationParentOrgId'."
+
+            Write-Verbose "Parent Organization for '$($Organization.OrgRef)' : '$ParentOrgRef'. Destination ParentOrgId: '$DestinationParentOrgId'."
+
             #endregion message
 
             #Replace source's ParentOrgId with the destination's counterpart
@@ -98,10 +98,10 @@ function Copy-VSAOrgStructure {
         }
 
         #region message
-                    Write-Debug   "Look up the Destination for '$($Organization.OrgRef)'"
-        
-                    Write-Verbose "Look up the Destination for '$($Organization.OrgRef)'"
-        
+        Write-Debug   "Look up the Destination for '$($Organization.OrgRef)'"
+
+        Write-Verbose "Look up the Destination for '$($Organization.OrgRef)'"
+
         #endregion message
 
         $CheckDestination = Get-VSAOrganization @DestinationParams -Filter "OrgRef eq '$(ConvertTo-ODataString $OwnOrgRef)'"
@@ -117,11 +117,11 @@ function Copy-VSAOrgStructure {
 
             #region message
             $Info = "Organization with OrgRef '$($Organization.OrgRef)' was not found in the destination. Will attempt to create it."
-             Write-Debug $Info 
-             Write-Verbose $Info 
+            Write-Debug $Info
+            Write-Verbose $Info
 
-                            "Organization will be created with the following data:`n'$($Organization | ConvertTo-Json -Depth 3 | Out-String)'" | Write-Debug
-            
+            "Organization will be created with the following data:`n'$($Organization | ConvertTo-Json -Depth 3 | Out-String)'" | Write-Debug
+
             #endregion message
 
             $NewOrgId = try {
@@ -155,7 +155,7 @@ function Copy-VSAOrgStructure {
                 Write-Debug $Info
                 Write-Debug "JSON data:`n$($Organization | ConvertTo-Json -Depth 3 | Out-String)"
                 #endregion message
-            } 
+            }
         }
         else {
             #$CheckDestination is not null

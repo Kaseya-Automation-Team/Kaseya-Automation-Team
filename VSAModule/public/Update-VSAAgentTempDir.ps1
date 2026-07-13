@@ -19,20 +19,20 @@ function Update-VSAAgentTempDir
     .EXAMPLE
        Update-VSAAgentTempDir -VSAConnection $VSAConnection -AgentId 342343222 -TempDir "c:\temp"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/assetmgmt/agents/{0}/settings/tempdir",
 
         [Parameter(Mandatory = $true)]
@@ -46,7 +46,7 @@ function Update-VSAAgentTempDir
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $TempDir
 )
     process {

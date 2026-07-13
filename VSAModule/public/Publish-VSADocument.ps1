@@ -20,7 +20,7 @@ function Publish-VSADocument
     .EXAMPLE
        Publish-VSADocument -AgentId 10001 -SourceFilePath 'File.txt' -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful.
     .NOTES
@@ -34,11 +34,11 @@ function Publish-VSADocument
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/documents/{0}/file/{1}',
 
         [Alias("Id")]
-        [Parameter(Mandatory = $true, 
+        [Parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -49,7 +49,7 @@ function Publish-VSADocument
         [string] $AgentId,
 
         [Alias("Src")]
-        [Parameter(Mandatory = $true, 
+        [Parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( -Not ($_ | Test-Path -PathType leaf ) ){
@@ -60,7 +60,7 @@ function Publish-VSADocument
         [System.IO.FileInfo]$SourceFilePath,
 
         [Alias("Dest")]
-        [Parameter(Mandatory = $false, 
+        [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $DestinationFolder
@@ -78,7 +78,7 @@ function Publish-VSADocument
     }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
-    
+
     # Build the multipart body as raw bytes so binary files survive unmodified (F-37): converting
     # the file to a string and back (the previous approach) corrupts any byte sequence that isn't
     # valid UTF-8, since that round-trip is lossy.
@@ -96,8 +96,7 @@ function Publish-VSADocument
     $Params.Add('ContentType', "multipart/form-data; boundary=`"$Boundary`"")
     $Params.Add('Body', $BodyBytes)
 
-            Write-Debug "Publish-VSADocument. $($Params | Out-String)"
-
+    Write-Debug "Publish-VSADocument. $($Params | Out-String)"
 
     if ($PSCmdlet.ShouldProcess($URISuffix, "PUT (upload '$FileName')")) {
         return Invoke-VSARestMethod @Params

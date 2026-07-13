@@ -57,10 +57,9 @@ function Update-VSAConnection {
     # Renew the session if it is about to expire, or unconditionally when -Force is used.
     if ($Force -or ($SessionExpiration -le [datetime]::Now)) {
 
-                    Write-Debug "The REST API Token is about to expire ($SessionExpiration)."
-        
-                    Write-Verbose "The REST API Token is about to expire ($SessionExpiration)."
-        
+        Write-Debug "The REST API Token is about to expire ($SessionExpiration)."
+
+        Write-Verbose "The REST API Token is about to expire ($SessionExpiration)."
 
         # Extract the data needed for repeat Token request
         if ($null -eq $VSAConnection) {
@@ -117,10 +116,9 @@ function Update-VSAConnection {
             $VSAConnection.UpdateSessionExpiration($SessionExpiration)
         }
 
-                    Write-Verbose "`nUpdate-VSAConnection: Session token renewed.`n`tSession token expiration: $SessionExpiration (UTC).`nContinue working..."
-        
-                    Write-Debug "`nUpdate-VSAConnection: Session token renewed.`n`tSession token expiration: $SessionExpiration (UTC).`nContinue working..."
-        
+        Write-Verbose "`nUpdate-VSAConnection: Session token renewed.`n`tSession token expiration: $SessionExpiration (UTC).`nContinue working..."
+
+        Write-Debug "`nUpdate-VSAConnection: Session token renewed.`n`tSession token expiration: $SessionExpiration (UTC).`nContinue working..."
 
     } # the session is about to expire
     }

@@ -40,35 +40,34 @@ function Update-VSAUser
        $securePassword = ConvertTo-SecureString 'P@$$w0rd!' -AsPlainText -Force
        Update-VSAUser -UserId 10001 -AdminName 'Login' -AdminPassword $securePassword -AdminRoleIds 1, 2 -AdminScopeIds 3, 4 -DefaultStaffOrgId 5 -DefaultStaffDepartmentId 6 -FirstName 'John' -LastName 'Doe' -Email 'JohnDoe@example.mail'
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if update was successful.
         .NOTES
         On hardened (post-2021) VSA builds this user-mutation endpoint may be blocked at the network
-        layer. The call then fails with a VSAApiException whose .ConnectionReset is $true and
-        .StatusCode is 0 (the connection is reset before any HTTP status is returned) -- it is not a
+        layer. The call then fails with a VSAApiException whose ConnectionReset property is $true and
+        the StatusCode is 0 (the connection is reset before any HTTP status is returned) -- it is not a
         403/404. Read-only user cmdlets (Get-VSAUser) are unaffected.
 #>
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams','')]
-    #[CmdletBinding()]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ByName')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ById')]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory=$false,
-            
+
             ParameterSetName = 'ByName')]
         [parameter(Mandatory=$false,
-            
+
             ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/users/{0}',
 
         [parameter(Mandatory=$true,
@@ -266,7 +265,7 @@ function Update-VSAUser
         }
     }# Begin
     Process {
-    
+
     # Convert SecureString password to plaintext for API transmission if provided
     $PasswordForBody = $AdminPassword
     if ($AdminPassword -and $AdminPassword -is [securestring]) {
@@ -274,7 +273,7 @@ function Update-VSAUser
         $PasswordForBody = [System.Runtime.InteropServices.Marshal]::PtrToStringUni($passwordPtr)
         [System.Runtime.InteropServices.Marshal]::ZeroFreeGlobalAllocUnicode($passwordPtr)
     }
-    
+
     [hashtable]$BodyHT = @{
         UserId                   = $UserId
         AdminName                = $AdminName

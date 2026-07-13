@@ -15,19 +15,19 @@ function New-VSAAgentNote {
     .EXAMPLE
        New-VSAAgentNote -AgentId '10001' -Note 'A note to add' -VSAConnection $connection
     .INPUTS
-       Accepts piped VSAConnection 
+       Accepts piped VSAConnection
     .OUTPUTS
        True if creation was successful
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param (
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/agent/{0}/note',
 
         [Parameter(Mandatory = $true)]

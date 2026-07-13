@@ -15,19 +15,19 @@ function Get-VSAAPFile
     .PARAMETER DownloadsFolder
         Specifies folder to dowload the file. By default, current profiles' default Downloads folder.
     .EXAMPLE
-       Get-VSAAPFile 
+       Get-VSAAPFile
     .EXAMPLE
        Get-VSAAPFile -AgentId 10001 -Path 'File.ext' -DownloadFile
     .EXAMPLE
        Get-VSAAPFile -AgentId 10001 -Path 'File.ext' -VSAConnection $connection -DownloadFile
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        File stored in the DownloadsFolder.
     #>
     [CmdletBinding(DefaultParameterSetName='Metadata')]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
@@ -65,7 +65,7 @@ function Get-VSAAPFile
     # these InvocationName checks could never fire. The -DownloadFile switch is the only way to
     # opt into download mode.
     if ( [string]::IsNullOrEmpty($Path) -and (-not $DownloadFile) ) {$Path = '.'}
-    
+
     if ( $DownloadFile ) {
 
         $URISuffix = 'api/v1.0/assetmgmt/getfiles/{0}/file/{1}' -f $AgentID, (Format-VSAPathSegment ($Path -replace '\\', '/'))

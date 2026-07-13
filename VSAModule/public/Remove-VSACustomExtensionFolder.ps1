@@ -19,19 +19,19 @@ function Remove-VSACustomExtensionFolder
     .EXAMPLE
        Remove-VSACustomExtensionFolder -AgentId '10001' -Folder 'NewFolder3' -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of objects that represent Custom Extension Folders and Files.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/customextensions/{0}/{1}',
 
         [Parameter(Mandatory = $true)]

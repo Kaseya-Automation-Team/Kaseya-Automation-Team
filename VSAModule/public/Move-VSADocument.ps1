@@ -19,13 +19,13 @@ function Move-VSADocument
     .EXAMPLE
        Move-VSADocument -AgentId 10001 -Source "OldName.txt" -Destination "NewName.txt" -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
@@ -34,7 +34,7 @@ function Move-VSADocument
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/documents/{0}/file/Move/{1}/{2}',
 
-        [parameter(Mandatory = $true,  
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {

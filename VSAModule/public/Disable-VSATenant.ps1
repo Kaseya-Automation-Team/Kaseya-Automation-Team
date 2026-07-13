@@ -19,28 +19,28 @@ function Disable-VSATenant
     .EXAMPLE
        Disable-VSATenant -TenantId 10001 -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ByName')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ById')]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(DontShow, Mandatory = $false, 
-            
+        [parameter(DontShow, Mandatory = $false,
+
             ParameterSetName = 'ByName')]
-        [parameter(DontShow, Mandatory = $false, 
-            
+        [parameter(DontShow, Mandatory = $false,
+
             ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant/deactivate?tenantId={0}',
 
         [Parameter(Mandatory = $true,

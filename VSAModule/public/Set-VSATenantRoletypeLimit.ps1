@@ -24,20 +24,20 @@ function Set-VSATenantRoletypeLimit {
     .EXAMPLE
        Set-VSATenantRoletypeLimit -Limit 1 -RoleTypeName 'KDM Admin' -TenantName 'YourTenantName'
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful.
     #>
 
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
-    param ( 
+    param (
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant/roletypes/limits/{0}',
 
         [parameter(Mandatory=$true,

@@ -19,19 +19,19 @@ function Update-VSASDTicketStatus
     .EXAMPLE
        Update-VSASDTicketStatus -VSAConnection $connection -ServiceDeskTicketId 979868787875855 -StatusId 434907986
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/automation/servicedesktickets/{0}/status/{1}",
 
         [parameter(Mandatory=$true,
@@ -41,7 +41,7 @@ function Update-VSASDTicketStatus
                 throw "Non-numeric Id"
             }
             return $true
-        })] 
+        })]
         [string] $ServiceDeskTicketId,
 
         [parameter(Mandatory=$true,

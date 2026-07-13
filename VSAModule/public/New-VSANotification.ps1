@@ -19,33 +19,33 @@ function New-VSANotification
     .EXAMPLE
        New-VSANotification -VSAConnection $VSAConnection -Title "Title goes here" -Text "Text message goes here"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/notification',
 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Title,
 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Text
 )
     process {
-	
+
     return Invoke-VSAWriteRequest -Body (ConvertTo-Json @{ Title = $Title; Body = $Text } -Compress) -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }

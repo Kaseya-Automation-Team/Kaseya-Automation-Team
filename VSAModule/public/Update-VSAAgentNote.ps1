@@ -18,19 +18,19 @@ function Update-VSAAgentNote {
     .EXAMPLE
        Update-VSAAgentNote -NoteId 1 -Note 'Changed note' -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param (
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/agent/notes',
 
         [Parameter(Mandatory = $true)]

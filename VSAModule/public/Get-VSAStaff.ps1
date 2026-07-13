@@ -29,38 +29,38 @@ function Get-VSAStaff
     .EXAMPLE
        Get-VSAStaff -DepartmentId 20002 -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of objects that represent Returns Staff.
-    #> 
-    [CmdletBinding(DefaultParameterSetName = 'Staff')] 
-    param ( 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+    #>
+    [CmdletBinding(DefaultParameterSetName = 'Staff')]
+    param (
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Staff')]
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
-            ParameterSetName = 'Department')] 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Department')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Organization')]
-        [ValidateNotNull()] 
+        [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory = $false,  
-             
+        [parameter(Mandatory = $false,
+
             ParameterSetName = 'Staff')]
-        [parameter(Mandatory = $false,  
-             
-            ParameterSetName = 'Department')] 
-        [parameter(Mandatory = $false,  
-             
+        [parameter(Mandatory = $false,
+
+            ParameterSetName = 'Department')]
+        [parameter(Mandatory = $false,
+
             ParameterSetName = 'Organization')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system',
- 
-        [parameter(Mandatory=$true, 
-            ValueFromPipelineByPropertyName=$true, 
+
+        [parameter(Mandatory=$true,
+            ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'Organization')]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -68,10 +68,10 @@ function Get-VSAStaff
             }
             return $true
         })]
-        [string] $OrganizationId, 
- 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [string] $OrganizationId,
+
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Department')]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -81,8 +81,8 @@ function Get-VSAStaff
         })]
         [string] $DepartmentId,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Staff')]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -91,26 +91,26 @@ function Get-VSAStaff
             return $true
         })]
         [string] $StaffId,
- 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Staff')]
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
-            ParameterSetName = 'Department')] 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
-            ParameterSetName = 'Organization')] 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Department')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Organization')]
         [string] $Filter,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Staff')]
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
-            ParameterSetName = 'Department')] 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Department')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Organization')]
         [string] $Sort
         )
@@ -141,8 +141,7 @@ function Get-VSAStaff
             $LogMsg = "Look for all staff"
         }
 
-                    $LogMsg | Write-Verbose
-        
+        $LogMsg | Write-Verbose
 
         [hashtable]$Params = @{
             URISuffix     = $( $URISuffix -f $ItemId )
@@ -156,13 +155,13 @@ function Get-VSAStaff
         }
 
         #region messages to verbose and debug streams
-                    "Get-VSAStaff: $($Params | Out-String)" | Write-Debug
-        
-                    "Get-VSAStaff: $($Params | Out-String)" | Write-Verbose
-        
+        "Get-VSAStaff: $($Params | Out-String)" | Write-Debug
+
+        "Get-VSAStaff: $($Params | Out-String)" | Write-Verbose
+
         #endregion messages to verbose and debug streams
-        
+
         return Invoke-VSARestMethod @Params
     }
-} 
+}
 Export-ModuleMember -Function Get-VSAStaff

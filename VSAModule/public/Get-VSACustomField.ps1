@@ -21,27 +21,27 @@ function Get-VSACustomField
 .EXAMPLE
    Get-VSACustomField -VSAConnection $connection
 .INPUTS
-   Accepts piped non-persistent VSAConnection 
+   Accepts piped non-persistent VSAConnection
 .OUTPUTS
    Array of objects that represent existing VSA Custom Fields
 #>
     [CmdletBinding(DefaultParameterSetName='All')]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'All')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ById')]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false,
-            
+
             ParameterSetName = 'All')]
         [parameter(DontShow, Mandatory=$false,
-            
+
             ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/assets/{0}/customfields',
 
         [parameter(Mandatory=$false,
@@ -57,12 +57,12 @@ function Get-VSACustomField
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
     process {

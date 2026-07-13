@@ -23,43 +23,43 @@ function New-VSAAdminTask
     .EXAMPLE
        New-VSAAdminTask -VSAConnection $connection -Reference "VSA-5210-3" -Description "First New Admin Task"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Success or failure
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/system/sessiontimers/admintasks",
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Reference,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Description,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [switch] $EnabledFlag,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [switch] $TimeSheetFlag
 )
     process {
-	
+
     $Body = ConvertTo-Json @{"Reference"=$Reference; "Description"=$Description; "EnabledFlag"=$EnabledFlag.ToBool(); "TimeSheetFlag"=$TimeSheetFlag.ToBool()} -Compress
 
     return Invoke-VSAWriteRequest -Body $Body -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet

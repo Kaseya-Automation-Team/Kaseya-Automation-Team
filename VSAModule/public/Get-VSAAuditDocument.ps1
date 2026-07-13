@@ -105,10 +105,9 @@ function Get-VSAAuditDocument
         if ( -not $Params[$key] )  { $Params.Remove($key) }
     }
 
-            "Get-VSAAuditDocument: $($Params | Out-String)" | Write-Debug
-    
-            "Get-VSAAuditDocument: $($Params | Out-String)" | Write-Verbose
-    
+    "Get-VSAAuditDocument: $($Params | Out-String)" | Write-Debug
+
+    "Get-VSAAuditDocument: $($Params | Out-String)" | Write-Verbose
 
     return Invoke-VSARestMethod @Params
     }
@@ -118,5 +117,4 @@ function Get-VSAAuditDocument
 Set-Alias -Name Get-VSADocument -Value Get-VSAAuditDocument
 Set-Alias -Name Get-VSADocuments -Value Get-VSAAuditDocument
 
-Export-ModuleMember -Function Get-VSAAuditDocument -Alias Get-VSADocument
-Export-ModuleMember -Function Get-VSAAuditDocument -Alias Get-VSADocuments
+Export-ModuleMember -Function Get-VSAAuditDocument -Alias Get-VSADocument, Get-VSADocuments

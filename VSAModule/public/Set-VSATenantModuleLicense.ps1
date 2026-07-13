@@ -14,7 +14,7 @@ function Set-VSATenantModuleLicense {
     .PARAMETER TenantName
         Specifies Tenant Name.
     .PARAMETER DataType
-        Specifies the data type for the limit. 
+        Specifies the data type for the limit.
     .PARAMETER Limit
         Specifies License Limit.
     .PARAMETER Name
@@ -43,7 +43,7 @@ function Set-VSATenantModuleLicense {
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant/modules/licenses/{0}',
 
         [parameter(Mandatory = $true, ParameterSetName = 'ById', ValueFromPipelineByPropertyName = $true)]
@@ -80,7 +80,7 @@ function Set-VSATenantModuleLicense {
         [string] $DataType,
 
         [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Name,
 
         [parameter(Mandatory = $true, ParameterSetName = 'ByName', ValueFromPipelineByPropertyName = $true)]
@@ -93,7 +93,7 @@ function Set-VSATenantModuleLicense {
         [string] $zzValId,
 
         [parameter(Mandatory = $true, ParameterSetName = 'ById', ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $zzVal,
 
         [parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
@@ -177,7 +177,7 @@ function Set-VSATenantModuleLicense {
             if ( [string]::IsNullOrEmpty($zzVal))    { $zzVal = "zzvals$zzValId" }
 
             [string] $Body = @( [PSCustomObject]@{
-                
+
                 zzValId     = $zzValId
                 LicenseType = $LicenseType
                 Limit       = $Limit
@@ -189,8 +189,7 @@ function Set-VSATenantModuleLicense {
             } | Where-Object { $_.Value } ) | ConvertTo-Json
         }
 
-                    Write-Debug "Set-VSATenantModuleLicense. $($Body | Out-String)"
-        
+        Write-Debug "Set-VSATenantModuleLicense. $($Body | Out-String)"
 
         return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }#Process

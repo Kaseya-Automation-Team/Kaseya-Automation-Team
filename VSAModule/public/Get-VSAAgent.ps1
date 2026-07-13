@@ -4,7 +4,7 @@ function Get-VSAAgent
     .SYNOPSIS
         Retrieves all VSA agents or a specified one.
     .DESCRIPTION
-        This script returns all VSA agents or a specific agent if an agent ID is supplied. 
+        This script returns all VSA agents or a specific agent if an agent ID is supplied.
         It supports both persistent and non-persistent connection information.
     .PARAMETER VSAConnection
         Specifies an existing non-persistent VSA connection.
@@ -32,23 +32,23 @@ function Get-VSAAgent
     #>
 
     [CmdletBinding(DefaultParameterSetName='All')]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'All')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ById')]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false,
-            
+
             ParameterSetName = 'All')]
         [parameter(DontShow, Mandatory=$false,
-            
+
             ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/agents',
 
         [Alias('ID')]
@@ -65,12 +65,12 @@ function Get-VSAAgent
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
     process {

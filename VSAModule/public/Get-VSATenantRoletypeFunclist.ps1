@@ -12,31 +12,29 @@ function Get-VSATenantRoletypeFunclist {
     .PARAMETER RoleTypeId
         Specifies roletype id to return an array of funclist entries.
     .PARAMETER Filter
-        Specifies REST API Filter.
+        Specifies an OData $filter expression applied by the server.
     .PARAMETER Sort
-        Specifies REST API Sorting.
-    .PARAMETER ResolveIDs
-        Return asset types as well as their respective IDs.
+        Specifies an OData $orderby expression applied by the server.
     .EXAMPLE
        Get-VSATenantRoletypeFunclist -RoleTypeId 4
     .INPUTS
-       Accepts piped non-Tenant VSAConnection 
+       Accepts piped non-Tenant VSAConnection
     .OUTPUTS
        Array of funclist entries.
     #>
 
     [CmdletBinding()]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/tenantmanagement/roletypes',
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
@@ -46,18 +44,18 @@ function Get-VSATenantRoletypeFunclist {
         })]
         [string] $RoleTypeId,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
     process {
-    
+
     if( -not [string]::IsNullOrEmpty($RoleTypeId) ) {
         $URISuffix += "/$RoleTypeId"
     }
@@ -66,6 +64,8 @@ function Get-VSATenantRoletypeFunclist {
     }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+    if( -not [string]::IsNullOrEmpty($Filter) ) { $Params.Add('Filter', $Filter) }
+    if( -not [string]::IsNullOrEmpty($Sort) )   { $Params.Add('Sort', $Sort) }
 
     return Invoke-VSARestMethod @Params
     }

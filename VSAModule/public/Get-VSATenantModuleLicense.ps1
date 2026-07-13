@@ -14,42 +14,40 @@ function Get-VSATenantModuleLicense {
     .PARAMETER ModuleId
        Specifies Module Id to return module licenses.
     .PARAMETER Filter
-        Specifies REST API Filter.
+        Specifies an OData $filter expression applied by the server.
     .PARAMETER Sort
-        Specifies REST API Sorting.
-    .PARAMETER ResolveIDs
-        Return asset types as well as their respective IDs.
+        Specifies an OData $orderby expression applied by the server.
     .EXAMPLE
        Get-VSATenantModuleLicense -TenantId 10001
     .EXAMPLE
        Get-VSATenantModuleLicense -ModuleId 20002
     .INPUTS
-       Accepts piped non-Tenant VSAConnection 
+       Accepts piped non-Tenant VSAConnection
     .OUTPUTS
        Array of tof module licenses
     #>
 
     [CmdletBinding()]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Tenant')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Module')]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(Mandatory = $false, 
-            
+        [parameter(Mandatory = $false,
+
             ParameterSetName = 'Tenant')]
-        [parameter(Mandatory = $false, 
-            
+        [parameter(Mandatory = $false,
+
             ParameterSetName = 'Module')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/tenantmanagement/licensing/',
 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Tenant')]
         [ValidateScript({
@@ -60,7 +58,7 @@ function Get-VSATenantModuleLicense {
         })]
         [string] $TenantId,
 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Module')]
         [ValidateScript({
@@ -71,26 +69,26 @@ function Get-VSATenantModuleLicense {
         })]
         [string] $ModuleId,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Tenant')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Module')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Tenant')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Module')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
     process {
-    
+
     if( -not [string]::IsNullOrEmpty($TenantId) ) {
         $URISuffix += "modules/$TenantId"
     }
@@ -102,12 +100,14 @@ function Get-VSATenantModuleLicense {
     }
 
     if($VSAConnection) {$Params.Add('VSAConnection', $VSAConnection)}
+    if( -not [string]::IsNullOrEmpty($Filter) ) { $Params.Add('Filter', $Filter) }
+    if( -not [string]::IsNullOrEmpty($Sort) )   { $Params.Add('Sort', $Sort) }
 
     #region messages to verbose and debug streams
-            "Get-VSATenantModuleLicense: $($Params | Out-String)" | Write-Debug
-    
-            "Get-VSATenantModuleLicense: $($Params | Out-String)" | Write-Verbose
-    
+    "Get-VSATenantModuleLicense: $($Params | Out-String)" | Write-Debug
+
+    "Get-VSATenantModuleLicense: $($Params | Out-String)" | Write-Verbose
+
     #endregion messages to verbose and debug streams
 
     return Invoke-VSARestMethod @Params

@@ -24,19 +24,19 @@ function Get-VSAThirdAppNotification {
     .EXAMPLE
        Get-VSAThirdAppNotification -VSAConnection $connection -AppId 233434543543543
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of items that represent notifications or details of specific notification message
     #>
 
     [CmdletBinding()]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/thirdpartyapps/notification/{0}',
 
         [parameter(Mandatory=$true,
@@ -46,7 +46,7 @@ function Get-VSAThirdAppNotification {
                 throw "Non-numeric Id"
             }
             return $true
-        })] 
+        })]
         [string] $AppId,
 
         [parameter(Mandatory=$false,
@@ -56,17 +56,17 @@ function Get-VSAThirdAppNotification {
                 throw "Non-numeric Id"
             }
             return $true
-        })] 
+        })]
         [string] $MessageId,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
     process {

@@ -19,7 +19,7 @@ function Get-VSAUser
     .PARAMETER ResolveIDs
         Return Roles & Scopes as well as their respective IDs.
     .EXAMPLE
-       Get-VSAUser 
+       Get-VSAUser
     .EXAMPLE
        Get-VSAUser -UserId 34243232324
     .EXAMPLE
@@ -27,30 +27,30 @@ function Get-VSAUser
     .EXAMPLE
        Get-VSAUser -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of objects that represent existing VSA users
     #>
     [CmdletBinding(DefaultParameterSetName = 'Users')]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'CurrentUser')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Users')]
         [VSAConnection] $VSAConnection,
 
-        [parameter(DontShow, Mandatory = $false, 
-            
+        [parameter(DontShow, Mandatory = $false,
+
             ParameterSetName = 'CurrentUser')]
-        [parameter(DontShow, Mandatory = $false, 
-            
+        [parameter(DontShow, Mandatory = $false,
+
             ParameterSetName = 'Users')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/users',
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Users')]
         [ValidateScript({
@@ -61,25 +61,25 @@ function Get-VSAUser
         })]
         [string] $UserId,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'CurrentUser')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Users')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'CurrentUser')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Users')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'CurrentUser')]
         [switch] $CurrentUser

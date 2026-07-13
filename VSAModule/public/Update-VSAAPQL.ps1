@@ -17,19 +17,19 @@ function Update-VSAAPQL
     .EXAMPLE
        Update-VSAAPQL -VSAConnection $connection -AgentProcedureId 2312
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/automation/agentProcs/quicklaunch/{0}",
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
@@ -42,7 +42,7 @@ function Update-VSAAPQL
         [string] $AgentProcedureId
 )
     process {
-    
+
     return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $AgentProcedureId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }

@@ -17,19 +17,19 @@ function Update-VSAInfoMsg
     .EXAMPLE
        Update-VSAInfoMsg -ID 1, 2, 3 -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if update was successful
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/infocenter/messages/{0}",
 
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true)]
@@ -46,7 +46,7 @@ function Update-VSAInfoMsg
         [switch] $IsRead
     )
     process {
-     
+
     return Invoke-VSAWriteRequest -Body ($( $ID | ConvertTo-Json -Compress )) -Method 'PUT' -URISuffix ($( $URISuffix -f $IsRead.ToString().ToLower() )) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }

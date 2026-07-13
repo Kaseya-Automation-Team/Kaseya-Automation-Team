@@ -1,5 +1,4 @@
 function Remove-VSAThirdAppNotification {
-
     <#
     .Synopsis
        Deletes a third party app notification message.
@@ -19,19 +18,19 @@ function Remove-VSAThirdAppNotification {
     .EXAMPLE
        Remove-VSAThirdAppNotification -VSAConnection $connection -AppId 233434543543543 -MessageId 0328649898
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Success or failure
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/thirdpartyapps/notification/{0}/{1}",
 
         [parameter(Mandatory=$true,
@@ -41,7 +40,7 @@ function Remove-VSAThirdAppNotification {
                 throw "Non-numeric Id"
             }
             return $true
-        })] 
+        })]
         [string] $AppId,
 
         [parameter(Mandatory=$true,
@@ -51,7 +50,7 @@ function Remove-VSAThirdAppNotification {
                 throw "Non-numeric Id"
             }
             return $true
-        })] 
+        })]
         [string] $MessageId
     )
     process {

@@ -41,6 +41,27 @@ $script:URISuffixGetMap = @{
     'Get-VSARoles'          = 'api/v1.0/system/roles'
     'Get-VSATenant'         = 'api/v1.0/tenant'
     'Get-VSATenants'        = 'api/v1.0/tenant'
+
+    # --- Endpoints added in v1.4.0 (collection GETs) ---
+    'Get-VSAAlertDefinition'             = 'api/v1.0/automation/alertdefinitions'
+    'Get-VSARCService'                   = 'api/v1.0/assetmgmt/assets/getrcservices'
+    'Get-VSARCMachine'                   = 'api/v1.0/assetmgmt/assets/rcmachines'
+    'Get-VSATemporaryAgent'              = 'api/v1.0/assetmgmt/temporaryagents'
+    'Get-VSATemporaryAgentConfig'        = 'api/v1.0/temporaryagent/config'
+    'Get-VSAAgentActiveAdmin'            = 'api/v1.0/assetmgmt/agentactiveadmins'
+    'Get-VSAAgentUserProfile'            = 'api/v1.0/assetmgmt/agent/settings/userprofiles'
+    'Get-VSAAPList'                      = 'api/v1.0/automation/agentprocs/proclist'
+    'Get-VSAAPProcHistory'               = 'api/v1.0/automation/agentprocs/proclist/history'
+    'Get-VSAAPExecHistory'               = 'api/v1.0/automation/agentprocs/proclist/execution/history'
+    'Get-VSAAPPrompt'                    = 'api/v1.0/automation/agentprocs/prompts'
+    'Get-VSAAPVariable'                  = 'api/v1.0/automation/variables'
+    'Get-VSAOrgType'                     = 'api/v1.0/system/orgs/types'
+    'Get-VSAOrgLocation'                 = 'api/v1.0/system/orgs/locations'
+    'Get-VSATenantLogonPolicy'           = 'api/v1.0/tenantmanagement/settings/logonpolicy'
+    'Get-VSADocumentServiceAudit'        = 'api/v1.0/assetmgmt/documents/allservicesaudits'
+    'Get-VSADocumentVolumeLabel'         = 'api/v1.0/assetmgmt/documents/allvolumelabels'
+    'Get-VSADocumentServiceName'         = 'api/v1.0/assetmgmt/documents/distinctservicenames'
+    'Get-VSADocumentDistinctVolumeLabel' = 'api/v1.0/assetmgmt/documents/distinctvolumelabels'
 }
 
 $script:URISuffixGetByIdMap = @{
@@ -87,6 +108,19 @@ $script:URISuffixGetByIdMap = @{
     'Get-VSAThirdAppStatus'   = 'api/v1.0/thirdpartyapps/{0}/status'
     'Get-VSAWorkOrder'        = 'api/v1.0/system/customers/{0}/workorders'
     'Get-VSAWorkOrders'       = 'api/v1.0/system/customers/{0}/workorders'
+
+    # --- Endpoints added in v1.4.0 (by-Id GETs) ---
+    'Get-VSARCServiceByAsset'     = 'api/v1.0/assetmgmt/assets/{0}/getrcservices'
+    'Get-VSARCMachineByView'      = 'api/v1.0/assetmgmt/assets/rcmachines/{0}'
+    'Get-VSAAgentUpdateSchedule'  = 'api/v1.0/assetmgmt/agent/schedule/update/{0}'
+    'Get-VSAAssetAudit'           = 'api/v1.0/assetmgmt/assets/{0}/agentaudit'
+    'Get-VSAAssetById'            = 'api/v1.0/assetmgmt/assets/getassetbyid/{0}'
+    'Get-VSAAPPromptById'         = 'api/v1.0/automation/agentprocs/{0}/prompts'
+    'Get-VSASDTicketByDesk'       = 'api/v1.0/automation/servicedesks/{0}/tickets'
+    'Get-VSASDTicketById'         = 'api/v1.0/automation/servicedesktickets/{0}'
+    'Get-VSATenantDefaultSetting' = 'api/v1.0/tenantmanagement/settings/defaultsetting/{0}'
+    'Get-VSACBStatus'             = 'api/v1.0/kcb/status/{0}'
+    'Get-VSAFunctionById'         = 'api/v1.0/functions/{0}'
 }
 
 $script:URISuffixRemoveMap = @{
@@ -103,6 +137,9 @@ $script:URISuffixRemoveMap = @{
     'Remove-VSAStaff'           = 'api/v1.0/system/staff/{0}'
     'Remove-VSATenant'          = 'api/v1.0/tenantmanagement/tenant?tenantId={0}'
     'Remove-VSATenantRoleType'  = 'api/v1.0/tenantmanagement/roletypes/{0}'
+
+    # --- Endpoints added in v1.4.0 ---
+    'Remove-VSATemporaryAgent'  = 'api/v1.0/temporaryagent/{0}'
 }
 
 # Module name -> Id map, shared by Enable-VSATenantModule and Remove-VSATenantModule (F-53):
@@ -138,4 +175,3 @@ $script:TenantModuleIdMap = @{
 # Role types are instance-specific -- an instance can carry custom and multi-tenant role types with
 # instance-specific Ids -- so Enable-VSATenantRoleType / Clear-VSATenantRoleType / Set-VSATenantRoletypeLimit
 # now resolve names to Ids at runtime via Get-VSARoleType instead of a static, always-stale map.
-

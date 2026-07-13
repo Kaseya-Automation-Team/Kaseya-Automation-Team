@@ -19,24 +19,24 @@ function New-VSARole
     .EXAMPLE
        New-VSARole -VSAConnection $connection -RoleName "Remote desktop" -RoleTypeIds 4, 6, 100, 101
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/roles',
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $RoleName,
 
 		[parameter(Mandatory=$true,
@@ -72,9 +72,9 @@ function New-VSARole
     if( $PSCmdlet.ShouldProcess( $RoleName ) ) {
         $Result = Invoke-VSAWriteRequest -Body $Body -Method POST -URISuffix $URISuffix -VSAConnection $VSAConnection
 
-                    Write-Debug "New-VSARole: $($Result| Out-String)"
+        Write-Debug "New-VSARole: $($Result| Out-String)"
 
-                    Write-Verbose "New-VSARole: $($Result| Out-String)"
+        Write-Verbose "New-VSARole: $($Result| Out-String)"
 
     }
     return $Result

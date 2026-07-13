@@ -17,13 +17,13 @@ function Remove-VSADocument
     .EXAMPLE
        Remove-VSADocument -AgentId 10001 -Path "Folder\File.ext" -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
@@ -32,7 +32,7 @@ function Remove-VSADocument
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/documents/{0}/{1}',
 
-        [parameter(Mandatory = $true,  
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {

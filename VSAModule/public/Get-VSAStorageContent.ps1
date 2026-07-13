@@ -21,19 +21,19 @@ function Get-VSAStorageContent {
     .EXAMPLE
        Get-VSAStorageContent -VSAConnection $connection -FileId 233434543543543
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        File to downloads folder
     #>
 
     [CmdletBinding()]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/storage/file/{0}/contents',
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
@@ -46,7 +46,7 @@ function Get-VSAStorageContent {
         [string] $FileId,
 
         [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $FileName,
 
         [Parameter(Mandatory = $false)]
@@ -75,10 +75,10 @@ function Get-VSAStorageContent {
     if ($VSAConnection) { $Params['VSAConnection'] = $VSAConnection }
 
     #region messages to verbose and debug streams
-            "Get-VSAStorageContent: $($Params | Out-String)" | Write-Debug
-    
-            "Get-VSAStorageContent: downloading FileId '$FileId' to '$OutFile'" | Write-Verbose
-    
+    "Get-VSAStorageContent: $($Params | Out-String)" | Write-Debug
+
+    "Get-VSAStorageContent: downloading FileId '$FileId' to '$OutFile'" | Write-Verbose
+
     #endregion messages to verbose and debug streams
 
     return Invoke-VSARestMethod @Params

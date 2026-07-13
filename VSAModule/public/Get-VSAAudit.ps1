@@ -54,12 +54,12 @@ function Get-VSAAudit
     .EXAMPLE
        Get-VSAAudit -VSAConnection $connection -AuditOf DiskVolumes -AgentID 757824222824211
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of objects that represent VSA audit summary.
     #>
     [CmdletBinding()]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
@@ -74,7 +74,7 @@ function Get-VSAAudit
         [string] $AuditOf = 'AllAgentsSummaries',
 
         [parameter(Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
         [parameter(Mandatory = $false)]

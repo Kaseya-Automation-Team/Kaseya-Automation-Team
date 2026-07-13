@@ -17,19 +17,19 @@ function Remove-VSAPatch
     .EXAMPLE
        Remove-VSAPatch -VSAConnection $connection -AgentIds "979868787875855, 239868787875855"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Success or failure
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/assetmgmt/patch?agentGuids={0}",
 
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true)]

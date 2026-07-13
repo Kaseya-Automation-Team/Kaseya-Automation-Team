@@ -29,19 +29,19 @@ function Update-VSAAgentCheckinCtl
     .EXAMPLE
        Update-VSAAgentCheckinCtl -VSAConnection $VSAConnection -AgentId 323232323 -PrimaryKServer "192.168.100.1" -PrimaryKServerPort "5721" -SecondaryKServer "192.168.100.2" -SecondaryKServerPort "5720" -QuickCheckInTimeInSeconds 30
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/assetmgmt/agent/{0}/settings/checkincontrol",
 
         [Parameter(Mandatory = $true)]
@@ -55,7 +55,7 @@ function Update-VSAAgentCheckinCtl
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $PrimaryKServer,
 
         [parameter(Mandatory=$true,
@@ -65,12 +65,12 @@ function Update-VSAAgentCheckinCtl
                 throw "Non-numeric value"
             }
             return $true
-        })] 
+        })]
         [string] $PrimaryKServerPort,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $SecondaryKServer,
 
         [parameter(Mandatory=$true,
@@ -80,7 +80,7 @@ function Update-VSAAgentCheckinCtl
                 throw "Non-numeric value"
             }
             return $true
-        })] 
+        })]
         [string] $SecondaryKServerPort,
 
         [parameter(Mandatory=$true,
@@ -90,7 +90,7 @@ function Update-VSAAgentCheckinCtl
                 throw "Non-numeric value"
             }
             return $true
-        })] 
+        })]
         [string] $QuickCheckInTimeInSeconds,
 
         [parameter(Mandatory=$true,
@@ -105,11 +105,10 @@ function Update-VSAAgentCheckinCtl
 )
     process {
 
-
     $BodyHT = @{"PrimaryKServer"="$PrimaryKServer"; "PrimaryKServerPort"="$PrimaryKServerPort"; "QuickCheckInTimeInSeconds"="$QuickCheckInTimeInSeconds";}
 
     if ( -not [string]::IsNullOrEmpty($BandwidthThrottle) )                 { $BodyHT.Add('BandwidthThrottle', $BandwidthThrottle) }
-    
+
     if ( [string]::IsNullOrEmpty($SecondaryKServer) ) {
         $BodyHT.Add('SecondaryKServer', $PrimaryKServer)
     } else {

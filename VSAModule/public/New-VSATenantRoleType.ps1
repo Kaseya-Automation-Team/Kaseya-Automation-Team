@@ -23,19 +23,19 @@ function New-VSATenantRoleType
     .EXAMPLE
        New-VSATenantRoleType -Name 'A New Role' -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if creation was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/tenantmanagement/roletypes',
 
         [Parameter(Mandatory = $true,
@@ -88,7 +88,7 @@ function New-VSATenantRoleType
     if ( -not [string]::IsNullOrEmpty($Description))    {$BodyHT.Add('Description', $Description) }
     if ( -not [string]::IsNullOrEmpty($AdminGroupType)) {$BodyHT.Add('AdminGroupType', $AdminGroupType) }
     if ( -not [string]::IsNullOrEmpty($HasUserData))    {$BodyHT.Add('HasUserData', $HasUserData) }
-    
+
     [string]$Body = $BodyHT| ConvertTo-Json
 
     return Invoke-VSAWriteRequest -Body ($Body) -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet

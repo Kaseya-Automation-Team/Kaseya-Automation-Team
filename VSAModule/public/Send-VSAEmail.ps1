@@ -17,13 +17,13 @@ function Send-VSAEmail
     .PARAMETER Subject
         Specifies subject of email
     .PARAMETER Body
-        Specifies content of email    
+        Specifies content of email
     .PARAMETER Html
-        Specifies if email should be sent in HTML or plain text format   
+        Specifies if email should be sent in HTML or plain text format
     .PARAMETER Priority
         Specifies priority
     .PARAMETER UniqueTag
-        Specifies unique tag 
+        Specifies unique tag
     .EXAMPLE
        Send-VSAEmail -FromAddress "noreply@yourcompany.com" -ToAddress "email@yourcompany.com" -Subject "Email from administrator" -Body "This is test email from your administrator"  -UniqueTag "test"
     .EXAMPLE
@@ -31,24 +31,24 @@ function Send-VSAEmail
     .EXAMPLE
        Send-VSAEmail -VSAConnection $VSAConnection -FromAddress "noreply@yourcompany.com" -ToAddress "email@yourcompany.com" -Subject "Email from administrator" -Body "This is test email from your administrator"  -UniqueTag "test"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Success or failure
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/email",
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $FromAddress,
 
         [parameter(Mandatory=$true,
@@ -58,11 +58,11 @@ function Send-VSAEmail
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Subject,
 
         [parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Body,
 
         [parameter(Mandatory=$false,
@@ -80,13 +80,12 @@ function Send-VSAEmail
         [switch] $Html = $false
 
 )
-	
+
     $BodyHT = @{"FromAddress"="$FromAddress"; "ToAddress"="$ToAddress"; "Subject"="$Subject"; "Body"="$Body"; "Priority"=$Priority; "IsBodyHtml"=$Html.ToBool()}
 
     if ( -not [string]::IsNullOrEmpty($UniqueTag) ) { $BodyHT.Add('UniqueTag', $UniqueTag) }
 
     $Body = $BodyHT | ConvertTo-Json -Compress
-	
 
     return Invoke-VSAWriteRequest -Body $Body -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }

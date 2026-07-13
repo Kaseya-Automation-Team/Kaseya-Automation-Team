@@ -47,22 +47,22 @@ function New-VSAScheduleAuditBaseLine
     .EXAMPLE
        New-VSAScheduleAuditBaseLine -AgentID 10001 -Repeat Never -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if start of baseline audit was successful.
     .NOTES
         Version 1.0.0
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
-        [string] $URISuffix = 'api/v1.0/assetmgmt/audit/baseline/{0}/schedule', 
- 
+        [string] $URISuffix = 'api/v1.0/assetmgmt/audit/baseline/{0}/schedule',
+
         [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
@@ -78,12 +78,12 @@ function New-VSAScheduleAuditBaseLine
         [ValidateSet('Never', 'Minutes', 'Hours', 'Days', 'Weeks', 'Months', 'Years')]
         [string] $Repeat = 'Never',
 
-        [Parameter(Mandatory = $false, 
+        [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Interval = 'Minutes',
 
-        [Parameter(Mandatory = $false, 
+        [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -93,49 +93,29 @@ function New-VSAScheduleAuditBaseLine
         })]
         [string] $Magnitude = '0',
 
-        [Parameter(Mandatory = $false, 
+        [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $StartOn,
 
-        [Parameter(Mandatory = $false, 
+        [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $StartAt,
 
-        [Parameter(Mandatory = $false, 
+        [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $ExcludeFrom,
 
-        [Parameter(Mandatory = $false, 
+        [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $ExcludeTo
     )
     DynamicParam {
-        function New-VSARuntimeParameter {
-            param (
-                [string] $Name,
-                [Type] $Type,
-                [string[]] $ValidateSet = $null,
-                [bool] $Mandatory = $false
-            )
-
-            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $Mandatory
-            $AttributesCollection.Add($ParameterAttribute)
-            
-            if ($ValidateSet) {
-                $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-                $AttributesCollection.Add($ValidateSetAttribute)
-            }
-
-            $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($Name, $Type, $AttributesCollection)
-            return $RuntimeParameter
-        }
-
+        # New-VSARuntimeParameter is a private module helper (private/New-VSARuntimeParameter.ps1),
+        # visible here because a DynamicParam block runs in module scope.
         if ($Repeat -ne 'Never') {
             $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
 
@@ -181,7 +161,7 @@ function New-VSAScheduleAuditBaseLine
         } | Where-Object { $_.Value }
 
         $BodyHT = [PSCustomObject]@{}
-        
+
         if ($Recurrence) { $BodyHT.Recurrence = $Recurrence }
         if ($Distribution) { $BodyHT.Distribution = $Distribution }
         if ($Start) { $BodyHT.Start = $Start }
@@ -189,8 +169,7 @@ function New-VSAScheduleAuditBaseLine
 
         $Body = ConvertTo-Json $BodyHT
 
-                    Write-Debug "New-VSAScheduleAuditBaseLine. $($Body | Out-String)"
-        
+        Write-Debug "New-VSAScheduleAuditBaseLine. $($Body | Out-String)"
 
         return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($URISuffix -f $AgentID) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }# Process

@@ -19,19 +19,19 @@ function Rename-VSAMachineGroup
     .EXAMPLE
        Rename-VSAMachineGroup -MachineGroupId "34543554343" -MachineGroupName "Kaseya" -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/system/machinegroups/{0}",
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
@@ -44,10 +44,10 @@ function Rename-VSAMachineGroup
         [string] $MachineGroupId,
 
 		[parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $MachineGroupName
 )
-     
+
     return Invoke-VSAWriteRequest -Body (ConvertTo-Json @{ MachineGroupName = $MachineGroupName } -Compress) -Method 'PUT' -URISuffix ($($URISuffix -f $MachineGroupId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }
 New-Alias -Name Update-VSAMachineGroup -Value Rename-VSAMachineGroup

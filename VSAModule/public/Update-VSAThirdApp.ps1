@@ -23,20 +23,20 @@ function Update-VSAThirdApp
     .EXAMPLE
        Update-VSAThirdApp -VSAConnection $connection -Id 979868787875855 -Enable
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Success or failure
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/thirdpartyapps/{0}/status/{1}",
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
@@ -53,7 +53,7 @@ function Update-VSAThirdApp
         [switch] $Disable = $false
 )
     process {
-	
+
     if (!$Enable -and !$Disable) {
         throw 'Single switch "Enabled" or "Disabled" should be provided.'
     }

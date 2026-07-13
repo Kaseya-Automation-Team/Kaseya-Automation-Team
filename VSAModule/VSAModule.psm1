@@ -1,6 +1,6 @@
 <#
    Kaseya VSA9 REST API Wrapper
-   Version 1.3.2
+   Version 1.4.0
    Author: Vladislav Semko
    Description:
    VSAModule for Kaseya VSA 9 REST API is a PowerShell module that provides cmdlets for interacting with the Kaseya VSA 9 platform via its REST API.
@@ -676,16 +676,16 @@ function New-VSAConnection {
     Creates a VSAConnection object that encapsulates access token as well as additional connection information.
     Optionally makes the connection object persistent with encrypted storage (DPAPI on Windows;
     runtime-derived-key AES on Linux/macOS, where DPAPI does not exist -- see F-60).
-    
+
     SECURITY & CREDENTIAL HANDLING:
     This function implements secure credential handling through the following mechanisms:
-    
+
     1. IN-MEMORY CREDENTIALS (Non-Persistent):
        - Personal Authentication Token (PAT) is stored in memory only
        - Credentials are passed to the VSA API over HTTPS with TLS encryption
        - Best practice for automated scripts and scheduled tasks
        - Session token expires automatically and must be renewed on each script run
-    
+
     2. PERSISTENT CREDENTIALS (SetPersistent):
        - Uses the Data Protection API (DPAPI) to encrypt stored credentials on Windows; on
          Linux/macOS (no DPAPI) uses AES with a key derived at runtime from per-user + per-machine
@@ -696,18 +696,18 @@ function New-VSAConnection {
        - Environment variable "VSAConnection" stores the encrypted connection data
        - Suitable for interactive PowerShell sessions and debugging
        - NOT recommended for production batch processing or service accounts
-    
+
     3. TOKEN RENEWAL:
        - Session tokens are automatically renewed when approaching expiration
        - Renewal uses the stored PAT to request a new token from the VSA API
        - Non-persistent connections require a new token for each script invocation
        - Persistent connections maintain the token in the encrypted environment variable
-    
+
     4. CLEANUP:
        - Always clear persistent connections when no longer needed
        - Use: Remove-Item env:\VSAConnection  (to clear environment variable)
        - Or: [VSAConnection]::ClearPersistentConnection()  (PowerShell method)
-    
+
     BEST PRACTICES:
     - Use non-persistent connections for scripts (default behavior)
     - Use SetPersistent only for interactive development/debugging
@@ -716,7 +716,7 @@ function New-VSAConnection {
     - Regularly audit and remove persistent connections
     - Use service-specific accounts with minimal required permissions
     - Rotate PATs regularly according to your security policy
-    
+
 .PARAMETER VSAServer
     Specifies the address of the VSA Server to connect (must be HTTPS).
 .PARAMETER Credential
@@ -725,20 +725,20 @@ function New-VSAConnection {
 .PARAMETER AuthSuffix
     Specifies the URI suffix for the authorization endpoint, if it differs from the default '/API/v1.0/Auth'.
 .PARAMETER IgnoreCertificateErrors
-    WARNING: Indicates whether to allow self-signed certificates. 
+    WARNING: Indicates whether to allow self-signed certificates.
     Default is false. Use only for testing with self-signed certificates.
     Production environments should use valid certificates.
 .PARAMETER SetPersistent
     WARNING: Makes the VSAConnection object persistent during the session using encrypted storage.
     Use only in interactive PowerShell sessions for development/debugging.
     NOT recommended for production scripts.
-    
+
     When enabled:
     - Connection data is encrypted using DPAPI (Windows) or a runtime-derived-key AES (Linux/macOS, F-60)
     - Stored in environment variable "VSAConnection"
     - Survives across PowerShell commands in the same session
     - Must be manually cleared when no longer needed
-    
+
 .EXAMPLE
     # Example 1: Non-persistent connection (RECOMMENDED for scripts)
     $Credential = New-Object System.Management.Automation.PSCredential (
@@ -761,7 +761,7 @@ function New-VSAConnection {
     # Example 4: Clear persistent connection when done
     # Option A: Remove environment variable directly
     Remove-Item env:\VSAConnection -ErrorAction SilentlyContinue
-    
+
     # Option B: Use PowerShell class method
     [VSAConnection]::ClearPersistentConnection()
 
@@ -770,16 +770,16 @@ function New-VSAConnection {
 .OUTPUTS
     VSAConnection
     New-VSAConnection returns an object of VSAConnection type that encapsulates access token as well as additional connection information.
-    
+
 .NOTES
-    Version 1.3.2
+    Version 1.4.0
     SECURITY:
     - Implements DPAPI encryption for persistent connections on Windows (v0.1.5+); runtime-derived-key
       AES on Linux/macOS, where DPAPI does not exist (F-60)
     - Credentials sent over HTTPS only
     - PAT stored in-memory for non-persistent connections
     - Automatic session token renewal implemented
-    
+
     References:
     - Kaseya VSA 9 REST API: help.kaseya.com/webhelp/EN/RESTAPI/9050000/
     - Microsoft DPAPI: https://docs.microsoft.com/en-us/dotnet/standard/security/encrypting-data
@@ -839,7 +839,7 @@ function New-VSAConnection {
     # Create Base64 encoded credentials for Basic Auth header
     $Encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$UserName`:$PAT"))
     $AuthString  = "Basic $Encoded"
-    
+
     # Securely clear plaintext PAT from memory after encoding
     [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
 
@@ -847,11 +847,10 @@ function New-VSAConnection {
     $AuthEndpoint = [System.Uri]::new($VSAServerUri, $AuthSuffix) | Select-Object -ExpandProperty AbsoluteUri
 
     $LogMessage = "Attempting authentication for user '$UserName' on VSA server '$VSAServer'."
-    
-            Write-Verbose $LogMessage
-    
-            Write-Debug $LogMessage
-    
+
+    Write-Verbose $LogMessage
+
+    Write-Debug $LogMessage
 
     $AuthParams = @{
         URI                     = $AuthEndpoint
@@ -874,8 +873,7 @@ function New-VSAConnection {
     $VSAConnection = [VSAConnection]::new($VSAServer, $result.UserName, $result.Token, $PAT, $SessionExpiration, $IgnoreCertificateErrors, $SetPersistent)
 
     Write-Verbose "User '$UserName' authenticated on VSA server '$VSAServer'. Session token expiration: $SessionExpiration (UTC)."
-            Write-Debug "New-VSAConnection result: '$($result | ConvertTo-Json)'"
-    
+    Write-Debug "New-VSAConnection result: '$($result | ConvertTo-Json)'"
 
     if ($SetPersistent) {
         # Persist the connection as a genuinely encrypted blob in the environment variable
@@ -904,7 +902,7 @@ $URISuffixRemoveMap.Keys | ForEach-Object {
     New-Alias -Name $_ -Value Remove-VSAItem -Force
 }
 
-# Data-driven dispatch: the three maps above pair ~89 command aliases with three shared wrapper
+# Data-driven dispatch: the three maps above pair ~120 command aliases with three shared wrapper
 # functions. Each wrapper is exported together with the aliases that resolve to it, because an
 # exported alias can only resolve to an EXPORTED command -- PowerShell resolves the alias target in
 # the caller's scope, where a module-private function is invisible (proven on both Windows

@@ -23,16 +23,16 @@ function Get-VSAAsset
     .EXAMPLE
        Get-VSAAsset -AssetId '10001'
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of objects that represent existing VSA assets
     #>
     [CmdletBinding(DefaultParameterSetName='All')]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'All')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ById')]
         [ValidateNotNull()]
@@ -42,7 +42,7 @@ function Get-VSAAsset
             ParameterSetName = 'All')]
         [parameter(DontShow, Mandatory=$false,
             ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/assets',
 
         [Parameter(Mandatory = $false,
@@ -57,14 +57,14 @@ function Get-VSAAsset
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
-        [string] $Sort, 
-        
+        [ValidateNotNullOrEmpty()]
+        [string] $Sort,
+
         [Parameter(Mandatory = $false)]
         [switch] $ResolveIDs
     )
@@ -111,7 +111,7 @@ function Get-VSAAsset
 
         $result = $result | Select-Object -Property *, `
             @{Name = 'AssetType'; Expression = { $AssetTypeDictionary[$_.AssetTypeId] }}
-    }    
+    }
 
     return $result
     }

@@ -19,19 +19,19 @@ function Set-VSAAgentName
     .EXAMPLE
        Set-VSAAgentName -VSAConnection $connection -AgentId 581411914 -Name "newname"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/assetmgmt/agents/{0}/rename/{1}",
 
         [Parameter(Mandatory = $true,
@@ -46,11 +46,11 @@ function Set-VSAAgentName
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Name
 )
     process {
-	
+
     return Invoke-VSAWriteRequest -Method PUT -VSAConnection $VSAConnection `
         -URISuffix ($URISuffix -f $AgentId, (Format-VSAPathSegment $Name)) -Caller $PSCmdlet
     }

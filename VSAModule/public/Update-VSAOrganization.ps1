@@ -14,7 +14,7 @@ function Update-VSAOrganization {
     .PARAMETER OrgRef
         Specifies string to reference the organization.
     .PARAMETER DefaultDepartmentName
-        Specifies Default Department Name. 
+        Specifies Default Department Name.
     .PARAMETER DefaultMachineGroupName
         Specifies Default Machine Group Name.
     .PARAMETER OrgType
@@ -24,13 +24,13 @@ function Update-VSAOrganization {
     .EXAMPLE
        Update-VSAOrganization -OrgId 10001 -NumberOfEmployees 12
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if creation was successful
     #>
    [CmdletBinding(SupportsShouldProcess)]
     param (
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
@@ -51,12 +51,12 @@ function Update-VSAOrganization {
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [string] $OrganizationName,
-        
+
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             HelpMessage = "Unique string to reference the organization. Usually shorten name or acronim.")]
         [string] $OrgRef,
-        
+
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
         [string] $DefaultDepartmentName,
@@ -149,7 +149,7 @@ function Update-VSAOrganization {
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $FieldName,
 
         [parameter(Mandatory=$false,
@@ -188,7 +188,7 @@ function Update-VSAOrganization {
     if ( -not [string]::IsNullOrEmpty($State) )                   { $ContactInfoHT.Add('State', $State)}
     if ( -not [string]::IsNullOrEmpty($ZipCode) )                 { $ContactInfoHT.Add('ZipCode', $ZipCode)}
     if ( -not [string]::IsNullOrEmpty($PrimaryTextMessagePhone) ) { $ContactInfoHT.Add('PrimaryTextMessagePhone', $PrimaryTextMessagePhone)}
-    
+
     if ( 0 -lt $ContactInfoHT.Count)
     {
         $BodyHT.Add('ContactInfo', $ContactInfoHT )

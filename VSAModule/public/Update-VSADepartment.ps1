@@ -21,22 +21,22 @@ function Update-VSADepartment
     .EXAMPLE
        Update-VSADepartment -ParentDepartmentId 10001 -DepartmentName 'A New Department Name' -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if update was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/departments/{0}',
 
-        [Parameter(Mandatory = $true, 
+        [Parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -74,7 +74,7 @@ function Update-VSADepartment
     if ($DepartmentName)     { $BodyHT.Add('DepartmentName', $DepartmentName) }
     if ($ParentDepartmentId) { $BodyHT.Add('ParentDepartmentId', $ParentDepartmentId) }
     if ($ManagerId)          { $BodyHT.Add('ManagerId', $ManagerId) }
-    
+
     if ( 0 -eq $BodyHT.Count) {
         throw "No changes specified to the Department $DepartmentId"
     }

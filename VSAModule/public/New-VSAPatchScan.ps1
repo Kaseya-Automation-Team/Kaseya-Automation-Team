@@ -17,17 +17,17 @@ function New-VSAPatchScan
     .PARAMETER ServerTimeZone
         Specifies if procedure should be scheduled in server time zone
     .PARAMETER SkipIfOffLine
-        Specifies if procedure should NOT be executed if agent is offline at scheduled time     
+        Specifies if procedure should NOT be executed if agent is offline at scheduled time
     .PARAMETER PowerUpIfOffLine
-        Specifies if machine should be powered up at scheduled time        
+        Specifies if machine should be powered up at scheduled time
     .PARAMETER SpecificDayOfMonth
-        Specifies index of day in the month       
+        Specifies index of day in the month
     .PARAMETER EndAt
         Specifies 15 minutes interval when procedure should end (24-hour HHMM, e.g. "1345"; no leading "T" - the server rejects a "T"-prefixed EndAt with HTTP 400).
     .PARAMETER EndOn
-        Specifies date and time when recurrence should be ended   
+        Specifies date and time when recurrence should be ended
     .PARAMETER EndAfterIntervalTimes
-        Specifies if recurrence should end after specific amount of executions                  
+        Specifies if recurrence should end after specific amount of executions
     .PARAMETER Interval
         Specifies unit of measurement for interval of distribution window
     .PARAMETER Magniture
@@ -47,14 +47,14 @@ function New-VSAPatchScan
     .EXAMPLE
        New-VSAPatchScan -AgentId 2343322 -PatchIds 189, 190, 220 -EndAt "1345" -EndOn "2021-10-30T12:00:00.000Z" -Repeat "Days" -Times 3 -AgentTime -ExcludeFrom "T1000" -ExcludeTo "T1200"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Success or failure
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
@@ -72,9 +72,9 @@ function New-VSAPatchScan
         })]
         [string] $AgentID,
 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [array] $PatchIds,
 
         [parameter(Mandatory = $false,
@@ -90,23 +90,23 @@ function New-VSAPatchScan
         })]
         [string] $SpecificDayOfMonth,
 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [string] $EndAt,
 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [string] $EndOn,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [string] $EndAfterIntervalTimes,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [string] $Interval = 'Minutes',
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -116,40 +116,40 @@ function New-VSAPatchScan
         })]
         [string] $Magnitude = '0',
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [string] $StartOn,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [string] $StartAt,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [string] $ExcludeFrom,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [string] $ExcludeTo,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [switch] $AgentTime,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [switch] $ServerTimeZone,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [switch] $SkipIfOffLine,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [switch] $PowerUpIfOffLine
-        
+
 )
-   
+
     DynamicParam {
         if ( $Repeat -ne 'Never' ) {
 
@@ -197,8 +197,8 @@ function New-VSAPatchScan
     Begin {
     }
 
-    Process {    
-   
+    Process {
+
         [string] $Times       = $PSBoundParameters.Times
         [string] $DaysOfWeek  = $PSBoundParameters.DaysOfWeek
         [string] $DayOfMonth  = $PSBoundParameters.DayOfMonth
@@ -218,7 +218,7 @@ function New-VSAPatchScan
         foreach ( $key in @($Recurrence.Keys) ) {
             if ( -not $Recurrence[$key] )  { $Recurrence.Remove($key) }
         }
-        
+
         [hashtable]$Distribution = @{
             Interval  = $Interval
             Magnitude = $Magnitude

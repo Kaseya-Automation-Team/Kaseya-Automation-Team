@@ -20,23 +20,23 @@ function New-VSADepartment
     .EXAMPLE
        Add-VSADepartment -OrgId 10001 -DepartmentName 'A New Department' -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if creation was successful.
        ID of new Department if the ExtendedOutput switch specified.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/orgs/{0}/departments',
 
-        [Parameter(Mandatory = $true, 
+        [Parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( (-not [string]::IsNullOrEmpty($_)) -and ($_ -notmatch "^\d+$") ) {
@@ -103,9 +103,7 @@ function New-VSADepartment
     }
 
     [string]$Body = $BodyHT | ConvertTo-Json
-            Write-Debug "New-VSADepartment. Request Body: $Body"
-    
-
+    Write-Debug "New-VSADepartment. Request Body: $Body"
 
     return Invoke-VSAWriteRequest -Body $Body -Method POST -URISuffix $URISuffix `
         -VSAConnection $VSAConnection -ExtendedOutput:$ExtendedOutput -Caller $PSCmdlet

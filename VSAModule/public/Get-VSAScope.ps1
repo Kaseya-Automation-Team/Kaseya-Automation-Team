@@ -21,28 +21,28 @@ function Get-VSAScope
     .EXAMPLE
        Get-VSAScope -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of objects that represent existing VSA scopes.
     #>
     [CmdletBinding(DefaultParameterSetName='All')]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'All')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ById')]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory=$false,
-            
+
             ParameterSetName = 'All')]
         [parameter(Mandatory=$false,
-            
+
             ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/scopes',
 
         [Parameter(Mandatory = $false,
@@ -57,12 +57,12 @@ function Get-VSAScope
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
     process {

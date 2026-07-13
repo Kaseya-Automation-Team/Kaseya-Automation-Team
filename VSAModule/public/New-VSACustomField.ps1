@@ -18,7 +18,7 @@ function New-VSACustomField {
     .EXAMPLE
        New-VSACustomField -FieldName 'MyField' -FieldType datetime
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if creation was successful
     .NOTES
@@ -26,7 +26,7 @@ function New-VSACustomField {
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param (
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
@@ -37,7 +37,7 @@ function New-VSACustomField {
         [Alias("Name")]
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $FieldName,
 
         [Alias("Type")]

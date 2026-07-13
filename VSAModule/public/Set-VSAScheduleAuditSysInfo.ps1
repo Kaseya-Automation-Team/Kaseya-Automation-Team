@@ -47,20 +47,20 @@ function Set-VSAScheduleAuditSysInfo
     .EXAMPLE
        Set-VSAScheduleAuditSysInfo -AgentID 10001 -Repeat Never -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if start of baseline audit was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
-        [string] $URISuffix = 'api/v1.0/assetmgmt/audit/sysinfo/{0}/schedule', 
- 
+        [string] $URISuffix = 'api/v1.0/assetmgmt/audit/sysinfo/{0}/schedule',
+
         [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
@@ -108,28 +108,8 @@ function Set-VSAScheduleAuditSysInfo
     DynamicParam {
         if ( $Repeat -ne 'Never' ) {
 
-            function New-VSARuntimeParameter {
-                param (
-                    [string] $Name,
-                    [Type] $Type,
-                    [string[]] $ValidateSet = $null,
-                    [bool] $Mandatory = $false
-                )
-
-                $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-                $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-                $ParameterAttribute.Mandatory = $Mandatory
-                $AttributesCollection.Add($ParameterAttribute)
-            
-                if ($ValidateSet) {
-                    $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-                    $AttributesCollection.Add($ValidateSetAttribute)
-                }
-
-                $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($Name, $Type, $AttributesCollection)
-                return $RuntimeParameter
-            }
-
+            # New-VSARuntimeParameter is a private module helper (private/New-VSARuntimeParameter.ps1),
+            # visible here because a DynamicParam block runs in module scope.
             $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
 
             $RuntimeParameterDictionary.Add('Times', (New-VSARuntimeParameter -Name 'Times' -Type ([int])))
@@ -189,7 +169,7 @@ function Set-VSAScheduleAuditSysInfo
         } | Where-Object { $_.Value }
 
         $BodyHT = [PSCustomObject]@{}
-        
+
         if ($Recurrence) { $BodyHT.Recurrence = $Recurrence }
         if ($Distribution) { $BodyHT.Distribution = $Distribution }
         if ($Start) { $BodyHT.Start = $Start }
@@ -197,8 +177,7 @@ function Set-VSAScheduleAuditSysInfo
 
         $Body = ConvertTo-Json $BodyHT
 
-                    Write-Debug "Set-VSAScheduleAuditSysInfo. $($Body | Out-String)"
-        
+        Write-Debug "Set-VSAScheduleAuditSysInfo. $($Body | Out-String)"
 
         return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($URISuffix -f $AgentID) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }# Process

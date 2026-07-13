@@ -19,19 +19,19 @@ function New-VSAAgentInstallLink
     .EXAMPLE
        New-VSAAgentInstallLink -VSAConnection $VSAConnection -PartitionId 1 -MachineGroupName "MyOrg.root"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/agent/packagelink",
 
         [parameter(Mandatory=$true,
@@ -41,12 +41,12 @@ function New-VSAAgentInstallLink
                 throw "Non-numeric Id"
             }
             return $true
-        })] 
+        })]
         [string] $PartitionId,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $MachineGroupName
 )
     process {

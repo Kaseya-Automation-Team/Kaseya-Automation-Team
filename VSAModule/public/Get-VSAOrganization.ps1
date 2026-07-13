@@ -32,52 +32,52 @@ function Get-VSAOrganization
     .EXAMPLE
        Get-VSAOrganization -VSAConnection $VSAConnection -OrgID '10001'
     .INPUTS
-       Accepts piped VSAConnection 
+       Accepts piped VSAConnection
     .OUTPUTS
        Array of objects that represent Organizations' Data.
     .NOTES
         Version 1.0.0
     #>
     [CmdletBinding()]
-    param ( 
-        
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
-            ParameterSetName = 'Locations')] 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+    param (
+
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Locations')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Types')]
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Filtering')]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(DontShow, Mandatory = $false,  
-             
-            ParameterSetName = 'Locations')] 
-        [parameter(DontShow, Mandatory = $false,  
-             
+        [parameter(DontShow, Mandatory = $false,
+
+            ParameterSetName = 'Locations')]
+        [parameter(DontShow, Mandatory = $false,
+
             ParameterSetName = 'Types')]
-        [parameter(DontShow, Mandatory = $false,  
-             
+        [parameter(DontShow, Mandatory = $false,
+
             ParameterSetName = 'Filtering')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/orgs',
 
-        [parameter(Mandatory = $true,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Locations')]
         [switch] $GetLocations,
 
-        [parameter(Mandatory = $true,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Types')]
         [switch] $GetTypes,
 
         [Alias('OrganizationId','Id')]
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Filtering')]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -87,16 +87,16 @@ function Get-VSAOrganization
         })]
         [string] $OrgId,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Filtering')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Filtering')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
     process {
@@ -126,10 +126,10 @@ function Get-VSAOrganization
     }
 
     #region messages to verbose and debug streams
-            "Get-VSAOrganization: $($Params | Out-String)" | Write-Debug
-    
-            "Get-VSAOrganization: $($Params | Out-String)" | Write-Verbose
-    
+    "Get-VSAOrganization: $($Params | Out-String)" | Write-Debug
+
+    "Get-VSAOrganization: $($Params | Out-String)" | Write-Verbose
+
     #endregion messages to verbose and debug streams
 
     return Invoke-VSARestMethod @Params

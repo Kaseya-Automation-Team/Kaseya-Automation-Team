@@ -48,13 +48,13 @@ function New-VSAAPScheduled {
     .EXAMPLE
        New-VSAAPScheduled -AgentId 2343322 -AgentProcedureId 1435 -EndAt "1345" -EndOn "2021-10-30T12:00:00.000Z" -Repeat "Days" -Times 3 -AgentTime -ExcludeFrom "T1000" -ExcludeTo "T1200"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
     .NOTES
         Version 1.0.0
     #>
-    
+
     [CmdletBinding(SupportsShouldProcess)]
     param (
         [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
@@ -146,30 +146,11 @@ function New-VSAAPScheduled {
     )
 
     DynamicParam {
-        function New-VSARuntimeParameter {
-            param (
-                [string] $Name,
-                [Type] $Type,
-                [string[]] $ValidateSet = $null,
-                [bool] $Mandatory = $false
-            )
-
-            $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-            $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ParameterAttribute.Mandatory = $Mandatory
-            $AttributesCollection.Add($ParameterAttribute)
-        
-            if ($ValidateSet) {
-                $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-                $AttributesCollection.Add($ValidateSetAttribute)
-            }
-
-            return New-Object System.Management.Automation.RuntimeDefinedParameter($Name, $Type, $AttributesCollection)
-        }
-
+        # New-VSARuntimeParameter is a private module helper (private/New-VSARuntimeParameter.ps1),
+        # visible here because a DynamicParam block runs in module scope.
         if ($Repeat -ne 'Never') {
             $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
-        
+
             $RuntimeParameterDictionary['Times'] = New-VSARuntimeParameter -Name 'Times' -Type ([int]) -Mandatory $false
 
             $daysOfWeek = @('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday')

@@ -19,19 +19,19 @@ function Update-VSASDTicketPriority
     .EXAMPLE
        Update-VSASDTicketPriority -VSAConnection $connection -ServiceDeskTicketId 979868787875855 -PriorityId 3498242298
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/automation/servicedesktickets/{0}/priority/{1}",
 
         [parameter(Mandatory=$true,
@@ -41,7 +41,7 @@ function Update-VSASDTicketPriority
                 throw "Non-numeric Id"
             }
             return $true
-        })] 
+        })]
         [string] $ServiceDeskTicketId,
 
         [parameter(Mandatory=$true,

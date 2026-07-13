@@ -25,33 +25,33 @@ function Get-VSADepartment
     .EXAMPLE
        Get-VSADepartment -DepartmentId 10001 -VSAConnection $VSAConnection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of objects that represent Departments' Data.
     #>
     [CmdletBinding(DefaultParameterSetName = 'Department')]
-    param ( 
-        
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
-            ParameterSetName = 'Organization')] 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+    param (
+
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Organization')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Department')]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(DontShow, Mandatory = $false,  
-             
-            ParameterSetName = 'Organization')] 
-        [parameter(DontShow, Mandatory = $false,  
-             
+        [parameter(DontShow, Mandatory = $false,
+
+            ParameterSetName = 'Organization')]
+        [parameter(DontShow, Mandatory = $false,
+
             ParameterSetName = 'Department')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix,
 
-        [Parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true, 
+        [Parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Organization')]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -61,8 +61,8 @@ function Get-VSADepartment
         })]
         [string] $OrgId,
 
-        [Parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true, 
+        [Parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Department')]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -72,22 +72,22 @@ function Get-VSADepartment
         })]
         [string] $DepartmentId,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
-            ParameterSetName = 'Organization')] 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Organization')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Department')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
-            ParameterSetName = 'Organization')] 
-        [parameter(Mandatory = $false,  
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Organization')]
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Department')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
     process {
@@ -95,12 +95,12 @@ function Get-VSADepartment
     $ItemId  = [string]::Empty
     $Message = [string]::Empty
 
-    if ( -not [string]::IsNullOrEmpty($OrgId) ) { 
+    if ( -not [string]::IsNullOrEmpty($OrgId) ) {
         #Departments for a specific organization
         if( [string]::IsNullOrEmpty($URISuffix) ) { $URISuffix = "api/v1.0/system/orgs/{0}/departments" }
         $ItemId = $OrgId
         $Message = "Look for departments in the Organization with ID: '$ItemId'"
-    } else { 
+    } else {
         #Specific department
         if( [string]::IsNullOrEmpty($URISuffix) ) { $URISuffix= "api/v1.0/system/departments/{0}" }
         $ItemId = $DepartmentId
@@ -109,10 +109,10 @@ function Get-VSADepartment
     $URISuffix = $URISuffix -f $ItemId
 
     #region messages to verbose and debug streams
-            $Message | Write-Debug
-    
-            $Message | Write-Verbose
-    
+    $Message | Write-Debug
+
+    $Message | Write-Verbose
+
     #endregion messages to verbose and debug streams
 
     [hashtable]$Params = @{
@@ -130,10 +130,10 @@ function Get-VSADepartment
     $Message = "$($MyInvocation.MyCommand.Name):`n$($Params | Out-String)"
 
     #region messages to verbose and debug streams
-            $Message | Write-Debug
-    
-            $Message | Write-Verbose
-    
+    $Message | Write-Debug
+
+    $Message | Write-Verbose
+
     #endregion messages to verbose and debug streams
 
     return Invoke-VSARestMethod @Params

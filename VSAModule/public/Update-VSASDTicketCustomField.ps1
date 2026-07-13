@@ -21,14 +21,14 @@ function Update-VSASDTicketCustomField
     .EXAMPLE
        Update-VSASDTicketCustomField -VSAConnection $connection -ServiceDeskTicketId 3256598065654 -CustomFieldId "Automatic"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
@@ -42,7 +42,7 @@ function Update-VSASDTicketCustomField
                 throw "Non-numeric Id"
             }
             return $true
-        })] 
+        })]
         [string] $ServiceDeskTicketId,
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
@@ -55,7 +55,7 @@ function Update-VSASDTicketCustomField
         [string] $CustomFieldId,
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Value
 )
     process {

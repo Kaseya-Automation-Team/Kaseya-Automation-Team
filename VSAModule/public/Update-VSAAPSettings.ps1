@@ -16,14 +16,14 @@ function Update-VSAAPSettings
     .EXAMPLE
        Update-VSAAPSettings -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if update was successful
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
@@ -40,7 +40,7 @@ function Update-VSAAPSettings
         [switch] $Flag
 )
     process {
-    
+
     return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($( $URISuffix -f $Flag.ToString().ToLower() )) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }

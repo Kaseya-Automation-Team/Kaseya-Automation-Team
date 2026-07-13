@@ -19,25 +19,24 @@ function Disable-VSAUser
     .EXAMPLE
        Disable-VSAUser -VSAConnect $connection -UserId 10001
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if addition was successful.
         .NOTES
         On hardened (post-2021) VSA builds this user-mutation endpoint may be blocked at the network
-        layer. The call then fails with a VSAApiException whose .ConnectionReset is $true and
-        .StatusCode is 0 (the connection is reset before any HTTP status is returned) -- it is not a
+        layer. The call then fails with a VSAApiException whose ConnectionReset property is $true and
+        the StatusCode is 0 (the connection is reset before any HTTP status is returned) -- it is not a
         403/404. Read-only user cmdlets (Get-VSAUser) are unaffected.
 #>
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
-    #[CmdletBinding()]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/users/{0}/disable',
 
         [Alias('ID')]
@@ -50,7 +49,7 @@ function Disable-VSAUser
             return $true
         })]
         [string] $UserId
-    )    
+    )
 
     return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $UserId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }

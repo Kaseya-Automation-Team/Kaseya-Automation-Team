@@ -17,34 +17,33 @@ function Enable-VSAUser
     .EXAMPLE
        Enable-VSAUser UserId 10001
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if addition was successful.
         .NOTES
         On hardened (post-2021) VSA builds this user-mutation endpoint may be blocked at the network
-        layer. The call then fails with a VSAApiException whose .ConnectionReset is $true and
-        .StatusCode is 0 (the connection is reset before any HTTP status is returned) -- it is not a
+        layer. The call then fails with a VSAApiException whose ConnectionReset property is $true and
+        the StatusCode is 0 (the connection is reset before any HTTP status is returned) -- it is not a
         403/404. Read-only user cmdlets (Get-VSAUser) are unaffected.
 #>
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
-    #[CmdletBinding()]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ByName')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ById')]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false,
-            
+
             ParameterSetName = 'ByName')]
         [parameter(DontShow, Mandatory=$false,
-            
+
             ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/users/{0}/enable',
 
         [parameter(Mandatory=$true,

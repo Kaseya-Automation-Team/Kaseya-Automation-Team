@@ -20,13 +20,13 @@ function Enable-VSATenantModule {
     .EXAMPLE
        Enable-VSATenantModule -TenantId 10001 -ModuleId 0, 95
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful.
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ByName')]
@@ -37,10 +37,10 @@ function Enable-VSATenantModule {
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false,
-            
+
             ParameterSetName = 'ByName')]
         [parameter(DontShow, Mandatory=$false,
-            
+
             ParameterSetName = 'ById')]
         [ValidateNotNull()]
         [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant/modules/{0}',

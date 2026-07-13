@@ -4,12 +4,12 @@ function Get-VSAItemById {
         Retrieves VSA Objects for a specified ID using aliases to target specific data types.
 
     .DESCRIPTION
-        The `Get-VSAItemById` function retrieves specific VSA Objects based on a provided ID. 
+        The `Get-VSAItemById` function retrieves specific VSA Objects based on a provided ID.
         Each alias corresponds to a different type of object (e.g., agent logs, 2FA settings, patch status).
-    
+
         This function is versatile because it accepts multiple aliases that map to different REST API endpoints.
         The `Id` parameter is essential and typically refers to the ID of the object being retrieved (e.g., Agent ID, Module ID).
-        
+
         SECURITY NOTE: The ID parameter accepts only positive numeric values to prevent injection attacks.
 
         KASEYA VSA 9 REST API ID FORMATS:
@@ -19,12 +19,12 @@ function Get-VSAItemById {
         - Module IDs: Positive integers
         - Service Desk IDs: Positive integers
         - Ticket IDs: Positive integers
-        
+
         All VSA object IDs follow a standard numeric format in the Kaseya VSA 9 REST API.
         Reference: help.kaseya.com/webhelp/EN/RESTAPI/9050000/
 
         The following aliases map to specific VSA object retrievals:
-    
+
         - **Get-VSAAgent2FA**: Retrieves 2FA settings for a specified Agent ID.
             - **Returned Object**: 2FA settings.
 
@@ -63,7 +63,7 @@ function Get-VSAItemById {
 
         - **Get-VSACfgChangeLog** and **Get-VSACfgChangesLog**: Retrieves VSA configuration changes for a specified Agent Id.
             - **Returned Object**: Array of configuration changes log records.
-        
+
         - **Get-VSADirEventLog**: Retrieves directory services log records for a specified Agent Id.
             - **Returned Object**: Array of directory services event log records.
 
@@ -128,7 +128,7 @@ function Get-VSAItemById {
             - **Returned Object**: Array of Work Orders.
 
     .PARAMETER VSAConnection
-        Specifies an existing non-persistent VSAConnection. This can either be passed as a parameter or piped into the function. 
+        Specifies an existing non-persistent VSAConnection. This can either be passed as a parameter or piped into the function.
         Required for the API call.
 
     .PARAMETER URISuffix
@@ -154,9 +154,9 @@ function Get-VSAItemById {
         Retrieves the status of the service desk ticket with ID 98765.
 
     .NOTES
-        This cmdlet is designed to work with multiple aliases that retrieve specific VSA object types. Each alias passes a 
+        This cmdlet is designed to work with multiple aliases that retrieve specific VSA object types. Each alias passes a
         different URI suffix to `Get-VSAItemById` to retrieve different types of data.
-    
+
         **Aliases**:
         - Get-VSAAgent2FA
         - Get-VSAAgentInView
@@ -201,16 +201,29 @@ function Get-VSAItemById {
         - Get-VSAThirdAppStatus
         - Get-VSAWorkOrder
         - Get-VSAWorkOrders
+
+        Added in v1.4.0 (live-Swagger gap analysis), Id = the noun in the name:
+        - Get-VSARCServiceByAsset (Id = Asset Id; remote-control services for the asset)
+        - Get-VSARCMachineByView (Id = View Id; remote-control machines in the view)
+        - Get-VSAAgentUpdateSchedule (Id = Agent Id; agent update schedule)
+        - Get-VSAAssetAudit (Id = Asset Id; agent audit for the asset)
+        - Get-VSAAssetById (Id = Asset Id; a single asset)
+        - Get-VSAAPPromptById (Id = Agent Procedure Id; prompts for the procedure)
+        - Get-VSASDTicketByDesk (Id = Service Desk Id; tickets in the desk)
+        - Get-VSASDTicketById (Id = Ticket Id; a single service-desk ticket)
+        - Get-VSATenantDefaultSetting (Id = Setting Id; a tenant default setting)
+        - Get-VSACBStatus (Id = Org Id; last Cloud Backup status for the org)
+        - Get-VSAFunctionById (Id = Module Id; functions for the module)
     #>
 
     [CmdletBinding()]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix,
 
         [Alias('AgentId', 'ViewId', 'NetworkId', 'PartitionId', 'AlarmId', 'AssetId', 'ModuleId', 'ServiceDeskId', 'ServiceDeskTicketId', 'CustomerId')]
@@ -226,11 +239,11 @@ function Get-VSAItemById {
         [string] $Id,
 
         [Parameter(Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
         [Parameter(Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
     process {

@@ -19,24 +19,24 @@ function Add-VSAUserToRole
     .EXAMPLE
        Add-VSAUserToRole -VSAConnection $connection -RoleId 10001 -UserId 20002
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
         .NOTES
         On hardened (post-2021) VSA builds this user-mutation endpoint may be blocked at the network
-        layer. The call then fails with a VSAApiException whose .ConnectionReset is $true and
-        .StatusCode is 0 (the connection is reset before any HTTP status is returned) -- it is not a
+        layer. The call then fails with a VSAApiException whose ConnectionReset property is $true and
+        the StatusCode is 0 (the connection is reset before any HTTP status is returned) -- it is not a
         403/404. Read-only user cmdlets (Get-VSAUser) are unaffected.
 #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/system/roles/{0}/users/{1}",
 
         [parameter(Mandatory=$true,
@@ -56,10 +56,10 @@ function Add-VSAUserToRole
                 throw "Non-numeric Id"
             }
             return $true
-        })] 
+        })]
         [string] $UserId
 )
-	
+
 	return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $RoleId, $UserId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }
 

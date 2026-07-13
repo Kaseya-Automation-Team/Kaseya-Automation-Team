@@ -19,19 +19,19 @@ function Start-VSAAP
     .EXAMPLE
        Start-VSAAP -VSAConnection $connection -AgentId 34223222 -AgentProcedureId 2312
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/automation/agentprocs/{0}/{1}/runnow",
 
         [Parameter(Mandatory = $true)]
@@ -53,9 +53,9 @@ function Start-VSAAP
         })]
         [string] $AgentProcedureId
 )
-    
+
     $URISuffix = $URISuffix -f $AgentId, $AgentProcedureId
-    
+
     return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }
 

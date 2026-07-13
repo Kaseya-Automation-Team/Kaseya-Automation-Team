@@ -15,17 +15,17 @@ function Copy-VSAMGStructure {
     .EXAMPLE
         Copy-VSAMGStructure -SourceMGs $SourceMGs -OrgRef $OrgRef -SourceVSA $SourceVSA -DestinationVSA $DestinationVSA
     .INPUTS
-       Accepts piped parameters 
+       Accepts piped parameters
     .OUTPUTS
        No output
     #>
     [CmdletBinding()]
     param (
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $SourceVSA,
 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $DestinationVSA,
 
@@ -64,8 +64,8 @@ function Copy-VSAMGStructure {
     [array]$ExistingSourceMGs = Get-VSAMachineGroup @SourceParams | Where-Object { -not [string]::IsNullOrEmpty($_.MachineGroupId) }
 
     #region message
-            "Source Machine Groups:`n>$($ExistingSourceMGs.MachineGroupName -join "`n>" )" | Write-Debug
-    
+    "Source Machine Groups:`n>$($ExistingSourceMGs.MachineGroupName -join "`n>" )" | Write-Debug
+
     #endregion message
 
     [hashtable]$DestinationParams = @{
@@ -90,7 +90,7 @@ function Copy-VSAMGStructure {
             VSAConnection = $DestinationVSA
             OrgID         = $DestinationOrg.OrgId
         }
-        
+
         #region Define the current Machine Group's own MachineGroupName and the parent Machine Group's MachineGroupName (if exists)
         #$SplitName = ($MachineGroup.MachineGroupName | Select-String -Pattern "(?<=$OrgRef\.).*$").Matches.Value
 
@@ -114,16 +114,16 @@ function Copy-VSAMGStructure {
             $DestinationParentMGId =  Get-VSAMachineGroup @DestinationParams -Filter "MachineGroupName eq '$(ConvertTo-ODataString $ParentMGName)'" | Select-Object -ExpandProperty MachineGroupId
 
             #region message
-                            Write-Debug "Parent Machine Group for '$MGName' : '$ParentMGName'. Destination ParentMachineGroupId: '$DestinationParentMGId'."
-            
+            Write-Debug "Parent Machine Group for '$MGName' : '$ParentMGName'. Destination ParentMachineGroupId: '$DestinationParentMGId'."
+
             #endregion message
-            
+
             #Replace source's ParentMachineGroupId with the destination's counterpart
             $MachineGroup.ParentMachineGroupId = $DestinationParentMGId
         }
 
         $CheckDestination = Get-VSAMachineGroup @DestinationParams -Filter "MachineGroupName eq '$(ConvertTo-ODataString $MGName)'"
-    
+
         if( $null -eq $CheckDestination ) #No MG with this name in the destination
         {
             $NewMGParams = $DestinationParams.Clone()
@@ -133,8 +133,8 @@ function Copy-VSAMGStructure {
             if ($PSCmdlet.MyInvocation.BoundParameters['Verbose']) { $NewMGParams.Add('Verbose', $true) }
 
             #region message
-                            Write-Debug "Machine Group with name '$MGName' was not found in the destination. Will attempt to create it."
-            
+            Write-Debug "Machine Group with name '$MGName' was not found in the destination. Will attempt to create it."
+
             #endregion message
 
             $NewGroupId = try {
@@ -175,7 +175,7 @@ function Copy-VSAMGStructure {
                 Write-Debug $Info
                 Write-Debug "JSON data:`n$($MachineGroup | ConvertTo-Json -Depth 5 | Out-String)"
                 #endregion message
-            } 
+            }
         }
         else {
             #$CheckDestination is not null

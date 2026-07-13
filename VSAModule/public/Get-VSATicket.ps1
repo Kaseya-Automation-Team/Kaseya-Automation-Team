@@ -26,42 +26,42 @@ function Get-VSATicket
        Array of objects that represent ticket data.
     #>
     [CmdletBinding(DefaultParameterSetName='All')]
-    param ( 
-        
-        [parameter(Mandatory = $false,  
+    param (
+
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'All')]
-        [parameter(Mandatory = $false,  
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ById')]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
-        [parameter(DontShow, Mandatory = $false,  
-            
+        [parameter(DontShow, Mandatory = $false,
+
             ParameterSetName = 'All')]
-        [parameter(DontShow, Mandatory = $false,  
-            
+        [parameter(DontShow, Mandatory = $false,
+
             ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/automation/tickets',
 
-        [parameter(Mandatory = $false,  
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ById')]
         [ValidateNotNullOrEmpty()]
         [string] $TicketId,
 
-        [parameter(Mandatory = $false,  
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
-        [parameter(Mandatory = $false,  
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
     process {
@@ -78,9 +78,9 @@ function Get-VSATicket
     if($Sort)          {$Params.Add('Sort', $Sort)}
 
     #region messages to verbose and debug streams
-            "Get-VSATicket: $($Params | Out-String)" | Write-Debug
+    "Get-VSATicket: $($Params | Out-String)" | Write-Debug
 
-            "Get-VSATicket: $($Params | Out-String)" | Write-Verbose
+    "Get-VSATicket: $($Params | Out-String)" | Write-Verbose
 
     #endregion messages to verbose and debug streams
 

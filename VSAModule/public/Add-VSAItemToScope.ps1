@@ -28,38 +28,38 @@ function Add-VSAItemToScope
     .EXAMPLE
        Add-VSAItemToScope -ScopeId 10001 -UserId 20002
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if addition was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+    param (
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'MachineGroup')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Organization')]
-        [parameter(Mandatory = $false, 
-            ValueFromPipelineByPropertyName = $true, 
+        [parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'User')]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory=$false,
-             
+
             ParameterSetName = 'MachineGroup')]
-        [parameter(Mandatory = $false, 
-             
+        [parameter(Mandatory = $false,
+
             ParameterSetName = 'Organization')]
-        [parameter(Mandatory = $false, 
-             
+        [parameter(Mandatory = $false,
+
             ParameterSetName = 'User')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/scopes/{0}',
 
-        [Parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true, 
+        [Parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Organization')]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -69,8 +69,8 @@ function Add-VSAItemToScope
         })]
         [string] $OrganizationId,
 
-        [Parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true, 
+        [Parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'MachineGroup')]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -80,8 +80,8 @@ function Add-VSAItemToScope
         })]
         [string] $MachineGroupId,
 
-        [Parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true, 
+        [Parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'User')]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -91,14 +91,14 @@ function Add-VSAItemToScope
         })]
         [string] $UserId,
 
-        [Parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true, 
+        [Parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'Organization')]
-        [Parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true, 
+        [Parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'MachineGroup')]
-        [Parameter(Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true, 
+        [Parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'User')]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {

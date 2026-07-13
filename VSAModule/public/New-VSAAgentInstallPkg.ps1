@@ -25,24 +25,24 @@ function New-VSAAgentInstallPkg
     .PARAMETER PackageDescription
         Specifies description of package
     .EXAMPLE
-       New-VSAAgentInstallPkg -MachineGroupId 23434 -CopySettingsFromAgentId 342432324 -AgentType null -PackageName "New package" -PackageDescription "Package for linux computers" 
+       New-VSAAgentInstallPkg -MachineGroupId 23434 -CopySettingsFromAgentId 342432324 -AgentType null -PackageName "New package" -PackageDescription "Package for linux computers"
     .EXAMPLE
-       New-VSAAgentInstallPkg -VSAConnection $VSAConnection -MachineGroupId 23434 -CopySettingsFromAgentId 342432324 -AgentType null -PackageName "New package" -PackageDescription "Package for linux computers" 
+       New-VSAAgentInstallPkg -VSAConnection $VSAConnection -MachineGroupId 23434 -CopySettingsFromAgentId 342432324 -AgentType null -PackageName "New package" -PackageDescription "Package for linux computers"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/assetmgmt/agents/packages",
 
         [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
@@ -73,24 +73,24 @@ function New-VSAAgentInstallPkg
         [string] $CopySettingsFromAgentId,
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [ValidateSet("auto", "windows", "mac", "null")]
         [string] $AgentType,
 
         [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $CommandLineSwitches = "/e",
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $PackageName,
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $PackageDescription
 )
     process {
-	
+
 # Initialize the body hashtable
 $BodyHT = @{
     MachineGroupId = $MachineGroupId

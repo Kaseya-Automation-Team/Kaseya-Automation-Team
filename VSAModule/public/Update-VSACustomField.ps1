@@ -21,16 +21,16 @@ function Update-VSACustomField
     .EXAMPLE
        Update-VSACustomField -FieldName 'OldFieldName' -NewFieldName 'NewFieldName'
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if update was successful
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param (
-        [parameter(DontShow, Mandatory = $false, 
+        [parameter(DontShow, Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'RenameField')]
-        [parameter(DontShow, Mandatory = $false, 
+        [parameter(DontShow, Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'UpdateValue')]
         [ValidateNotNull()]
@@ -42,7 +42,7 @@ function Update-VSACustomField
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'UpdateValue')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $FieldName,
 
         [parameter(Mandatory=$true,
@@ -71,21 +71,21 @@ function Update-VSACustomField
         })]
         [string] $AgentID,
 
-        [parameter(DontShow, Mandatory = $false, 
-            
+        [parameter(DontShow, Mandatory = $false,
+
             ParameterSetName = 'RenameField')]
-        [parameter(DontShow, Mandatory = $false, 
-            
+        [parameter(DontShow, Mandatory = $false,
+
             ParameterSetName = 'UpdateValue')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/assetmgmt/assets/{1}/customfields/{0}"
         )
     process {
 
-    [string[]]$Values = @($FieldName) # Array of values to actualize URI suffix.  The first element of array is the field name. 
+    [string[]]$Values = @($FieldName) # Array of values to actualize URI suffix.  The first element of array is the field name.
 
     if ( [string]::IsNullOrEmpty($AgentID) ) { # AgentID is not set. Field renaming
-        
+
         $Values += '' # The second element of array to actualize URI suffix is an empty string if AgentID is not provided.
         $BodyHT = @(@{"key"="NewFieldName";"value"=$NewFieldName})
 
@@ -93,7 +93,7 @@ function Update-VSACustomField
         $Values += $AgentID
         $BodyHT = @(@{"key"="FieldValue";"value"=$FieldValue })
     }
-    
+
     $URISuffix = $($URISuffix -f $Values) -replace '//', '/' # URI suffix actualization
 
     switch ($PsCmdlet.ParameterSetName) {

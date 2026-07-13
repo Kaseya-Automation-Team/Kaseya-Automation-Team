@@ -15,21 +15,21 @@ function Start-VSAAuditBaseLine
     .EXAMPLE
        Start-VSAAuditBaseLine -AgentID 10001 -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if start of baseline audit was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
-        [string] $URISuffix = 'api/v1.0/assetmgmt/audit/baseline/{0}/runnow', 
- 
-        [parameter(Mandatory = $true,  
+        [string] $URISuffix = 'api/v1.0/assetmgmt/audit/baseline/{0}/runnow',
+
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -39,7 +39,6 @@ function Start-VSAAuditBaseLine
         })]
         [string] $AgentID
     )
-    
 
     return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $AgentID)) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }

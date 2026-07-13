@@ -17,25 +17,25 @@ function Get-VSACustomExtensionFSItem
     .PARAMETER Sort
         Specifies REST API Sorting.
     .EXAMPLE
-       Get-VSACustomExtensionFSItems 
+       Get-VSACustomExtensionFSItems
     .EXAMPLE
        Get-VSACustomExtensionFSItems -AgentId '10001' -Path '/NestedFolderLevel1/NestedFolderLevel2/'
     .EXAMPLE
        Get-VSACustomExtensionFSItems -AgentId '10001' -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of objects that represent Custom Extension Folders and Files.
     #>
     [CmdletBinding()]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/customextensions/{0}/folder/{1}',
 
         [Parameter(Mandatory = $true)]
@@ -53,11 +53,11 @@ function Get-VSACustomExtensionFSItem
         [string] $Path = '/',
 
         [Parameter(Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
         [Parameter(Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
     process {

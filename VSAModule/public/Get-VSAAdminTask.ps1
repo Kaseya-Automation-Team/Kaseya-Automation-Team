@@ -22,19 +22,19 @@ function Get-VSAAdminTask {
     .EXAMPLE
        Get-VSAAdminTask -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of items that represent admin tasks or single task
     #>
 
     [CmdletBinding()]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/sessiontimers/admintasks',
 
         [Alias('ID')]
@@ -45,21 +45,21 @@ function Get-VSAAdminTask {
                 throw "Non-numeric Id"
             }
             return $true
-        })] 
+        })]
         [string] $TaskId,
 
         [Parameter(Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
         [Parameter(Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
     process {
 
     if( -not [string]::IsNullOrWhiteSpace( $TaskId) ) { $URISuffix = "api/v1.0/system/sessiontimers/admintasks/$TaskId" }
-    
+
     [hashtable]$Params = @{
         VSAConnection = $VSAConnection
         URISuffix     = $URISuffix

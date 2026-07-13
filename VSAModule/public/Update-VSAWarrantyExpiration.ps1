@@ -21,21 +21,21 @@ function Update-VSAWarrantyExpiration
     .EXAMPLE
        Update-VSAWarrantyExpiration -VSAConnection $connection -AgentID 3324234234 -PurchaseDate "2021-10-21T10:00:00.000Z" -WarrantyExpireDate "2022-10-21T10:00:00.000Z"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Success or failure.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
-        [string] $URISuffix = 'api/v1.0/assetmgmt/audit/{0}/hardware/purchaseandwarrantyexpire', 
- 
-        [parameter(Mandatory = $true,  
+        [string] $URISuffix = 'api/v1.0/assetmgmt/audit/{0}/hardware/purchaseandwarrantyexpire',
+
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {

@@ -4,20 +4,20 @@
         Removes VSA objects based on the alias used, targeting specific object types for deletion.
 
     .DESCRIPTION
-        The `Remove-VSAItem` function removes various VSA objects depending on the alias used. 
-        Each alias corresponds to a specific object type (e.g., agent install packages, notes, assets) and allows for 
-        targeted removal using an identifier (ID). The function uses the REST API to perform the deletion based on 
+        The `Remove-VSAItem` function removes various VSA objects depending on the alias used.
+        Each alias corresponds to a specific object type (e.g., agent install packages, notes, assets) and allows for
+        targeted removal using an identifier (ID). The function uses the REST API to perform the deletion based on
         the object's ID and the alias-specified URI suffix.
-    
-        This cmdlet can remove multiple object types, such as agent notes, organization records, machine groups, 
-        roles, and more.        
+
+        This cmdlet can remove multiple object types, such as agent notes, organization records, machine groups,
+        roles, and more.
         SECURITY NOTE: The ID parameter accepts only positive numeric values to prevent injection attacks.
-        
+
         KASEYA VSA 9 REST API ID FORMATS:
         - All VSA object IDs are positive integers
         - Reference: help.kaseya.com/webhelp/EN/RESTAPI/9050000/
         The following aliases map to specific VSA object removals:
-   
+
         - **Remove-VSAAgentInstallPkg**: Removes an agent install package with a specified Package Id.
         - **Remove-VSAAgentNote**: Removes an agent note with a specified Note Id.
         - **Remove-VSAAPQL**: Removes specified agent procedure from quick launch in "Quick View" window.
@@ -39,7 +39,7 @@
         Specifies the URI suffix for the REST API call. This is typically determined by the alias used and is not manually specified.
 
     .PARAMETER ID
-        Specifies the numeric ID of the object being removed (e.g., Agent Install Package ID, Note ID, Asset ID). 
+        Specifies the numeric ID of the object being removed (e.g., Agent Install Package ID, Note ID, Asset ID).
         Required for object deletion.
 
     .EXAMPLE
@@ -55,9 +55,9 @@
         Removes the agent note with ID 98765.
 
     .NOTES
-        This cmdlet is designed to work with multiple aliases that remove specific VSA object types. Each alias passes a 
+        This cmdlet is designed to work with multiple aliases that remove specific VSA object types. Each alias passes a
         different URI suffix to `Remove-VSAItem` to remove different types of data.
-    
+
         **Aliases**:
         - Remove-VSAAgentInstallPkg
         - Remove-VSAAgentNote
@@ -72,19 +72,22 @@
         - Remove-VSAStaff
         - Remove-VSATenant
         - Remove-VSATenantRoleType
+
+        Added in v1.4.0 (live-Swagger gap analysis):
+        - Remove-VSATemporaryAgent (Id = temporary-agent guid)
     #>
 
     [CmdletBinding(
         SupportsShouldProcess,
         ConfirmImpact = 'High'
     )]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix,
 
         [Alias('NoteId', 'PackageId', 'AgentProcedureId', 'AssetId', 'DepartmentId', 'MachineGroupId', 'OrgId', 'RoleId', 'ScopeId', 'OrgStaffId', 'TenantId', 'RoleTypeId')]

@@ -25,17 +25,17 @@ function Get-VSAAlarm
     .EXAMPLE
        Get-VSAAlarm -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of custom objects that represent VSA alarms or details of single alarm
     #>
 
     [CmdletBinding(DefaultParameterSetName='All')]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'All')]
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ById')]
         [ValidateNotNull()]
@@ -45,7 +45,7 @@ function Get-VSAAlarm
             ParameterSetName = 'All')]
         [parameter(DontShow, Mandatory=$false,
             ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/assetmgmt/alarms/{0}",
 
         [Parameter(Mandatory = $false,
@@ -60,12 +60,12 @@ function Get-VSAAlarm
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
         [Parameter(Mandatory = $false,
             ParameterSetName = 'All')]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort,
 
         [Parameter(Mandatory = $false,

@@ -31,22 +31,22 @@ function New-VSAStaff
     .EXAMPLE
        New-VSAStaff -DepartmentId 10001 -OrgIdNumber 20002 -StaffFullName 'John Doe'
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if addition was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/system/departments/{0}/staff',
 
-        [Parameter(Mandatory = $true, 
+        [Parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -56,7 +56,7 @@ function New-VSAStaff
         })]
         [string] $DepartmentId,
 
-        [Parameter(Mandatory = $true, 
+        [Parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -86,7 +86,7 @@ function New-VSAStaff
         [ValidateNotNullOrEmpty()]
         [string] $Function,
 
-        [Parameter(Mandatory = $false, 
+        [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -200,8 +200,7 @@ function New-VSAStaff
 
     $Body = $BodyHT | ConvertTo-Json
 
-            Write-Debug "New-VSAStaff. Body: $Body"
-    
+    Write-Debug "New-VSAStaff. Body: $Body"
 
     return Invoke-VSAWriteRequest -Body ($Body) -Method 'POST' -URISuffix ($($URISuffix -f $DepartmentId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }

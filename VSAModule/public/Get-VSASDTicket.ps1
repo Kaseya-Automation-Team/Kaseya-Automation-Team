@@ -20,7 +20,7 @@ function Get-VSASDTicket {
     .EXAMPLE
        Get-VSASDTicket -VSAConnection $connection -ServiceDeskId 123456
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of items that represent service desk tickets or ticket details
     #>

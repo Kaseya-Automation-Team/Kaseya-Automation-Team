@@ -4,7 +4,7 @@
     RootModule = 'VSAModule.psm1'
 
     # Version number of this module.
-    ModuleVersion = '1.3.2'
+    ModuleVersion = '1.4.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop','Core')
@@ -63,7 +63,7 @@
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport = @(
         'New-VSAConnection'
-        # Generic dispatch wrappers reached via ~89 aliases (F-20): must be exported or the aliases
+        # Generic dispatch wrappers reached via ~120 aliases (F-20): must be exported or the aliases
         # cannot resolve their target on a normal import (PowerShell resolves an alias's target in
         # the caller's scope, where a module-private function is invisible).
         'Get-VSAItem'
@@ -180,6 +180,31 @@
         'Update-VSAThirdApp'
         'Update-VSAUser'
         'Update-VSAWarrantyExpiration'
+        # Write functions added in v1.4.0 (admin-facing surface)
+        'New-VSATemporaryAgent'
+        'Set-VSATemporaryAgentName'
+        'New-VSATemporaryAgentNote'
+        'Send-VSATemporaryAgentEmail'
+        'New-VSARCService'
+        'Set-VSARCService'
+        'Remove-VSARCService'
+        'Set-VSAAssetProxy'
+        'Set-VSAAssetService'
+        'Suspend-VSAAgent'
+        'Start-VSAAgentUpgrade'
+        'Convert-VSAAssetToDevice'
+        'Convert-VSADeviceToAsset'
+        'Publish-VSADevice'
+        'Set-VSAAgentAlert'
+        'Set-VSASystemAlert'
+        'Get-VSAAlertTracking'
+        'Start-VSAAPReturnId'
+        'Get-VSAOrgNetwork'
+        'Stop-VSAPatchSchedule'
+        'New-VSASDTicket'
+        'Set-VSAUserPassword'
+        'Reset-VSAUserPassword'
+        'Close-VSAUserSession'
     )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -224,6 +249,26 @@
         'Get-VSATenants'
         'Get-VSAWorkOrderType'
         'Get-VSAWorkOrderTypes'
+        # Added in v1.4.0
+        'Get-VSAAlertDefinition'
+        'Get-VSARCService'
+        'Get-VSARCMachine'
+        'Get-VSATemporaryAgent'
+        'Get-VSATemporaryAgentConfig'
+        'Get-VSAAgentActiveAdmin'
+        'Get-VSAAgentUserProfile'
+        'Get-VSAAPList'
+        'Get-VSAAPProcHistory'
+        'Get-VSAAPExecHistory'
+        'Get-VSAAPPrompt'
+        'Get-VSAAPVariable'
+        'Get-VSAOrgType'
+        'Get-VSAOrgLocation'
+        'Get-VSATenantLogonPolicy'
+        'Get-VSADocumentServiceAudit'
+        'Get-VSADocumentVolumeLabel'
+        'Get-VSADocumentServiceName'
+        'Get-VSADocumentDistinctVolumeLabel'
         # Dynamic aliases created for Get-VSAItemById wrapper (retrieves specific items by ID)
         'Get-VSAAgent2FA'
         'Get-VSAAgentInView'
@@ -268,6 +313,18 @@
         'Get-VSAThirdAppStatus'
         'Get-VSAWorkOrder'
         'Get-VSAWorkOrders'
+        # Added in v1.4.0
+        'Get-VSARCServiceByAsset'
+        'Get-VSARCMachineByView'
+        'Get-VSAAgentUpdateSchedule'
+        'Get-VSAAssetAudit'
+        'Get-VSAAssetById'
+        'Get-VSAAPPromptById'
+        'Get-VSASDTicketByDesk'
+        'Get-VSASDTicketById'
+        'Get-VSATenantDefaultSetting'
+        'Get-VSACBStatus'
+        'Get-VSAFunctionById'
         # Dynamic aliases created for Remove-VSAItem wrapper (removes specific items by ID)
         'Remove-VSAAgentInstallPkg'
         'Remove-VSAAgentNote'
@@ -282,6 +339,8 @@
         'Remove-VSAStaff'
         'Remove-VSATenant'
         'Remove-VSATenantRoleType'
+        # Added in v1.4.0
+        'Remove-VSATemporaryAgent'
         # Aliases for specific public functions (see Tools/Build-AliasList.ps1)
         'Add-VSAAdminTask'
         'Add-VSAAgentInstallLink'

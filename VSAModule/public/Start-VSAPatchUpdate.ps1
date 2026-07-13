@@ -15,17 +15,17 @@ function Start-VSAPatchUpdate
     .PARAMETER ServerTimeZone
         Specifies if procedure should be scheduled in server time zone
     .PARAMETER SkipIfOffLine
-        Specifies if procedure should NOT be executed if agent is offline at scheduled time     
+        Specifies if procedure should NOT be executed if agent is offline at scheduled time
     .PARAMETER PowerUpIfOffLine
-        Specifies if machine should be powered up at scheduled time        
+        Specifies if machine should be powered up at scheduled time
     .PARAMETER SpecificDayOfMonth
-        Specifies index of day in the month       
+        Specifies index of day in the month
     .PARAMETER EndAt
         Specifies 15 minutes interval when procedure should end (24-hour HHMM, e.g. "1345"; no leading "T" - the server rejects a "T"-prefixed EndAt with HTTP 400).
     .PARAMETER EndOn
-        Specifies date and time when recurrence should be ended   
+        Specifies date and time when recurrence should be ended
     .PARAMETER EndAfterIntervalTimes
-        Specifies if recurrence should end after specific amount of executions                  
+        Specifies if recurrence should end after specific amount of executions
     .PARAMETER Interval
         Specifies unit of measurement for interval of distribution window
     .PARAMETER Magniture
@@ -45,24 +45,24 @@ function Start-VSAPatchUpdate
     .EXAMPLE
        Start-VSAPatchUpdate -AgentGuids 323289329849, 0402309209209 -EndAt "1345" -EndOn "2021-10-30T12:00:00.000Z" -Repeat "Days" -Times 3 -AgentTime -ExcludeFrom "T1000" -ExcludeTo "T1200"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Success or failure
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/assetmgmt/patch/runnow",
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [array] $AgentGuids,
 
         [switch] $ServerTimeZone,
@@ -112,38 +112,19 @@ function Start-VSAPatchUpdate
         [switch] $AgentTime
 
 )
-   
+
     DynamicParam {
         if ($Repeat -ne 'Never') {
             $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
 
-            # Helper function to create RuntimeDefinedParameter
-            function New-RuntimeParameter {
-                param (
-                    [string]$Name,
-                    [Type]$Type,
-                    [string[]]$ValidateSet
-                )
-
-                $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-
-                $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-                $ParameterAttribute.Mandatory = $false
-                $AttributeCollection.Add($ParameterAttribute)
-
-                if ($ValidateSet) {
-                    $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-                    $AttributeCollection.Add($ValidateSetAttribute)
-                }
-
-                return New-Object System.Management.Automation.RuntimeDefinedParameter($Name, $Type, $AttributeCollection)
-            }
+            # New-VSARuntimeParameter is a private module helper (private/New-VSARuntimeParameter.ps1),
+            # visible here because a DynamicParam block runs in module scope.
 
             # Define parameters
-            $RuntimeParameterDictionary.Add('Times', (New-RuntimeParameter -Name 'Times' -Type ([int]) -ValidateSet $null))
+            $RuntimeParameterDictionary.Add('Times', (New-VSARuntimeParameter -Name 'Times' -Type ([int]) -ValidateSet $null))
 
             $DaysOfWeekSet = @('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday')
-            $RuntimeParameterDictionary.Add('DaysOfWeek', (New-RuntimeParameter -Name 'DaysOfWeek' -Type ([string]) -ValidateSet $DaysOfWeekSet))
+            $RuntimeParameterDictionary.Add('DaysOfWeek', (New-VSARuntimeParameter -Name 'DaysOfWeek' -Type ([string]) -ValidateSet $DaysOfWeekSet))
 
             $DayOfMonthSet = @(
                 'FirstSunday', 'SecondSunday', 'ThirdSunday', 'FourthSunday', 'LastSunday',
@@ -157,17 +138,17 @@ function Start-VSAPatchUpdate
                 'FirstWeekendDay', 'SecondWeekendDay', 'ThirdWeekendDay', 'FourthWeekendDay', 'LastWeekendDay',
                 'FirstDay', 'SecondDay', 'ThirdDay', 'FourthDay', 'LastDay'
             )
-            $RuntimeParameterDictionary.Add('DayOfMonth', (New-RuntimeParameter -Name 'DayOfMonth' -Type ([string]) -ValidateSet $DayOfMonthSet))
+            $RuntimeParameterDictionary.Add('DayOfMonth', (New-VSARuntimeParameter -Name 'DayOfMonth' -Type ([string]) -ValidateSet $DayOfMonthSet))
 
             $MonthOfYearSet = @('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
-            $RuntimeParameterDictionary.Add('MonthOfYear', (New-RuntimeParameter -Name 'MonthOfYear' -Type ([string]) -ValidateSet $MonthOfYearSet))
+            $RuntimeParameterDictionary.Add('MonthOfYear', (New-VSARuntimeParameter -Name 'MonthOfYear' -Type ([string]) -ValidateSet $MonthOfYearSet))
 
             return $RuntimeParameterDictionary
         }
     }
 
-    Process {    
-   
+    Process {
+
         [string] $Times       = $PSBoundParameters.Times
         [string] $DaysOfWeek  = $PSBoundParameters.DaysOfWeek
         [string] $DayOfMonth  = $PSBoundParameters.DayOfMonth
@@ -187,7 +168,7 @@ function Start-VSAPatchUpdate
         foreach ( $key in @($Recurrence.Keys)  ) {
             if ( -not $Recurrence[$key]) { $Recurrence.Remove($key) }
         }
-    
+
         [hashtable]$Distribution = @{
             Interval  = $Interval
             Magnitude = $Magnitude

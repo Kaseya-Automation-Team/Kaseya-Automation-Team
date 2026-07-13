@@ -16,23 +16,23 @@ function Rename-VSATenant {
     .EXAMPLE
        Rename-VSATenant -TenantId 10001 -NewName 'NewTenantName'
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of tenant's properties
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant?tenantId={0}&newTenantRef={1}',
 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -42,9 +42,9 @@ function Rename-VSATenant {
         })]
         [string] $TenantId,
 
-        [parameter(Mandatory = $true, 
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $NewName
     )
     return Invoke-VSAWriteRequest -Method 'PUT' -URISuffix ($($URISuffix -f $TenantId, $NewName)) -VSAConnection $VSAConnection -Caller $PSCmdlet

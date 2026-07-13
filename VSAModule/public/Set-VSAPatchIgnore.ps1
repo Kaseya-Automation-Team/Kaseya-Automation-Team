@@ -17,17 +17,17 @@ function Set-VSAPatchIgnore
     .PARAMETER ServerTimeZone
         Specifies if procedure should be scheduled in server time zone
     .PARAMETER SkipIfOffLine
-        Specifies if procedure should NOT be executed if agent is offline at scheduled time     
+        Specifies if procedure should NOT be executed if agent is offline at scheduled time
     .PARAMETER PowerUpIfOffLine
-        Specifies if machine should be powered up at scheduled time        
+        Specifies if machine should be powered up at scheduled time
     .PARAMETER SpecificDayOfMonth
-        Specifies index of day in the month       
+        Specifies index of day in the month
     .PARAMETER EndAt
         Specifies 15 minutes interval when procedure should end (24-hour HHMM, e.g. "1345"; no leading "T" - the server rejects a "T"-prefixed EndAt with HTTP 400).
     .PARAMETER EndOn
-        Specifies date and time when recurrence should be ended   
+        Specifies date and time when recurrence should be ended
     .PARAMETER EndAfterIntervalTimes
-        Specifies if recurrence should end after specific amount of executions                  
+        Specifies if recurrence should end after specific amount of executions
     .PARAMETER Interval
         Specifies unit of measurement for interval of distribution window
     .PARAMETER Magniture
@@ -47,19 +47,19 @@ function Set-VSAPatchIgnore
     .EXAMPLE
        Set-VSAPatchIgnore -AgentId 2343322 -PatchIds 189, 190, 220 -EndAt "1345" -EndOn "2021-10-30T12:00:00.000Z" -Repeat "Days" -Times 3 -AgentTime -ExcludeFrom "T1000" -ExcludeTo "T1200"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Success or failure
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/assetmgmt/patch/{0}/setignore",
 
         [parameter(Mandatory = $true,
@@ -74,7 +74,7 @@ function Set-VSAPatchIgnore
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName = $true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string[]] $PatchIds,
 
         [Parameter(Mandatory = $false,
@@ -148,32 +148,12 @@ function Set-VSAPatchIgnore
             ValueFromPipelineByPropertyName = $true)]
         [switch] $AgentTime
 )
-   
+
     DynamicParam {
         if ( $Repeat -ne 'Never' ) {
 
-            function New-VSARuntimeParameter {
-                param (
-                    [string] $Name,
-                    [Type] $Type,
-                    [string[]] $ValidateSet = $null,
-                    [bool] $Mandatory = $false
-                )
-
-                $AttributesCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-                $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
-                $ParameterAttribute.Mandatory = $Mandatory
-                $AttributesCollection.Add($ParameterAttribute)
-            
-                if ($ValidateSet) {
-                    $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ValidateSet)
-                    $AttributesCollection.Add($ValidateSetAttribute)
-                }
-
-                $RuntimeParameter = New-Object System.Management.Automation.RuntimeDefinedParameter($Name, $Type, $AttributesCollection)
-                return $RuntimeParameter
-            }
-
+            # New-VSARuntimeParameter is a private module helper (private/New-VSARuntimeParameter.ps1),
+            # visible here because a DynamicParam block runs in module scope.
             $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
 
             $RuntimeParameterDictionary.Add('Times', (New-VSARuntimeParameter -Name 'Times' -Type ([int])))
@@ -219,7 +199,7 @@ function Set-VSAPatchIgnore
         } | Where-Object { $_.Value }
 
         $BodyHT = [PSCustomObject]@{}
-        
+
         if ($Recurrence) { $BodyHT.Recurrence = $Recurrence }
         if ($Distribution) { $BodyHT.Distribution = $Distribution }
         if ($Start) { $BodyHT.Start = $Start }
@@ -227,8 +207,7 @@ function Set-VSAPatchIgnore
 
         $Body = ConvertTo-Json $BodyHT
 
-                    Write-Debug "New-VSAScheduleAuditBaseLine. $($Body | Out-String)"
-        
+        Write-Debug "New-VSAScheduleAuditBaseLine. $($Body | Out-String)"
 
         return Invoke-VSAWriteRequest -Body ($Body) -Method 'PUT' -URISuffix ($URISuffix -f $AgentID) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }# Process

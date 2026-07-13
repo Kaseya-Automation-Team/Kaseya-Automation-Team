@@ -19,13 +19,13 @@ function Rename-VSADocument
     .EXAMPLE
        Rename-VSADocument -AgentId 10001 -Source "OldName.txt" -Destination "NewName.txt" -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Array of objects that represent Custom Extension Folders and Files.
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
@@ -34,7 +34,7 @@ function Rename-VSADocument
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/documents/{0}/Rename/{1}/{2}',
 
-        [parameter(Mandatory = $true,  
+        [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
@@ -58,7 +58,7 @@ function Rename-VSADocument
 
     if ($Source -eq $Destination) {
         [string]$Msg = "The source ($Source) and the destination ($Destination) are the same"
-        throw $Msg 
+        throw $Msg
     } else {
             # Method confirmed against the official Kaseya REST API docs (Rename Document,
             # help.vsa9.kaseya.com/help/Content/Modules/rest-api/38166.htm): the documented

@@ -23,20 +23,20 @@ function New-VSAMachineGroup
     .EXAMPLE
        New-VSAMachineGroup -VSAConnection $connection -MachineGroupName "Kaseya"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
     #>
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/system/orgs/{0}/machinegroups",
-        
+
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateScript({
@@ -45,7 +45,7 @@ function New-VSAMachineGroup
             }
             return $true
         })]
-        [string] $OrgId,        
+        [string] $OrgId,
 
 		[parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
@@ -81,15 +81,15 @@ function New-VSAMachineGroup
     process {
 
     #Check if the Organization exists
-     Write-Debug "New-VSAMachineGroup. Check if the Organization exists" 
-    
+    Write-Debug "New-VSAMachineGroup. Check if the Organization exists"
+
     $ParentOrganization = try { Get-VSAOrganization -VSAConnection $VSAConnection -OrgID $OrgId } catch {$null}
-    if ( $null -eq $ParentOrganization ) { 
+    if ( $null -eq $ParentOrganization ) {
         Write-Warning "Could not find find the parent Organization by the OrgId provided '$OrgId' for the new Group '$MachineGroupName'."
         return $false
     } else {
-                    Write-Debug "New-VSAMachineGroup: Found Parent Organization '$($ParentOrganization.OrgRef)' for Machine Group '$MachineGroupName'."
-        
+        Write-Debug "New-VSAMachineGroup: Found Parent Organization '$($ParentOrganization.OrgRef)' for Machine Group '$MachineGroupName'."
+
     }
 
     [string[]]$AllFields = @('MachineGroupName', 'ParentMachineGroupId')
@@ -101,11 +101,10 @@ function New-VSAMachineGroup
         $BodyHT.Remove("ParentMachineGroupId")
     } else {
         #Check if the Parent Organization exists
-                    Write-Debug "New-VSAMachineGroup. Check if the Parent Machine Group exists."
-        
+        Write-Debug "New-VSAMachineGroup. Check if the Parent Machine Group exists."
 
         $ParentMachineGroup = try {Get-VSAMachineGroup -VSAConnection $VSAConnection -MachineGroupID $ParentMachineGroupId } catch {$null}
-            
+
         if ( $null -eq $ParentMachineGroup ) {
             Write-Warning "Could not find find the Parent Machine Group by the ParentMachineGroupId provided '$ParentMachineGroupId' for '$MachineGroupName'."
             $BodyHT.Remove("ParentMachineGroupId")
@@ -119,11 +118,10 @@ function New-VSAMachineGroup
         if ( 0 -lt $AttributesHT.Count ) { $BodyHT['Attributes'] = $AttributesHT }
     }
     #endregion Process Attributes
-   
+
     $Body = $BodyHT | ConvertTo-Json
-            Write-Debug "New-VSAMachineGroup. Request Body: $Body"
-    
-    
+    Write-Debug "New-VSAMachineGroup. Request Body: $Body"
+
     return Invoke-VSAWriteRequest -Body $Body -Method POST -URISuffix ($URISuffix -f $OrgId) `
         -VSAConnection $VSAConnection -ExtendedOutput:$ExtendedOutput -Caller $PSCmdlet
     }

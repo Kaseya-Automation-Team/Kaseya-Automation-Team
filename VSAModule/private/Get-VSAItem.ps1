@@ -1,24 +1,23 @@
 function Get-VSAItem {
-
     <#
     .SYNOPSIS
        Returns VSA Objects using various aliases to retrieve different types of data.
 
     .DESCRIPTION
-       The `Get-VSAItem` function retrieves an array of VSA Objects based on the alias used. 
+       The `Get-VSAItem` function retrieves an array of VSA Objects based on the alias used.
        This function serves as a generic cmdlet for multiple specific VSA retrievals via aliases.
-   
+
        The following aliases map to specific VSA object retrievals:
-   
+
        - **Get-VSAActivityType** and **Get-VSAActivityTypes**: Retrieves all available VSA Activity Types.
          - **Returned Object**: Array of Activity Types.
-   
+
        - **Get-VSAAgentGW**: Retrieves Connection Gateway IP addresses for VSA agents.
          - **Returned Object**: Array of Connection Gateway IP addresses for agents.
 
        - **Get-VSAAgentNote**: Retrieves agent notes.
          - **Returned Object**: Array of agent notes.
-   
+
        - **Get-VSAAgentPackage** and **Get-VSAAgentPackages**: Retrieves all agent installation packages.
          - **Returned Object**: Array of agent installation packages.
 
@@ -75,7 +74,7 @@ function Get-VSAItem {
 
        - **Get-VSAWorkOrderType** and **Get-VSAWorkOrderTypes**: Retrieves all available Work Order Types.
          - **Returned Object**: Array of Work Order Types.
-   
+
        Each alias calls `Get-VSAItem` with specific parameters tailored to the object type being retrieved.
 
     .PARAMETER VSAConnection
@@ -103,9 +102,9 @@ function Get-VSAItem {
         Retrieves all available Work Order Types in the VSA system.
 
     .NOTES
-        This cmdlet is designed to work with multiple aliases that retrieve specific VSA object types. Each alias passes a 
+        This cmdlet is designed to work with multiple aliases that retrieve specific VSA object types. Each alias passes a
         different URI suffix to `Get-VSAItem` to retrieve different types of data.
-    
+
         **Aliases**:
         - Get-VSAActivityType
         - Get-VSAActivityTypes
@@ -137,24 +136,45 @@ function Get-VSAItem {
         - Get-VSATenants
         - Get-VSAWorkOrderType
         - Get-VSAWorkOrderTypes
+
+        Added in v1.4.0 (live-Swagger gap analysis):
+        - Get-VSAAlertDefinition (alert definitions)
+        - Get-VSARCService (default remote-control services)
+        - Get-VSARCMachine (remote-control-enabled machines)
+        - Get-VSATemporaryAgent (temporary/KLC agents)
+        - Get-VSATemporaryAgentConfig (temporary-agent configuration)
+        - Get-VSAAgentActiveAdmin (agents with an active administrator)
+        - Get-VSAAgentUserProfile (agent user-profile settings)
+        - Get-VSAAPList (agent-procedure list)
+        - Get-VSAAPProcHistory (agent-procedure list history)
+        - Get-VSAAPExecHistory (agent-procedure execution history)
+        - Get-VSAAPPrompt (agent-procedure prompts)
+        - Get-VSAAPVariable (managed variables)
+        - Get-VSAOrgType (organization types)
+        - Get-VSAOrgLocation (organization locations)
+        - Get-VSATenantLogonPolicy (tenant logon policy)
+        - Get-VSADocumentServiceAudit (audited services across documents)
+        - Get-VSADocumentVolumeLabel (all volume labels)
+        - Get-VSADocumentServiceName (distinct service names)
+        - Get-VSADocumentDistinctVolumeLabel (distinct volume labels)
     #>
 
     [CmdletBinding()]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix,
 
         [Parameter(Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Filter,
 
         [Parameter(Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Sort
     )
     process {
@@ -164,7 +184,7 @@ function Get-VSAItem {
         if ([string]::IsNullOrEmpty($URISuffix)) {
             throw "No VSA Object specified for alias $($PSCmdlet.MyInvocation.InvocationName)!"
         }
-    }    
+    }
 
     [hashtable]$Params = @{
         VSAConnection = $VSAConnection
@@ -172,7 +192,7 @@ function Get-VSAItem {
         Filter        = $Filter
         Sort          = $Sort
     }
-    
+
     # Remove any empty parameters
     foreach ($key in @($Params.Keys)) {
         if (-not $Params[$key]) {

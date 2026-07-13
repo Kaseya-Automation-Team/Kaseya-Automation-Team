@@ -21,7 +21,7 @@ function Publish-VSACustomExtensionFile
     .EXAMPLE
        Publish-VSACustomExtensionFile -AgentId 10001 -SourceFilePath 'File.txt' -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful.
     #>
@@ -33,7 +33,7 @@ function Publish-VSACustomExtensionFile
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/assetmgmt/customextensions/{0}/file/{1}',
 
         [Parameter(Mandatory = $true)]
@@ -87,10 +87,9 @@ function Publish-VSACustomExtensionFile
     }
     if ($VSAConnection) { $Params.Add('VSAConnection', $VSAConnection) }
 
-            Write-Debug "Publish-VSACustomExtensionFile: $($Params | Out-String)"
+    Write-Debug "Publish-VSACustomExtensionFile: $($Params | Out-String)"
 
-            Write-Verbose "Publish-VSACustomExtensionFile: $($Params | Out-String)"
-
+    Write-Verbose "Publish-VSACustomExtensionFile: $($Params | Out-String)"
 
     if ($PSCmdlet.ShouldProcess($URISuffix, "PUT (upload '$FileName')")) {
         return Invoke-VSARestMethod @Params

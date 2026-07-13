@@ -72,7 +72,7 @@ function New-VSAOrganization {
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param (
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
@@ -218,7 +218,7 @@ function New-VSAOrganization {
         # Accepts a [hashtable]/[pscustomobject] (preferred) or the legacy "{ Key= value; ... }" string.
         [object] $Attributes,
 
-        [parameter(Mandatory = $false, 
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [switch] $ExtendedOutput
         )
@@ -249,7 +249,7 @@ function New-VSAOrganization {
             $BodyHT.DefaultDepartmentName = 'root'
         }
     } else {
-        $BodyHT.Add('DefaultDepartmentName', 'root') 
+        $BodyHT.Add('DefaultDepartmentName', 'root')
     }
 
     if ($BodyHT.ContainsKey('DefaultMachineGroupName')) {
@@ -257,7 +257,7 @@ function New-VSAOrganization {
             $BodyHT.DefaultMachineGroupName = 'root'
         }
     } else {
-        $BodyHT.Add('DefaultMachineGroupName', 'root') 
+        $BodyHT.Add('DefaultMachineGroupName', 'root')
     }
 
     # Process Contact Info: a supplied -ContactInfo object (hashtable/pscustomobject/legacy string)
@@ -325,8 +325,7 @@ function New-VSAOrganization {
     #Check if the Parent Organization exists
     if ( -not [string]::IsNullOrEmpty($ParentOrgId) ) {
 
-                    Write-Debug "New-VSAOrganization. Check if the Parent Organization exists"
-        
+        Write-Debug "New-VSAOrganization. Check if the Parent Organization exists"
 
         $ParentOrg = try { Get-VSAOrganization -VSAConnection $VSAConnection -OrgID $ParentOrgId } catch {$null}
 

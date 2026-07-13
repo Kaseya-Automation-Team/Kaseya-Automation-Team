@@ -19,19 +19,19 @@ function Stop-VSAScheduledAP
     .EXAMPLE
        Stop-VSAScheduledAP -VSAConnection $connection -AgentId 581411914 -AgentProcedureId 2312
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/automation/agentprocs/{0}/{1}",
 
         [Parameter(Mandatory = $true)]
@@ -53,7 +53,7 @@ function Stop-VSAScheduledAP
         })]
         [string] $AgentProcedureId
 )
-	
+
     return Invoke-VSAWriteRequest -Method 'DELETE' -URISuffix ($($URISuffix -f $AgentId, $AgentProcedureId)) -VSAConnection $VSAConnection -Caller $PSCmdlet
 }
 

@@ -24,20 +24,20 @@ function Set-VSATenantModuleUsageType {
     .EXAMPLE
        Set-VSATenantModuleUsageType -TenantName 'Your Tenant' -ModuleName 'Anti-Malware' -UsageType 1
     .INPUTS
-       Accepts piped non-Tenant VSAConnection 
+       Accepts piped non-Tenant VSAConnection
     .OUTPUTS
        Array of tof module licenses
     #>
 
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory = $false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = 'api/v1.0/tenantmanagement/tenant/modules/usagetype/{0}?moduleId={1}&usageType={2}',
 
         [parameter(Mandatory = $true,

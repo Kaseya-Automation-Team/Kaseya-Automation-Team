@@ -22,13 +22,13 @@ function Clear-VSATenantRoleType {
     .EXAMPLE
        Clear-VSATenantRoleType -TenantId 1001 -RoleTypeId 6
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful.
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,

@@ -246,11 +246,10 @@ function Get-RequestData
         & $script:VSAAddSkipCertCheck $WebRequestParams
     }
 
-            "Get-RequestData. $LogMessage" | Write-Debug
-        "JSON:$($WebRequestParams | ConvertTo-Json -Depth 3 | Out-String)" | Write-Debug
-    
-            Write-Verbose "Get-RequestData. $LogMessage"
-    
+    "Get-RequestData. $LogMessage" | Write-Debug
+    "JSON:$($WebRequestParams | ConvertTo-Json -Depth 3 | Out-String)" | Write-Debug
+
+    Write-Verbose "Get-RequestData. $LogMessage"
 
     $retryStatuses = @(429, 502, 503, 504)
     [int]$RetryCount = 0
@@ -265,8 +264,7 @@ function Get-RequestData
 
             $Response = Invoke-RestMethod @WebRequestParams -ErrorAction Stop
 
-                            "$($MyInvocation.MyCommand). Response:`n{0}" -f ($Response | Out-String) | Write-Debug
-            
+            "$($MyInvocation.MyCommand). Response:`n{0}" -f ($Response | Out-String) | Write-Debug
 
             # A file download has no API envelope to validate.
             if ($OutFile) {
@@ -323,8 +321,7 @@ function Get-RequestData
                 $statusCodeName = Get-VSAHttpStatusName -StatusCode $statusCode
 
                 Write-Warning "Transient HTTP $statusCode ($statusCodeName) on $Method $URI. Retry $RetryCount of $MaxRetries in $WaitSeconds second(s)..."
-                                    Write-Verbose "Transient error (HTTP $statusCode). Retrying in $WaitSeconds seconds. (Attempt $RetryCount of $MaxRetries)"
-                
+                Write-Verbose "Transient error (HTTP $statusCode). Retrying in $WaitSeconds seconds. (Attempt $RetryCount of $MaxRetries)"
 
                 if ($WaitSeconds -gt 0) { Start-Sleep -Seconds $WaitSeconds }
                 continue

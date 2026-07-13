@@ -17,7 +17,7 @@ function New-VSASDTicketNote
     .PARAMETER SystemFlag
         Specifies note will be owned by system or user
     .PARAMETER Text
-        Specifies text of the note   
+        Specifies text of the note
     .EXAMPLE
        New-VSASDTicketNote -ServiceDeskTicketId 979868787875855 -Text "this is test note" -SystemFlag -Hidden
     .EXAMPLE
@@ -25,19 +25,19 @@ function New-VSASDTicketNote
     .EXAMPLE
        New-VSASDTicketNote -VSAConnection $connection -ServiceDeskTicketId 979868787875855 -Text "this is test note"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Success or failure
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
+    param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/automation/servicedesktickets/{0}/notes",
 
         [parameter(Mandatory=$true,
@@ -52,7 +52,7 @@ function New-VSASDTicketNote
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Text,
 
         [parameter(Mandatory=$false,
@@ -64,7 +64,7 @@ function New-VSASDTicketNote
         [switch] $SystemFlag
 )
     process {
-	
+
     [string]$Body = ConvertTo-Json @{"Hidden"=$Hidden.ToBool(); "SystemFlag"=$SystemFlag.ToBool(); "Text"="$Text";} -Compress
 
     return Invoke-VSAWriteRequest -Body ($Body) -Method 'POST' -URISuffix ($($URISuffix -f $ServiceDeskTicketId)) -VSAConnection $VSAConnection -Caller $PSCmdlet

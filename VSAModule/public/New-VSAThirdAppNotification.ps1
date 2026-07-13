@@ -25,20 +25,20 @@ function New-VSAThirdAppNotification
     .EXAMPLE
        New-VSAThirdAppNotification -VSAConnection $connection -AppId 4244543666 -Id 097055587852 -Title "Test" -Message "This is test notication"
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        Success or failure
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNull()]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/thirdpartyapps/notification",
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
@@ -60,25 +60,24 @@ function New-VSAThirdAppNotification
         [string] $Id,
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Title,
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $Message,
 
         [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $NavigateTo
 )
     process {
-	
+
     $BodyHT = @{"AppId"=$AppId; "Id"=$Id; "Title"="$Title"; "Message"="$Message";}
 
     if ( -not [string]::IsNullOrEmpty($NavigateTo) ) { $BodyHT.Add('NavigateTo', $NavigateTo) }
 
     $Body = $BodyHT | ConvertTo-Json
-
 
     return Invoke-VSAWriteRequest -Body $Body -Method 'POST' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }

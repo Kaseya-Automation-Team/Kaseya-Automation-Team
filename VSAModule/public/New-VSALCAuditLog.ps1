@@ -26,19 +26,19 @@ function New-VSALCAuditLog
     .EXAMPLE
        New-VSALCAuditLog -VSAConnection $connection
     .INPUTS
-       Accepts piped non-persistent VSAConnection 
+       Accepts piped non-persistent VSAConnection
     .OUTPUTS
        No output
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
-    param ( 
-        [parameter(Mandatory = $false, 
+    param (
+        [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
         [VSAConnection] $VSAConnection,
 
         [parameter(DontShow, Mandatory=$false)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $URISuffix = "api/v1.0/assetmgmt/agent/{0}/KLCAuditLogEntry",
 
         [Parameter(Mandatory = $true,
@@ -53,12 +53,12 @@ function New-VSALCAuditLog
 
 		[Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $UserName,
 
 		[Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName=$true)]
-        [ValidateNotNullOrEmpty()] 
+        [ValidateNotNullOrEmpty()]
         [string] $AgentName,
 
 		[Parameter(Mandatory = $true,
@@ -67,9 +67,9 @@ function New-VSALCAuditLog
         [string] $Message
     )
     process {
-	
+
 	$URISuffix = $URISuffix -f $AgentId
-     
+
     return Invoke-VSAWriteRequest -Body ($(ConvertTo-Json @{'UserName'=$UserName;'AgentName'=$AgentName;'LogMessage'=$Message })) -Method 'PUT' -URISuffix ($URISuffix) -VSAConnection $VSAConnection -Caller $PSCmdlet
     }
 }

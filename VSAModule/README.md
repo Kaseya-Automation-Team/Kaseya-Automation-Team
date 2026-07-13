@@ -4,7 +4,7 @@ A PowerShell wrapper for the Kaseya VSA 9 REST API. It handles authentication, t
 
 **Note:** This module simplifies interaction with the Kaseya VSA REST API; it does not modify or impact the behavior of the API itself. Issues or glitches within the REST API are unrelated to the module and should be addressed to Kaseya directly.
 
-**Current version:** 1.3.3 · **License:** [MIT](LICENSE.txt)
+**Current version:** 1.4.0 · **License:** [MIT](LICENSE.txt)
 
 ## Contents
 

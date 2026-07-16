@@ -12,8 +12,6 @@ function Disable-VSAUser
         Specifies URI suffix if it differs from the default.
     .PARAMETER UserId
         Specifies a user account Id.
-    .PARAMETER AdminName
-        Specifies a user account name.
     .EXAMPLE
        Disable-VSAUser -UserId 10001
     .EXAMPLE
@@ -29,6 +27,7 @@ function Disable-VSAUser
         403/404. Read-only user cmdlets (Get-VSAUser) are unaffected.
 #>
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

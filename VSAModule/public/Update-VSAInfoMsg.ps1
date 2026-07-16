@@ -10,8 +10,10 @@ function Update-VSAInfoMsg
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
-    .PARAMETER Reason
-        Optional parameter which specifies reason why alarm has been closed
+    .PARAMETER ID
+        Specifies the Ids of the Info Center messages to update. Accepts an array.
+    .PARAMETER IsRead
+        Marks the specified messages as read. Omit to mark them as unread.
     .EXAMPLE
        Update-VSAInfoMsg -ID 1, 2, 3 -IsRead
     .EXAMPLE
@@ -23,6 +25,7 @@ function Update-VSAInfoMsg
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

@@ -42,6 +42,8 @@ function Set-VSAScheduleAuditSysInfo
         ExclusionWindow
     .PARAMETER ExcludeTo
         ExclusionWindow
+    .PARAMETER AgentID
+        Specifies the agent Id.
     .EXAMPLE
        Set-VSAScheduleAuditSysInfo -AgentID 10001 -Repeat Never
     .EXAMPLE
@@ -52,6 +54,7 @@ function Set-VSAScheduleAuditSysInfo
        True if start of baseline audit was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

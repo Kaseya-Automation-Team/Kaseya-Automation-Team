@@ -68,9 +68,14 @@ function New-VSAOrganization {
     .OUTPUTS
         Returns True if the creation was successful; returns the OrgId property of the new Organization if the ExtendedOutput switch is specified.
     .NOTES
-        Version 1.0.0
+        The new organization is not immediately queryable: the server needs roughly a second or two
+        before the returned OrgId can be read back with Get-VSAOrganization or targeted by
+        Update-VSAOrganization, which answers "Org does not exist" (HTTP 404) until then. Allow for
+        that lag when chaining a create straight into an update (observed live on a VSA 9 SaaS
+        instance, becoming visible after about 2 seconds).
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

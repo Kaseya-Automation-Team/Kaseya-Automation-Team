@@ -1,4 +1,4 @@
-﻿function New-VSATenant
+function New-VSATenant
 {
     <#
     .Synopsis
@@ -32,6 +32,12 @@
     .PARAMETER RoleRef
         Specifies the role to assign to the tenant admin user. Optional; documented on the
         TenantUser schema (see the URI above) but not required to create a tenant.
+    .PARAMETER Type
+        Specifies the tenant type.
+    .PARAMETER TimeZoneOffset
+        Specifies the tenant time-zone offset, in minutes.
+    .PARAMETER Attributes
+        Specifies additional attributes to send in the request body.
     .EXAMPLE
        $securePassword = ConvertTo-SecureString 'YourLongPasswordHere!' -AsPlainText -Force
        New-VSATenant -Ref 'NewTenantName' -AdminUserName 'NewTenantUser' -EMail 'NewTenantUser@domain.mail' -Password $securePassword
@@ -41,6 +47,7 @@
        True if creation was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams','')]
     param (
         [parameter(Mandatory = $false,
@@ -142,7 +149,7 @@
     $HashedPassword = $HashStringBuilder.ToString()
 
     # Both Password and HashedPassword are sent because both are documented TenantUser fields
-    # (Add Tenant, help.vsa9.kaseya.com/help/Content/Modules/rest-api/37656.htm) — confirmed
+    # (Add Tenant, help.vsa9.kaseya.com/help/Content/Modules/rest-api/37656.htm): confirmed
     # against the official docs, not a guess (T-6.13 / F-55).
     $TenantUser = [ordered]@{
         UserName = $AdminUserName

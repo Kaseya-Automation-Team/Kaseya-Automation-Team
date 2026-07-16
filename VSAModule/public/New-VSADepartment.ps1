@@ -17,6 +17,12 @@ function New-VSADepartment
         Specifies the Parent Department Id.
     .PARAMETER ManagerId
         Specifies the Manager Id.
+    .PARAMETER DepartmentRef
+        Specifies the short reference name of the department.
+    .PARAMETER Attributes
+        Specifies additional attributes to send in the request body.
+    .PARAMETER ExtendedOutput
+        Returns the full API response envelope instead of only the result set.
     .EXAMPLE
        Add-VSADepartment -OrgId 10001 -DepartmentName 'A New Department' -VSAConnection $connection
     .INPUTS
@@ -26,6 +32,7 @@ function New-VSADepartment
        ID of new Department if the ExtendedOutput switch specified.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

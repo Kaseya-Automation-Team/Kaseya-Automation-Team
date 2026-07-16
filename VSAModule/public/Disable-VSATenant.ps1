@@ -24,6 +24,7 @@ function Disable-VSATenant
        True if successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
@@ -78,10 +79,14 @@ function Disable-VSATenant
             [hashtable]$LookupParams = @{}
             if ($VSAConnection) { $LookupParams['VSAConnection'] = $VSAConnection }
             [array]$RoleTenants = Get-VSATenants @LookupParams | Select-Object Id, @{N = 'TenantName'; E={$_.Ref}}
-            $TenantId = $RoleTenants | Where-Object { $_.TenantName -eq $TenantName } | Select-Object -First 1 -ExpandProperty Id
-            if ([string]::IsNullOrEmpty($TenantId)) {
+            # Resolve into a LOCAL first: assigning an unresolved (empty) value straight to $TenantId
+            # re-triggers that parameter's ValidateScript, whose "Non-numeric Id" masks the accurate
+            # message below (F-4).
+            $ResolvedTenantId = $RoleTenants | Where-Object { $_.TenantName -eq $TenantName } | Select-Object -First 1 -ExpandProperty Id
+            if ([string]::IsNullOrEmpty($ResolvedTenantId)) {
                 throw "Disable-VSATenant: No tenant found with name '$TenantName'."
             }
+            $TenantId = $ResolvedTenantId
         }
     }# Begin
     Process {

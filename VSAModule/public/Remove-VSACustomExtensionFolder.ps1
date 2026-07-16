@@ -12,6 +12,8 @@ function Remove-VSACustomExtensionFolder
         Specifies URI suffix if it differs from the default.
     .PARAMETER Folder
         Specifies Relative agent's path.
+    .PARAMETER AgentId
+        Specifies the agent whose custom-extension folder is removed.
     .EXAMPLE
        Remove-VSACustomExtensionFolder -AgentId '10001' -Folder 'NewFolder'
     .EXAMPLE
@@ -24,6 +26,7 @@ function Remove-VSACustomExtensionFolder
        Array of objects that represent Custom Extension Folders and Files.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

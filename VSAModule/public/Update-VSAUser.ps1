@@ -36,6 +36,10 @@ function Update-VSAUser
         Specifies user's admin scopes.
     .PARAMETER AdminType
         Specifies Id of user's admin type.
+    .PARAMETER Attributes
+        Specifies additional attributes to send in the request body.
+    .PARAMETER AdminPassword
+        Specifies the user's password as a SecureString.
     .EXAMPLE
        $securePassword = ConvertTo-SecureString 'P@$$w0rd!' -AsPlainText -Force
        Update-VSAUser -UserId 10001 -AdminName 'Login' -AdminPassword $securePassword -AdminRoleIds 1, 2 -AdminScopeIds 3, 4 -DefaultStaffOrgId 5 -DefaultStaffDepartmentId 6 -FirstName 'John' -LastName 'Doe' -Email 'JohnDoe@example.mail'
@@ -50,6 +54,7 @@ function Update-VSAUser
         403/404. Read-only user cmdlets (Get-VSAUser) are unaffected.
 #>
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams','')]
     param (
         [parameter(Mandatory = $false,
@@ -243,16 +248,39 @@ function Update-VSAUser
             if($VSAConnection) {$AuxParameters.Add('VSAConnection', $VSAConnection)}
 
             if ( -not $UserId ) {
-                $UserId = Get-VSAUser @AuxParameters | Where-Object {$_.AdminName -eq $AdminName } | Select-Object -ExpandProperty UserId
+                # Resolve into a LOCAL and verify BEFORE assigning: an unresolved name previously left
+                # $UserId empty with no check at all, which silently built a malformed target URL
+                # instead of reporting the unknown user (F-4).
+                $ResolvedUserId = Get-VSAUser @AuxParameters | Where-Object {$_.AdminName -eq $AdminName } | Select-Object -First 1 -ExpandProperty UserId
+                if ( [string]::IsNullOrEmpty($ResolvedUserId) ) {
+                    throw "Update-VSAUser: No user found with AdminName '$AdminName'."
+                }
+                $UserId = $ResolvedUserId
             }
+            # Each name->Id lookup below verifies its result before assigning. An unresolved name
+            # otherwise leaves the target empty/0, and the body-prune further down then drops that
+            # key entirely: the caller's explicit request would be silently ignored rather than
+            # reported (F-4).
             if ( (0 -eq $AdminRoleIds.Count) -and (0 -lt $AdminRoleNames.Count) ) {
-                $AdminRoleIds = Get-VSARoles @AuxParameters | Where-Object {$_.RoleName -in $AdminRoleNames } | Select-Object -ExpandProperty RoleId
+                [array]$ResolvedRoleIds = Get-VSARoles @AuxParameters | Where-Object {$_.RoleName -in $AdminRoleNames } | Select-Object -ExpandProperty RoleId
+                if ( 0 -eq $ResolvedRoleIds.Count ) {
+                    throw "Update-VSAUser: No roles found matching: $($AdminRoleNames -join ', ')."
+                }
+                $AdminRoleIds = $ResolvedRoleIds
             }
             if ( (0 -eq $AdminScopeIds.Count) -and (0 -lt $AdminScopeNames.Count) ) {
-                $AdminScopeIds = Get-VSAScope @AuxParameters | Where-Object {$_.ScopeName -in $AdminScopeNames } | Select-Object -ExpandProperty ScopeId
+                [array]$ResolvedScopeIds = Get-VSAScope @AuxParameters | Where-Object {$_.ScopeName -in $AdminScopeNames } | Select-Object -ExpandProperty ScopeId
+                if ( 0 -eq $ResolvedScopeIds.Count ) {
+                    throw "Update-VSAUser: No scopes found matching: $($AdminScopeNames -join ', ')."
+                }
+                $AdminScopeIds = $ResolvedScopeIds
             }
             if ( (-not $DefaultStaffOrgId) -and (-not [string]::IsNullOrEmpty($DefaultStaffOrgName)) ) {
-                $DefaultStaffOrgId = Get-VSAOrganization @AuxParameters | Where-Object {$_.OrgName -eq $DefaultStaffOrgName } | Select-Object -ExpandProperty OrgId
+                $ResolvedStaffOrgId = Get-VSAOrganization @AuxParameters | Where-Object {$_.OrgName -eq $DefaultStaffOrgName } | Select-Object -First 1 -ExpandProperty OrgId
+                if ( [string]::IsNullOrEmpty("$ResolvedStaffOrgId") ) {
+                    throw "Update-VSAUser: No organization found with name '$DefaultStaffOrgName'."
+                }
+                $DefaultStaffOrgId = $ResolvedStaffOrgId
             }
 
             # The Process body-prune keeps only keys present in $PSBoundParameters. In the ByName set

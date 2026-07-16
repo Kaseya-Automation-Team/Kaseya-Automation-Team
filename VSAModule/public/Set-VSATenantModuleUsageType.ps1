@@ -30,6 +30,7 @@ function Set-VSATenantModuleUsageType {
     #>
 
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -111,8 +112,11 @@ function Set-VSATenantModuleUsageType {
         [array]$Tenants = Get-VSATenant @LookupParams | Select-Object Id, Ref
 
         if ( [string]::IsNullOrEmpty($TenantId)  ) {
-            $TenantId = $Tenants | Where-Object { $_.Ref -eq $TenantName } | Select-Object -First 1 -ExpandProperty Id
-            if ([string]::IsNullOrEmpty($TenantId)) { throw "Set-VSATenantModuleUsageType: No tenant found with name '$TenantName'." }
+            # Resolve into a LOCAL first: assigning an unresolved (empty) value straight to the
+            # parameter re-triggers its validator, masking the accurate message below (F-4).
+            $ResolvedTenantId = $Tenants | Where-Object { $_.Ref -eq $TenantName } | Select-Object -First 1 -ExpandProperty Id
+            if ([string]::IsNullOrEmpty($ResolvedTenantId)) { throw "Set-VSATenantModuleUsageType: No tenant found with name '$TenantName'." }
+            $TenantId = $ResolvedTenantId
         }
         if ( [string]::IsNullOrEmpty($TenantName)  ) {
             $TenantName = $Tenants | Where-Object { $_.Id -eq $TenantId } | Select-Object -First 1 -ExpandProperty Ref
@@ -122,8 +126,9 @@ function Set-VSATenantModuleUsageType {
             [hashtable]$ModuleLookupParams = $LookupParams.Clone()
             $ModuleLookupParams['TenantId'] = $TenantId
             [array]$Modules = Get-VSATenantModuleLicense @ModuleLookupParams
-            $ModuleId = $Modules | Where-Object { $_.Name -eq $ModuleName } | Select-Object -First 1 -ExpandProperty ModuleId
-            if ([string]::IsNullOrEmpty($ModuleId)) { throw "Set-VSATenantModuleUsageType: No module found with name '$ModuleName' for tenant '$TenantName'." }
+            $ResolvedModuleId = $Modules | Where-Object { $_.Name -eq $ModuleName } | Select-Object -First 1 -ExpandProperty ModuleId
+            if ([string]::IsNullOrEmpty($ResolvedModuleId)) { throw "Set-VSATenantModuleUsageType: No module found with name '$ModuleName' for tenant '$TenantName'." }
+            $ModuleId = $ResolvedModuleId
         }
     } # Begin
      Process {

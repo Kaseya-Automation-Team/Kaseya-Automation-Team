@@ -145,6 +145,22 @@ function Get-VSAItemById {
     .PARAMETER Sort
         Specifies REST API sorting options for organizing the returned data.
 
+    .PARAMETER Parallel
+        Uses concurrency on whichever axis has the volume. With SEVERAL ids, the ids are fetched
+        concurrently (the N+1 fan-out, e.g. notes for many tickets). With a SINGLE id, that id's own
+        collection is paged concurrently if it is large enough. Opt-in: without it, behaviour is
+        unchanged, and results are identical either way.
+
+    .PARAMETER ThrottleLimit
+        Maximum number of concurrent requests when -Parallel is used (default 8). On shared SaaS you
+        are one tenant among many, so a modest value is a good citizen; the engine also reduces
+        concurrency automatically if the server returns HTTP 429, then recovers.
+
+    .PARAMETER ParallelThreshold
+        Minimum record count before -Parallel engages when paging a SINGLE id's collection. 0
+        (default) means automatic: two full throttle windows. Ignored for the multi-id fan-out,
+        which always parallelises.
+
     .EXAMPLE
         Get-VSAAgent2FA -Id 12345
         Retrieves 2FA settings for the agent with ID 12345.
@@ -226,6 +242,8 @@ function Get-VSAItemById {
         [ValidateNotNullOrEmpty()]
         [string] $URISuffix,
 
+        # Accepts a single id (unchanged) OR an array. With -Parallel and multiple ids, the ids are
+        # fetched concurrently (the N+1 fan-out, e.g. notes for many tickets); each element is validated.
         [Alias('AgentId', 'ViewId', 'NetworkId', 'PartitionId', 'AlarmId', 'AssetId', 'ModuleId', 'ServiceDeskId', 'ServiceDeskTicketId', 'CustomerId')]
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
@@ -236,7 +254,7 @@ function Get-VSAItemById {
                 throw "ID must be a positive integer containing only digits."
             }
         })]
-        [string] $Id,
+        [string[]] $Id,
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
@@ -244,7 +262,22 @@ function Get-VSAItemById {
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
-        [string] $Sort
+        [string] $Sort,
+
+        # Opt-in parallelism. With multiple ids, fetches them concurrently; with a single id, pages
+        # that id's collection concurrently. Absent, behaviour is identical to before.
+        [Parameter(Mandatory = $false)]
+        [switch] $Parallel,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateRange(1, 64)]
+        [int] $ThrottleLimit = 8,
+
+        # Minimum records before -Parallel engages when paging a single id's collection (0 = auto).
+        # Ignored for the multi-id fan-out, which always parallelises.
+        [Parameter(Mandatory = $false)]
+        [ValidateRange(0, [int]::MaxValue)]
+        [int] $ParallelThreshold = 0
     )
     process {
 
@@ -255,18 +288,40 @@ function Get-VSAItemById {
             throw "No VSA Object specified for alias $($PSCmdlet.MyInvocation.InvocationName)!"
         }
     }
-    $URISuffix = $URISuffix -f $Id
+    # $URISuffix is the by-Id template (contains '{0}'); keep it un-substituted for the batch path.
 
-    [hashtable]$Params = @{
-        VSAConnection = $VSAConnection
-        URISuffix     = $URISuffix
-        Filter        = $Filter
-        Sort          = $Sort
-    }
-    foreach ( $key in @($Params.Keys) ) {
-        if ( -not $Params[$key] )  { $Params.Remove($key) }
+    # Fan-out: many ids fetched concurrently through the coordinator pump.
+    if ($Parallel -and $Id.Count -gt 1) {
+        return Invoke-VSABatchGet -URISuffixTemplate $URISuffix -Id $Id -VSAConnection $VSAConnection `
+            -ThrottleLimit $ThrottleLimit -Filter $Filter -Sort $Sort
     }
 
-    return Invoke-VSARestMethod @Params
+    # One id (byte-identical to before), or a sequential batch of ids. -Parallel with a single id is
+    # forwarded to page that id's own collection concurrently.
+    $accumulator = [System.Collections.ArrayList]::new()
+    foreach ($oneId in $Id) {
+        [hashtable]$Params = @{
+            VSAConnection = $VSAConnection
+            URISuffix     = ($URISuffix -f $oneId)
+            Filter        = $Filter
+            Sort          = $Sort
+        }
+        foreach ( $key in @($Params.Keys) ) {
+            if ( -not $Params[$key] )  { $Params.Remove($key) }
+        }
+        if ($Parallel) {
+            $Params['Parallel'] = $true
+            $Params['ThrottleLimit'] = $ThrottleLimit
+            if ($ParallelThreshold -gt 0) { $Params['ParallelThreshold'] = $ParallelThreshold }
+        }
+
+        if ($Id.Count -eq 1) {
+            # Preserve the exact single-id return contract (scalar/array/$null passed straight through).
+            return Invoke-VSARestMethod @Params
+        }
+        $r = Invoke-VSARestMethod @Params
+        if ($null -ne $r) { [void]$accumulator.AddRange(@($r)) }
+    }
+    return $accumulator.ToArray()
     }
 }

@@ -16,6 +16,10 @@ function New-VSAMachineGroup
         Specifies name of new machine group
     .PARAMETER ParentMachineGroupId
         Optional parameter, specifies numeric id of parent machine group
+    .PARAMETER Attributes
+        Specifies additional attributes to send in the request body.
+    .PARAMETER ExtendedOutput
+        Returns the full API response envelope instead of only the result set.
     .EXAMPLE
        New-VSAMachineGroup -OrgId "34543554343" -MachineGroupName "Kaseya"
 	.EXAMPLE
@@ -28,6 +32,7 @@ function New-VSAMachineGroup
        No output
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

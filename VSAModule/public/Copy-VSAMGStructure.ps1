@@ -14,12 +14,15 @@ function Copy-VSAMGStructure {
         Specifies Unique Reference (OrgRef) of organization
     .EXAMPLE
         Copy-VSAMGStructure -SourceMGs $SourceMGs -OrgRef $OrgRef -SourceVSA $SourceVSA -DestinationVSA $DestinationVSA
+    .EXAMPLE
+        Copy-VSAMGStructure -SourceMGs $SourceMGs -OrgRef $OrgRef -SourceVSA $Src -DestinationVSA $Dst -WhatIf
+        Shows which machine groups would be created on the destination without creating anything.
     .INPUTS
        Accepts piped parameters
     .OUTPUTS
        No output
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
@@ -126,6 +129,13 @@ function Copy-VSAMGStructure {
 
         if( $null -eq $CheckDestination ) #No MG with this name in the destination
         {
+            # ShouldProcess gates the whole create-and-verify block, not just the New call:
+            # under -WhatIf the 60-second read-back wait below would otherwise spin, polling for
+            # a machine group that was deliberately never created.
+            if ( -not $PSCmdlet.ShouldProcess( "Machine Group '$MGName' on destination VSA '$($DestinationVSA.URI)'", 'Create' ) ) {
+                continue
+            }
+
             $NewMGParams = $DestinationParams.Clone()
             $NewMGParams.Add('ExtendedOutput', $true)
 

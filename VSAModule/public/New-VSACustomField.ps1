@@ -21,10 +21,9 @@ function New-VSACustomField {
        Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if creation was successful
-    .NOTES
-        Version 1.0.0
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

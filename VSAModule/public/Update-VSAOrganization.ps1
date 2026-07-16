@@ -10,7 +10,9 @@ function Update-VSAOrganization {
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .PARAMETER OrganizationName
-        Specifies full organization name.
+        Specifies full organization name. Aliased as -OrgName, which is both the name
+        New-VSAOrganization uses and the API's own field name, so the create/update pair can be
+        driven with one spelling.
     .PARAMETER OrgRef
         Specifies string to reference the organization.
     .PARAMETER DefaultDepartmentName
@@ -21,6 +23,40 @@ function Update-VSAOrganization {
         Specifies Organization Type.
     .PARAMETER ParentOrgId
         Specifies Numeric Id of existing organization that is set as the parent for the modofied one.
+    .PARAMETER PreferredContactMethod
+        Specifies the preferred contact method.
+    .PARAMETER PrimaryPhone
+        Specifies the primary phone number.
+    .PARAMETER PrimaryFax
+        Specifies the primary fax number.
+    .PARAMETER PrimaryEmail
+        Specifies the primary email address.
+    .PARAMETER Country
+        Specifies the country of the postal address.
+    .PARAMETER Street
+        Specifies the street of the postal address.
+    .PARAMETER City
+        Specifies the city of the postal address.
+    .PARAMETER State
+        Specifies the state or region of the postal address.
+    .PARAMETER ZipCode
+        Specifies the postal code of the postal address.
+    .PARAMETER PrimaryTextMessagePhone
+        Specifies the phone number used for text messages.
+    .PARAMETER Attributes
+        Specifies additional attributes to send in the request body.
+    .PARAMETER OrgId
+        Specifies the Id of the organization to update.
+    .PARAMETER Website
+        Specifies the organization's website.
+    .PARAMETER NoOfEmployees
+        Specifies the number of employees. Aliased as -NumberOfEmployees.
+    .PARAMETER AnnualRevenue
+        Specifies the organization's annual revenue.
+    .PARAMETER FieldName
+        Specifies the name of a custom field to set on the organization.
+    .PARAMETER FieldValue
+        Specifies the value for the custom field named by -FieldName.
     .EXAMPLE
        Update-VSAOrganization -OrgId 10001 -NumberOfEmployees 12
     .INPUTS
@@ -48,8 +84,12 @@ function Update-VSAOrganization {
         })]
         [string] $OrgId,
 
+        # -OrgName is the spelling New-VSAOrganization uses and the API's own body field name (see
+        # the OrgName key built below); the create/update pair otherwise disagreed on what to call
+        # the same value.
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
+        [Alias('OrgName')]
         [string] $OrganizationName,
 
         [parameter(Mandatory=$true,

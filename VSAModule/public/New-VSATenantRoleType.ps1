@@ -18,6 +18,8 @@ function New-VSATenantRoleType
         Specifies Id of Admin Group Type.
     .PARAMETER HasUserData
         Specifies if Has User Data.
+    .PARAMETER Status
+        Specifies the status to assign to the role type.
     .EXAMPLE
        New-VSATenantRoleType -Name 'A New Role'
     .EXAMPLE
@@ -28,6 +30,7 @@ function New-VSATenantRoleType
        True if creation was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

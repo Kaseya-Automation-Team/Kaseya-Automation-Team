@@ -37,8 +37,6 @@ function Invoke-VSARestMethod {
        Accepts piped VSAConnection.
     .OUTPUTS
        Varies based on the method invoked.
-    .NOTES
-        Version 1.1.0
     #>
     [CmdletBinding()]
     param (
@@ -91,7 +89,23 @@ function Invoke-VSARestMethod {
 
         [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $OutFile
+        [string] $OutFile,
+
+        # Opt-in parallel paging. When set (and the collection is large enough), pages 2..N are fetched
+        # concurrently through the coordinator pump (Invoke-VSAParallelRequest). Absent, behaviour is
+        # byte-for-byte the historical sequential path.
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
+        [switch] $Parallel,
+
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
+        [ValidateRange(1, 64)]
+        [int] $ThrottleLimit = 8,
+
+        # Minimum TotalRecords before -Parallel actually engages. 0 = auto (two full throttle windows,
+        # i.e. 2 * ThrottleLimit * RecordsPerPage) -- below that the sequential path is faster anyway.
+        [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
+        [ValidateRange(0, [int]::MaxValue)]
+        [int] $ParallelThreshold = 0
     )
 
     # Renew the session token BEFORE reading it, so a token that is about to expire is
@@ -233,38 +247,79 @@ function Invoke-VSARestMethod {
 
         $resultCollection = [System.Collections.ArrayList]@($result)
 
-        # Workaround for SaaS session limitation: renew the token every $MaxRecordsPerSession.
-        [int]$RenewTimes = 1
-        [int]$RenewThreshold = $MaxRecordsPerSession
+        # Decide sequential vs. parallel paging. -Parallel engages only past the auto/explicit
+        # threshold (below it the extra-connection setup outweighs the win); the count is exact here
+        # because page 1 already returned TotalRecords.
+        [int]$autoThreshold = 2 * $ThrottleLimit * $RecordsPerPage
+        [int]$effThreshold  = if ($ParallelThreshold -gt 0) { $ParallelThreshold } else { $autoThreshold }
+        # There must also be a page 2 to fetch: page 1 is already in hand, so a collection that fits
+        # in a single page has no remaining work to parallelise. Without this the pump would be handed
+        # an empty request list and fail its own ValidateNotNullOrEmpty. The default auto-threshold
+        # hides this (it is far above one page), but an explicit low -ParallelThreshold reaches it.
+        [bool]$useParallel  = $Parallel.IsPresent -and ($TotalRecords -ge $effThreshold) -and ($TotalRecords -gt $RecordsPerPage)
 
-        # The first page (skip 0) is already fetched above; continue while more remain.
-        [int]$skipValue = $RecordsPerPage
-        while ($skipValue -lt $TotalRecords) {
+        if ($useParallel) {
+            Write-Verbose "Invoke-VSARestMethod. Parallel paging: $TotalRecords records, throttle $ThrottleLimit."
 
-            $ApiSearchParams['$skip'] = $skipValue
-            $WebRequestParams.Uri = '{0}{1}{2}' -f $URI, $UriSeparator, (ConvertTo-VSAQueryString -Parameters $ApiSearchParams)
+            # Build one work item per remaining page (page 1 / skip 0 already fetched above).
+            $pageRequests = [System.Collections.Generic.List[hashtable]]::new()
+            for ([int]$skipValue = $RecordsPerPage; $skipValue -lt $TotalRecords; $skipValue += $RecordsPerPage) {
+                $pageParams = @{} + $ApiSearchParams
+                $pageParams['$skip'] = $skipValue
+                $pageUri = '{0}{1}{2}' -f $URI, $UriSeparator, (ConvertTo-VSAQueryString -Parameters $pageParams)
+                $pageRequests.Add(@{ Id = $skipValue; Uri = $pageUri })
+            }
 
-            if ($skipValue -ge $RenewThreshold) {
-                Write-Verbose "Fetching in progress... So far fetched $RenewThreshold records. Renewing session token."
+            $pageResults = Invoke-VSAParallelRequest -Request $pageRequests.ToArray() -VSAConnection $VSAConnection `
+                -ThrottleLimit $ThrottleLimit -TimeoutSec 100 -MaxRetries $MaxRetries -Activity "Fetching $URISuffix (parallel)"
 
-                if ($null -eq $VSAConnection) {
-                    Update-VSAConnection -Force
-                    $UsersToken = "Bearer $( Get-VSAPersistentToken )"
-                } else {
-                    Update-VSAConnection -VSAConnection $VSAConnection -Force
-                    $UsersToken = "Bearer $($VSAConnection.Token)"
+            $failed = @($pageResults | Where-Object { $null -ne $_.Error })
+            if ($failed.Count -gt 0) {
+                # Surface the first typed failure but report the scope; hours of work are not discarded
+                # silently -- the caller sees exactly how many pages failed.
+                throw ($failed[0].Error)
+            }
+
+            # Merge pages in $skip order so the result set matches the sequential path exactly.
+            foreach ($pr in ($pageResults | Sort-Object { [int]$_.Id })) {
+                [array]$temp = $pr.Response.Result
+                if ($temp.Count -gt 0) { $resultCollection.AddRange($temp) | Out-Null }
+            }
+        }
+        else {
+            # Workaround for SaaS session limitation: renew the token every $MaxRecordsPerSession.
+            [int]$RenewTimes = 1
+            [int]$RenewThreshold = $MaxRecordsPerSession
+
+            # The first page (skip 0) is already fetched above; continue while more remain.
+            [int]$skipValue = $RecordsPerPage
+            while ($skipValue -lt $TotalRecords) {
+
+                $ApiSearchParams['$skip'] = $skipValue
+                $WebRequestParams.Uri = '{0}{1}{2}' -f $URI, $UriSeparator, (ConvertTo-VSAQueryString -Parameters $ApiSearchParams)
+
+                if ($skipValue -ge $RenewThreshold) {
+                    Write-Verbose "Fetching in progress... So far fetched $RenewThreshold records. Renewing session token."
+
+                    if ($null -eq $VSAConnection) {
+                        Update-VSAConnection -Force
+                        $UsersToken = "Bearer $( Get-VSAPersistentToken )"
+                    } else {
+                        Update-VSAConnection -VSAConnection $VSAConnection -Force
+                        $UsersToken = "Bearer $($VSAConnection.Token)"
+                    }
+                    $WebRequestParams.AuthString = $UsersToken
+                    $RenewTimes += 1
+                    $RenewThreshold = $MaxRecordsPerSession * $RenewTimes
                 }
-                $WebRequestParams.AuthString = $UsersToken
-                $RenewTimes += 1
-                $RenewThreshold = $MaxRecordsPerSession * $RenewTimes
-            }
 
-            [array]$temp = Get-RequestData @WebRequestParams | Select-Object -ExpandProperty Result
-            if ($temp.Count -gt 0) {
-                $resultCollection.AddRange($temp) | Out-Null
-            }
+                [array]$temp = Get-RequestData @WebRequestParams | Select-Object -ExpandProperty Result
+                if ($temp.Count -gt 0) {
+                    $resultCollection.AddRange($temp) | Out-Null
+                }
 
-            $skipValue += $RecordsPerPage
+                $skipValue += $RecordsPerPage
+            }
         }
         $result = $resultCollection.ToArray()
     }

@@ -11,10 +11,10 @@ function Remove-VSATenantModule {
         Specifies URI suffix if it differs from the default.
     .PARAMETER TenantId
         Specifies a tenant partition.
-    .PARAMETER Module
-        Modules name to be removed.
-    .PARAMETER ModuleIds
-        Modules Id to be removed.
+    .PARAMETER ModuleName
+        Name of the module to be removed. Resolved to its module Id at runtime.
+    .PARAMETER ModuleId
+        Numeric Id of the module to be removed.
     .EXAMPLE
        Remove-VSATenantModule -TenantId 1001 -ModuleName 'Agent'
     .EXAMPLE
@@ -26,6 +26,7 @@ function Remove-VSATenantModule {
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
@@ -78,7 +79,14 @@ function Remove-VSATenantModule {
     Begin {
         # $TenantModuleIdMap is a module-scope map shared with Enable-VSATenantModule (F-53).
         if ( -not [string]::IsNullOrEmpty($ModuleName)) {
-            $ModuleId = $TenantModuleIdMap[$ModuleName]
+            # Verify BEFORE assigning: an unknown name yields $null, which the [int] parameter type
+            # coerces to 0, silently issuing the DELETE against moduleId=0 instead of reporting the
+            # unknown module (F-4).
+            $ResolvedModuleId = $TenantModuleIdMap[$ModuleName]
+            if ( [string]::IsNullOrEmpty("$ResolvedModuleId") ) {
+                throw "Remove-VSATenantModule: No module found with name '$ModuleName'. Available: $(($TenantModuleIdMap.Keys | Sort-Object) -join ', ')."
+            }
+            $ModuleId = $ResolvedModuleId
         }
     }# Begin
     Process {

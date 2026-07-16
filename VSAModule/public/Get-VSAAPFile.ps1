@@ -8,12 +8,19 @@ function Get-VSAAPFile
         Supports both persistent and non-persistent VSA connections.
     .PARAMETER VSAConnection
         Specifies existing non-persistent VSAConnection.
-    .PARAMETER URISuffix
-        Specifies URI suffix if it differs from the default.
+    .PARAMETER AgentId
+        Specifies the numeric id of the agent machine.
     .PARAMETER Path
         Specifies Relative path.
     .PARAMETER DownloadsFolder
         Specifies folder to dowload the file. By default, current profiles' default Downloads folder.
+    .PARAMETER DownloadFile
+        Downloads the file to -DownloadsFolder. Without this switch the file listing is returned
+        rather than downloaded.
+    .PARAMETER Filter
+        Specifies an OData $filter expression applied by the server.
+    .PARAMETER Sort
+        Specifies an OData $orderby expression applied by the server.
     .EXAMPLE
        Get-VSAAPFile
     .EXAMPLE

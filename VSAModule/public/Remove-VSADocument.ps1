@@ -12,6 +12,8 @@ function Remove-VSADocument
         Specifies URI suffix if it differs from the default.
     .PARAMETER Path
         Specifies relative path to a file.
+    .PARAMETER AgentID
+        Specifies the agent whose document is removed.
     .EXAMPLE
        Remove-VSADocument -AgentId 10001 -Path "Folder\File.ext"
     .EXAMPLE
@@ -22,6 +24,7 @@ function Remove-VSADocument
        True if successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

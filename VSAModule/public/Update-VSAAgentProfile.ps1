@@ -24,6 +24,8 @@ function Update-VSAAgentProfile
         Specifies phone number of user
     .PARAMETER ShowToolTip
         Specifies to show tooltip or not
+    .PARAMETER AutoAssignTickets
+        Automatically assigns new tickets to this agent machine.
     .EXAMPLE
        Update-VSAAgentProfile -AgentId 323232323 -AdminEmail "support@yourcompany.com" -UserName "admin" -UserEmail "admin@yourcompany.com" -UserPhone "+183234334" -Notes "Alan's computer" -ShowToolTip 1 -AutoAssignTickets
     .EXAMPLE
@@ -35,6 +37,7 @@ function Update-VSAAgentProfile
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

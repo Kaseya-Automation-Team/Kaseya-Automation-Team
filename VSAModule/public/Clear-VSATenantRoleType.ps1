@@ -28,6 +28,7 @@ function Clear-VSATenantRoleType {
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNull()]
@@ -64,7 +65,13 @@ function Clear-VSATenantRoleType {
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
             } catch { Write-Debug "Argument completer suppressed error: $_" }
         })]
-        [int] $RoleTypeId,
+        [ValidateScript({
+            if( $_ -notmatch "^\d+$" ) {
+                throw "Non-numeric Id"
+            }
+            return $true
+        })]
+        [string] $RoleTypeId,
 
         [parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName = 'ByName')]
         [ArgumentCompleter({
@@ -104,10 +111,13 @@ function Clear-VSATenantRoleType {
         [array]$Tenants = Get-VSATenants @LookupParams | Select-Object Id, Ref
 
         if (-not $TenantId) {
-            $TenantId = $Tenants | Where-Object { $_.Ref -eq $TenantName } | Select-Object -First 1 -ExpandProperty Id
-            if ([string]::IsNullOrEmpty($TenantId)) {
+            # Resolve into a LOCAL first: assigning an unresolved (empty) value straight to $TenantId
+            # re-triggers that parameter's validator, which masks the accurate message below (F-4).
+            $ResolvedTenantId = $Tenants | Where-Object { $_.Ref -eq $TenantName } | Select-Object -First 1 -ExpandProperty Id
+            if ([string]::IsNullOrEmpty($ResolvedTenantId)) {
                 throw "Clear-VSATenantRoleType: No tenant found with name '$TenantName'."
             }
+            $TenantId = $ResolvedTenantId
         }
         if (-not $TenantName) {
             $TenantName = $Tenants | Where-Object { $_.Id -eq $TenantId } | Select-Object -First 1 -ExpandProperty Ref
@@ -118,10 +128,11 @@ function Clear-VSATenantRoleType {
         if ($RoleTypeName) {
             [hashtable]$RoleLookupParams = @{}
             if ($VSAConnection) { $RoleLookupParams['VSAConnection'] = $VSAConnection }
-            $RoleTypeId = Get-VSARoleType @RoleLookupParams | Where-Object { $_.RoleTypeName -eq $RoleTypeName } | Select-Object -First 1 -ExpandProperty RoleTypeId
-            if ([string]::IsNullOrEmpty("$RoleTypeId")) {
+            $ResolvedRoleTypeId = Get-VSARoleType @RoleLookupParams | Where-Object { $_.RoleTypeName -eq $RoleTypeName } | Select-Object -First 1 -ExpandProperty RoleTypeId
+            if ([string]::IsNullOrEmpty("$ResolvedRoleTypeId")) {
                 throw "Clear-VSATenantRoleType: No role type found with name '$RoleTypeName' on this VSA."
             }
+            $RoleTypeId = $ResolvedRoleTypeId
         }
     }
     Process {

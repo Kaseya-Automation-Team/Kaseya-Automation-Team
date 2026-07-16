@@ -14,6 +14,8 @@ function Get-VSAStorageContent {
         Specifies AgentFileId from the SQL table.
     .PARAMETER DownloadsFolder
         Specifies folder to dowload the file. By default, current profiles' default Downloads folder.
+    .PARAMETER FileName
+        Specifies the name to save the downloaded file as. Defaults to "<FileId>.webm".
     .EXAMPLE
        Get-VSAStorageContent -FileId 233434543543543
     .EXAMPLE

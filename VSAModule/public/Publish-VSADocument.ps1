@@ -13,8 +13,10 @@ function Publish-VSADocument
         Specifies URI suffix if it differs from the default.
     .PARAMETER SourceFilePath
         Specifies file to upload.
-    .PARAMETER $DestinationFolder
+    .PARAMETER DestinationFolder
         Specifies a Document folder to upload the file
+    .PARAMETER AgentId
+        Specifies the agent whose Documents the file is uploaded to.
     .EXAMPLE
        Publish-VSADocument -AgentId 10001 -SourceFilePath 'File.txt'
     .EXAMPLE
@@ -23,8 +25,6 @@ function Publish-VSADocument
        Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if successful.
-    .NOTES
-        Version 1.0.0
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param (

@@ -14,6 +14,8 @@ function New-VSARole
         Specifies name of the role
     .PARAMETER RoleTypeIds
         Specifies array of role type ids
+    .PARAMETER Attributes
+        Specifies additional attributes to send in the request body.
     .EXAMPLE
        New-VSARole -RoleName "Remote desktop" -RoleTypeIds 4, 6, 100, 101
     .EXAMPLE

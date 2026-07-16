@@ -14,6 +14,8 @@ function Rename-VSADocument
         Specifies source file name
     .PARAMETER Destination
         Specifies destination file name
+    .PARAMETER AgentID
+        Specifies the agent whose document is renamed.
     .EXAMPLE
        Rename-VSADocument -AgentId 10001 -Source "OldName.txt" -Destination "NewName.txt"
     .EXAMPLE
@@ -24,6 +26,7 @@ function Rename-VSADocument
        Array of objects that represent Custom Extension Folders and Files.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

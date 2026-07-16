@@ -12,6 +12,8 @@ function New-VSAScope
         Specifies URI suffix if it differs from the default.
     .PARAMETER ScopeName
         Specifies the Scope Name.
+    .PARAMETER Attributes
+        Specifies additional attributes to send in the request body.
     .EXAMPLE
        New-VSAScope -ScopeName 'NewScope'
     .EXAMPLE
@@ -20,8 +22,6 @@ function New-VSAScope
        Accepts piped non-persistent VSAConnection
     .OUTPUTS
        True if creation was successful.
-    .NOTES
-        Version 1.0.0
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param (

@@ -13,7 +13,9 @@ function Remove-VSARCService
     .PARAMETER ServiceId
         Specifies the id of the remote-control service to delete.
     .PARAMETER Force
-        Forces deletion even when the service is in use.
+        Sends the API's own force flag (force=true), which deletes the service even when it is in
+        use. NOTE: despite the name, this is NOT a confirmation bypass -- it changes what the server
+        does. To suppress the confirmation prompt use -Confirm:$false.
     .EXAMPLE
        Remove-VSARCService -ServiceId 'a1b2...'
     .INPUTS
@@ -22,6 +24,7 @@ function Remove-VSARCService
        True if the deletion was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

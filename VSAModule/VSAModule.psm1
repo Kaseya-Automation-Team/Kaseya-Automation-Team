@@ -1,6 +1,5 @@
 <#
    Kaseya VSA9 REST API Wrapper
-   Version 1.4.0
    Author: Vladislav Semko
    Description:
    VSAModule for Kaseya VSA 9 REST API is a PowerShell module that provides cmdlets for interacting with the Kaseya VSA 9 platform via its REST API.
@@ -342,20 +341,45 @@ public class VSAConnection
 #endregion Class VSAConnection
 
 #region Environment detection and edition-specific strategies (F-27)
-# Detect the HTTP-stack capability ONCE, at import, and pick the right implementation up front so
-# the per-request path (Get-RequestData) carries no edition/version branching.
+
+# Load System.Net.Http HERE, at module load, before anything that uses it is dot-sourced or called.
 #
-# We branch on the actual FEATURE (does Invoke-RestMethod expose -SkipCertificateCheck?) rather than
-# an edition or version label, and we treat Windows PowerShell / .NET Framework as the SAFE FALLBACK
+# The whole module transports over System.Net.Http.HttpClient (F-67). On .NET Core that assembly is
+# part of the shared framework and is always present; on .NET Framework (Windows PowerShell 5.1) it
+# is a separate assembly that is NOT loaded by default.
+#
+# This MUST happen at module load and cannot be done inside the functions that use the types.
+# PowerShell compiles a function body on its first invocation and resolves every type literal in it
+# at that moment -- before any statement in that function has run. An `Add-Type` at the top of the
+# same function is therefore always too late, and the literal fails with:
+#     Unable to find type [System.Net.Http.HttpClient]
+# Reported from a real Windows PowerShell 5.1 host: New-VSAConnection failed with exactly that,
+# and succeeded once the assembly had been loaded into the session beforehand.
+if (-not ('System.Net.Http.HttpClient' -as [type])) {
+    try {
+        Add-Type -AssemblyName System.Net.Http -ErrorAction Stop
+    } catch {
+        throw "VSAModule: could not load the System.Net.Http assembly, which this module's HTTP transport requires. Underlying error: $($_.Exception.Message)"
+    }
+}
+
+# Detect the HTTP-stack capability ONCE, at import, and pick the right implementation up front so
+# the per-request path carries no edition/version branching.
+#
+# This probe asks whether Invoke-RestMethod exposes -SkipCertificateCheck. The module no longer
+# issues requests through Invoke-RestMethod (F-67), so this is no longer a probe of the transport
+# itself -- it is a reliable, side-effect-free proxy for "is this .NET Core or .NET Framework?",
+# which is what actually selects the certificate-bypass strategy below. It is kept in preference to
+# an edition/version label because Windows PowerShell / .NET Framework remains the SAFE FALLBACK
 # (the else): PS 5.1 is the must-support target, so if detection is ever ambiguous we degrade to the
-# compiled-callback path that must work there, never to a -SkipCertificateCheck that would hard-error.
+# compiled-callback path that must work there, never to a Core-only path that would hard-error.
 $script:VSASupportsSkipCertCheck = (Get-Command Invoke-RestMethod).Parameters.ContainsKey('SkipCertificateCheck')
 
 if ($script:VSASupportsSkipCertCheck) {
-    # PowerShell 7+ (.NET Core): Invoke-RestMethod honours a per-request switch and ignores the
-    # process-global ServicePointManager callbacks entirely, so certificate bypass is scoped to the
-    # single request (nothing global to push/restore). TLS negotiation is handled by the OS.
-    $script:VSAAddSkipCertCheck = { param($RequestParams) $RequestParams['SkipCertificateCheck'] = $true }
+    # PowerShell 7+ (.NET Core): .NET Core ignores the process-global ServicePointManager callbacks
+    # entirely, so the bypass is carried by the HttpClientHandler itself (see Get-VSAHttpClient) and
+    # is scoped to that client -- there is nothing global to push or restore here. TLS negotiation is
+    # handled by the OS.
     $script:VSAPushCertBypass   = { }
     $script:VSAPopCertBypass    = { }
 } else {
@@ -392,7 +416,6 @@ public class VSATrustAllCertificatePolicy : ICertificatePolicy {
     }
     [Net.ServicePointManager]::SecurityProtocol = $strongProtocols
 
-    $script:VSAAddSkipCertCheck = { param($RequestParams) }  # no-op: bypass is via the policy below
     $script:VSAPushCertBypass   = {
         $script:VSAPreviousCertificatePolicy = [System.Net.ServicePointManager]::CertificatePolicy
         [System.Net.ServicePointManager]::CertificatePolicy = [VSATrustAllCertificatePolicy]::new()
@@ -661,11 +684,12 @@ function ConvertTo-VSALocalExpiration {
 
 #endregion Secure Storage Functions
 
-# NOTE: Certificate validation bypass is handled per-request in Get-RequestData,
-# branching on the PowerShell edition (Invoke-RestMethod -SkipCertificateCheck on
-# PS 7 / Core, and a scoped ServerCertificateValidationCallback on Windows PowerShell
-# 5.1 / Desktop). The obsolete ICertificatePolicy-based TrustAllCertsPolicy class was
-# removed (F-26): ICertificatePolicy is not available on .NET Core.
+# NOTE: Certificate validation bypass is selected once at module load (see the environment-detection
+# region above) and applied inside the shared HTTP stack: on PS 7 / Core by a validator on the
+# HttpClientHandler (Get-VSAHttpClient), and on Windows PowerShell 5.1 / Desktop by the compiled
+# ICertificatePolicy that VSAPushCertBypass installs around a send -- which HttpClient honours there
+# because it is built on HttpWebRequest. ICertificatePolicy is not available on .NET Core, which is
+# why it is confined to the Desktop branch.
 
 #region function New-VSAConnection
 function New-VSAConnection {
@@ -772,7 +796,6 @@ function New-VSAConnection {
     New-VSAConnection returns an object of VSAConnection type that encapsulates access token as well as additional connection information.
 
 .NOTES
-    Version 1.4.0
     SECURITY:
     - Implements DPAPI encryption for persistent connections on Windows (v0.1.5+); runtime-derived-key
       AES on Linux/macOS, where DPAPI does not exist (F-60)

@@ -20,6 +20,18 @@ function New-VSAPatchScan
         Specifies if procedure should NOT be executed if agent is offline at scheduled time
     .PARAMETER PowerUpIfOffLine
         Specifies if machine should be powered up at scheduled time
+    .PARAMETER Repeat
+        Specifies the recurrence interval: Never, Minutes, Hours, Days, Weeks, Months or Years.
+        Any value other than 'Never' exposes the recurrence parameters below.
+    .PARAMETER Times
+        Specifies how many -Repeat intervals elapse between runs. Available when -Repeat is not 'Never'.
+    .PARAMETER DaysOfWeek
+        Specifies the day of the week to run on (Sunday..Saturday). Available when -Repeat is not 'Never'.
+    .PARAMETER DayOfMonth
+        Specifies the ordinal day of the month to run on (e.g. FirstMonday, LastWeekDay, LastDay).
+        Available when -Repeat is not 'Never'.
+    .PARAMETER MonthOfYear
+        Specifies the month to run in (January..December). Available when -Repeat is not 'Never'.
     .PARAMETER SpecificDayOfMonth
         Specifies index of day in the month
     .PARAMETER EndAt
@@ -30,7 +42,7 @@ function New-VSAPatchScan
         Specifies if recurrence should end after specific amount of executions
     .PARAMETER Interval
         Specifies unit of measurement for interval of distribution window
-    .PARAMETER Magniture
+    .PARAMETER Magnitude
         Specifies numeric interval of distribution window
     .PARAMETER StartOn
     Specifies date and time when procedure should be executed
@@ -53,6 +65,7 @@ function New-VSAPatchScan
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

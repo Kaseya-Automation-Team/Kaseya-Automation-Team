@@ -16,6 +16,8 @@ function Update-VSADepartment
         Specifies the Parent Department Id.
     .PARAMETER ManagerId
         Specifies the Manager Id.
+    .PARAMETER DepartmentId
+        Specifies the Id of the department to update.
     .EXAMPLE
        Update-VSADepartment -ParentDepartmentId 10001 -DepartmentName 'A New Department Name'
     .EXAMPLE
@@ -26,6 +28,7 @@ function Update-VSADepartment
        True if update was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

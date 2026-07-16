@@ -10,16 +10,17 @@ function Copy-VSAOrgStructure {
         Specifies established VSAConnection to the Destination environment.
     .PARAMETER OrgsToTransfer
         Specifies source array of Organizations.
-    .PARAMETER ParentOrgId
-        Optional parameter, specifies numeric id of the parent organization, if needed to transfer a specific organization and its sub-organizations.
     .EXAMPLE
         Copy-VSAOrgStructure -OrgsToTransfer $OrgsToTransfer -SourceVSA $SourceVSAConnection -DestinationVSA $DestinationVSAConnection
+    .EXAMPLE
+        Copy-VSAOrgStructure -OrgsToTransfer $OrgsToTransfer -SourceVSA $Src -DestinationVSA $Dst -WhatIf
+        Shows which organizations would be created on the destination without creating anything.
     .INPUTS
         Accepts piped parameters.
     .OUTPUTS
         No output.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true)]
@@ -107,7 +108,13 @@ function Copy-VSAOrgStructure {
         $CheckDestination = Get-VSAOrganization @DestinationParams -Filter "OrgRef eq '$(ConvertTo-ODataString $OwnOrgRef)'"
 
         if ( $null -eq $CheckDestination ) {
-            # The Organization does not exist in the Destination. Create
+            # The Organization does not exist in the Destination. Create.
+            # ShouldProcess gates the whole create-and-verify block, not just the New call:
+            # under -WhatIf the 60-second read-back wait below would otherwise spin, polling for
+            # an organization that was deliberately never created.
+            if ( -not $PSCmdlet.ShouldProcess( "Organization '$($Organization.OrgRef)' on destination VSA '$($DestinationVSA.URI)'", 'Create' ) ) {
+                continue
+            }
 
             $NewOrgParams = $DestinationParams.Clone()
             $NewOrgParams.Add('ExtendedOutput',  $true)

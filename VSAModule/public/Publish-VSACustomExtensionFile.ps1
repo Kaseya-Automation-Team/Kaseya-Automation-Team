@@ -12,8 +12,10 @@ function Publish-VSACustomExtensionFile
         Specifies URI suffix if it differs from the default.
     .PARAMETER SourceFilePath
         Specifies file to upload to the agent's custom extension folder. The root custom extension folder by default.
-    .PARAMETER $DestinationFolder
+    .PARAMETER DestinationFolder
         Specifies agent's custom extension folder to upload the file.
+    .PARAMETER AgentId
+        Specifies the agent whose custom extensions the file is uploaded to.
     .EXAMPLE
        Publish-VSACustomExtensionFile -AgentId 10001 -SourceFilePath 'File.txt'
     .EXAMPLE

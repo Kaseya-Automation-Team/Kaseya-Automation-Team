@@ -14,9 +14,11 @@ function New-VSALCAuditLog
     .PARAMETER AgentId
         Specifies numeric id of agent machine
     .PARAMETER UserName
-        Specifies username shown in Live Connect log
+        Specifies username shown in Live Connect log. Defaults to 'VSAModule' when not supplied.
     .PARAMETER AgentName
-        Specifies agentname shown in Live Connect log
+        Specifies agentname shown in Live Connect log. Defaults to 'VSAModule' when not supplied.
+        The server rejects the request with "Invalid AgentName" if this field is null, so it is
+        always sent (F-1).
     .PARAMETER Message
         Required parameter which specifies text message shown in Live Connect log
     .EXAMPLE
@@ -32,6 +34,7 @@ function New-VSALCAuditLog
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -54,12 +57,15 @@ function New-VSALCAuditLog
 		[Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
-        [string] $UserName,
+        [string] $UserName = 'VSAModule',
 
+        # The API rejects a null AgentName with HTTP 400 "Invalid AgentName", so this must always be
+        # sent. Defaulting it here implements the behaviour the help has always documented and keeps
+        # the documented one-argument call (-AgentId + -Message) working (F-1).
 		[Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName=$true)]
         [ValidateNotNullOrEmpty()]
-        [string] $AgentName,
+        [string] $AgentName = 'VSAModule',
 
 		[Parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName=$true)]

@@ -10,6 +10,8 @@ function Start-VSAAuditLatest
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
+    .PARAMETER AgentID
+        Specifies the agent Id.
     .EXAMPLE
        Start-VSAAuditLatest -AgentID 10001
     .EXAMPLE
@@ -20,6 +22,7 @@ function Start-VSAAuditLatest
        True if start of baseline audit was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

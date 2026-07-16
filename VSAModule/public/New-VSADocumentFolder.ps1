@@ -12,6 +12,8 @@ function New-VSADocumentFolder
         Specifies URI suffix if it differs from the default.
     .PARAMETER Folder
         Specifies new folder relative path.
+    .PARAMETER AgentId
+        Specifies the agent on which the Document folder is created.
     .EXAMPLE
        New-VSADocumentFolder -AgentId 10001 -Folder 'NewFolder'
     .EXAMPLE
@@ -22,6 +24,7 @@ function New-VSADocumentFolder
        True if successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

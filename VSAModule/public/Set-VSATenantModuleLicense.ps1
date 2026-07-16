@@ -5,22 +5,45 @@ function Set-VSATenantModuleLicense {
     .DESCRIPTION
        Updates a selected license within a specified tenant. Typically, only the Limit field is updated.
        Takes either Tenant or non-Tenant connection information.
+
+       This cmdlet has two parameter sets, which differ in BOTH how the tenant is identified and how
+       the license is selected:
+
+         ById   : -TenantId   + -LicenseName + -zzVal   + -Limit + -LicenseType
+                  Looks the named license up on the tenant and updates its Limit in place.
+         ByName : -TenantName + -zzValId     + -Limit + -LicenseType
+                  Resolves the tenant name to its Id, then writes a license record built from the
+                  supplied values.
+
+       NAMING NOTE: 'zzValId' and 'zzVal' are not placeholder names. They are the VSA REST API's own
+       request-body field names for this endpoint and are transmitted verbatim, so they are kept as-is
+       to stay greppable against the Kaseya API documentation. The friendlier aliases -LicenseValueId
+       and -LicenseValue are accepted for readability.
     .PARAMETER VSAConnection
         Specifies existing non-Tenant VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
     .PARAMETER TenantId
-        Specifies Tenant Id.
+        Specifies Tenant Id. Belongs to the ById parameter set.
     .PARAMETER TenantName
-        Specifies Tenant Name.
+        Specifies Tenant Name. Belongs to the ByName parameter set; resolved to a Tenant Id at runtime.
     .PARAMETER DataType
         Specifies the data type for the limit.
     .PARAMETER Limit
-        Specifies License Limit.
+        Specifies License Limit. Required by both parameter sets.
     .PARAMETER Name
         Specifies module name.
     .PARAMETER zzValId
-        Specifies License Id.
+        Specifies License Id (the API's 'zzValId' body field). Required by the ByName parameter set.
+        Also accepted as -LicenseValueId.
+    .PARAMETER zzVal
+        Specifies the license value (the API's 'zzVal' body field). Required by the ById parameter set.
+        When omitted on the ByName path it defaults to "zzvals<zzValId>". Also accepted as -LicenseValue.
+    .PARAMETER LicenseType
+        Specifies the license type id. Required by both parameter sets.
+    .PARAMETER LicenseName
+        Specifies the name of the existing license to update. Required by the ById parameter set, and
+        tab-completes from the licenses already present on the given -TenantId.
     .PARAMETER StringValue
         Specifies String Value.
     .PARAMETER DateValue
@@ -36,6 +59,7 @@ function Set-VSATenantModuleLicense {
     #>
 
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -83,7 +107,11 @@ function Set-VSATenantModuleLicense {
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
+        # 'zzValId' / 'zzVal' mirror the VSA API's own request-body field names (they are sent verbatim
+        # in Process), so they are kept as the primary names to stay greppable against the Kaseya API
+        # docs. The aliases below give callers a readable alternative without diverging from the API.
         [parameter(Mandatory = $true, ParameterSetName = 'ByName', ValueFromPipelineByPropertyName = $true)]
+        [Alias('LicenseValueId')]
         [ValidateScript({
             if( $_ -notmatch "^\d+$" ) {
                 throw "Non-numeric value"
@@ -93,6 +121,7 @@ function Set-VSATenantModuleLicense {
         [string] $zzValId,
 
         [parameter(Mandatory = $true, ParameterSetName = 'ById', ValueFromPipelineByPropertyName = $true)]
+        [Alias('LicenseValue')]
         [ValidateNotNullOrEmpty()]
         [string] $zzVal,
 
@@ -155,10 +184,14 @@ function Set-VSATenantModuleLicense {
 
         if ( $PSCmdlet.ParameterSetName -eq 'ByName' ) {
             $Tenants  = Get-VSATenant @AuxParameters | Select-Object Id, Ref
-            $TenantId = $Tenants | Where-Object { $_.Ref -eq $TenantName } | Select-Object -First 1 -ExpandProperty Id
-            if ( [string]::IsNullOrEmpty($TenantId) ) {
+            # Resolve into a LOCAL first: assigning an unresolved (empty) value straight to $TenantId
+            # re-triggers that parameter's ValidateScript, which throws its own "Non-numeric Id" and
+            # masks the accurate "No tenant found" message below (F-4).
+            $ResolvedTenantId = $Tenants | Where-Object { $_.Ref -eq $TenantName } | Select-Object -First 1 -ExpandProperty Id
+            if ( [string]::IsNullOrEmpty($ResolvedTenantId) ) {
                 throw "Set-VSATenantModuleLicense: No tenant found with name '$TenantName'."
             }
+            $TenantId = $ResolvedTenantId
         } else {
             $AuxParameters['TenantId'] = $TenantId
             [array] $Licenses = Get-VSATenantModuleLicense @AuxParameters |

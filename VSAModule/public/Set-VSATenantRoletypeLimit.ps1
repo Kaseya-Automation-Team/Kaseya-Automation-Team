@@ -30,6 +30,7 @@ function Set-VSATenantRoletypeLimit {
     #>
 
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true)]
@@ -119,15 +120,19 @@ function Set-VSATenantRoletypeLimit {
         [array]$Tenants = Get-VSATenants @LookupParams | Select-Object Id, Ref
 
         if ( [string]::IsNullOrEmpty($RoleTypeId) ) {
-            $RoleTypeId = $Roles | Where-Object { $_.RoleTypeName -eq $RoleTypeName } | Select-Object -First 1 -ExpandProperty RoleTypeId
-            if ([string]::IsNullOrEmpty($RoleTypeId)) { throw "Set-VSATenantRoletypeLimit: No role type found with name '$RoleTypeName'." }
+            # Resolve into a LOCAL first: assigning an unresolved (empty) value straight to the
+            # parameter re-triggers its validator, masking the accurate message below (F-4).
+            $ResolvedRoleTypeId = $Roles | Where-Object { $_.RoleTypeName -eq $RoleTypeName } | Select-Object -First 1 -ExpandProperty RoleTypeId
+            if ([string]::IsNullOrEmpty($ResolvedRoleTypeId)) { throw "Set-VSATenantRoletypeLimit: No role type found with name '$RoleTypeName'." }
+            $RoleTypeId = $ResolvedRoleTypeId
         }
         if ( [string]::IsNullOrEmpty($RoleTypeName) ) {
             $RoleTypeName = $Roles | Where-Object { $_.RoleTypeId -eq $RoleTypeId } | Select-Object -First 1 -ExpandProperty RoleTypeName
         }
         if ( [string]::IsNullOrEmpty($TenantId)  ) {
-            $TenantId = $Tenants | Where-Object { $_.Ref -eq $TenantName } | Select-Object -First 1 -ExpandProperty Id
-            if ([string]::IsNullOrEmpty($TenantId)) { throw "Set-VSATenantRoletypeLimit: No tenant found with name '$TenantName'." }
+            $ResolvedTenantId = $Tenants | Where-Object { $_.Ref -eq $TenantName } | Select-Object -First 1 -ExpandProperty Id
+            if ([string]::IsNullOrEmpty($ResolvedTenantId)) { throw "Set-VSATenantRoletypeLimit: No tenant found with name '$TenantName'." }
+            $TenantId = $ResolvedTenantId
         }
         if ( [string]::IsNullOrEmpty($TenantName)  ) {
             $TenantName = $Tenants | Where-Object { $_.Id -eq $TenantId } | Select-Object -First 1 -ExpandProperty Ref

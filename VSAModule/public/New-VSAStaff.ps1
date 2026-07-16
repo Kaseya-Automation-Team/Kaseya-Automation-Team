@@ -28,6 +28,26 @@ function New-VSAStaff
         Specifies ability to view all tickets.
     .PARAMETER ApproveAllTimeSheets
         Specifies ability to approve all time sheets.
+    .PARAMETER PreferredContactMethod
+        Specifies the preferred contact method.
+    .PARAMETER PrimaryPhone
+        Specifies the primary phone number.
+    .PARAMETER PrimaryFax
+        Specifies the primary fax number.
+    .PARAMETER PrimaryEmail
+        Specifies the primary email address.
+    .PARAMETER Country
+        Specifies the country of the postal address.
+    .PARAMETER Street
+        Specifies the street of the postal address.
+    .PARAMETER City
+        Specifies the city of the postal address.
+    .PARAMETER State
+        Specifies the state or region of the postal address.
+    .PARAMETER ZipCode
+        Specifies the postal code of the postal address.
+    .PARAMETER PrimaryTextMessagePhone
+        Specifies the phone number used for text messages.
     .EXAMPLE
        New-VSAStaff -DepartmentId 10001 -OrgIdNumber 20002 -StaffFullName 'John Doe'
     .INPUTS
@@ -36,6 +56,7 @@ function New-VSAStaff
        True if addition was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

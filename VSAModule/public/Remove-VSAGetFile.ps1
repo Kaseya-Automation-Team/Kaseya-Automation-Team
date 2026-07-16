@@ -12,6 +12,8 @@ function Remove-VSAGetFile
         Specifies URI suffix if it differs from the default.
     .PARAMETER Path
         Specifies Relative path to the file.
+    .PARAMETER AgentId
+        Specifies the agent whose captured file is removed.
     .EXAMPLE
        Remove-VSAGetFile -AgentId 10001 -Path 'File.ext'
     .EXAMPLE
@@ -22,6 +24,7 @@ function Remove-VSAGetFile
        True if successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

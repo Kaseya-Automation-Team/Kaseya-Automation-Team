@@ -89,6 +89,22 @@ function Get-VSAItem {
     .PARAMETER Sort
         Specifies REST API sorting options.
 
+    .PARAMETER Parallel
+        Fetches the remaining pages of a large collection concurrently instead of one after another.
+        Opt-in: without it, behaviour is unchanged. Results are identical either way (same records,
+        merged in $skip order). Only engages once the collection is large enough to be worth it
+        (see -ParallelThreshold).
+
+    .PARAMETER ThrottleLimit
+        Maximum number of concurrent requests when -Parallel is used (default 8). On shared SaaS you
+        are one tenant among many, so a modest value is a good citizen; the engine also reduces
+        concurrency automatically if the server returns HTTP 429, then recovers.
+
+    .PARAMETER ParallelThreshold
+        Minimum total record count before -Parallel actually engages. 0 (default) means automatic:
+        two full throttle windows, i.e. 2 * ThrottleLimit * 100 records. Below that the sequential
+        path is used, because it is faster than paying to set up extra connections.
+
     .EXAMPLE
         Get-VSAActivityType
         Retrieves all available VSA Activity Types.
@@ -175,7 +191,20 @@ function Get-VSAItem {
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
-        [string] $Sort
+        [string] $Sort,
+
+        # Opt-in parallel paging for large collections (see Invoke-VSARestMethod). No effect on small
+        # result sets; absent, behaviour is identical to before.
+        [Parameter(Mandatory = $false)]
+        [switch] $Parallel,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateRange(1, 64)]
+        [int] $ThrottleLimit = 8,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateRange(0, [int]::MaxValue)]
+        [int] $ParallelThreshold = 0
     )
     process {
 
@@ -198,6 +227,13 @@ function Get-VSAItem {
         if (-not $Params[$key]) {
             $Params.Remove($key)
         }
+    }
+
+    # Forward the parallel-paging controls only when opted in, so the default call is unchanged.
+    if ($Parallel) {
+        $Params['Parallel']      = $true
+        $Params['ThrottleLimit'] = $ThrottleLimit
+        if ($ParallelThreshold -gt 0) { $Params['ParallelThreshold'] = $ParallelThreshold }
     }
 
     return Invoke-VSARestMethod @Params

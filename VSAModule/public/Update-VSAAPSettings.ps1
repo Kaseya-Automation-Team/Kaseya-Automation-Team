@@ -11,6 +11,8 @@ function Update-VSAAPSettings
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies id of the agent machine
+    .PARAMETER Flag
+        Sets the "Ask before executing" checkbox. Present sets it on; omitted sets it off.
     .EXAMPLE
        Update-VSAAPSettings -Flag
     .EXAMPLE
@@ -22,6 +24,7 @@ function Update-VSAAPSettings
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

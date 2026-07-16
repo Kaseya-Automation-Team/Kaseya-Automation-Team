@@ -10,6 +10,13 @@ function Remove-VSASessionTimer
         Specifies existing non-persistent VSAConnection.
     .PARAMETER URISuffix
         Specifies URI suffix if it differs from the default.
+    .PARAMETER TimerId
+        Specifies the Id of the session timer to delete.
+    .PARAMETER Force
+        Issues the request as PATCH instead of DELETE, which is how this endpoint distinguishes
+        removing the timer with its data committed to the database from removing it without.
+        NOTE: despite the name, this is NOT a confirmation bypass -- it selects a different API
+        operation. To suppress the confirmation prompt use -Confirm:$false.
     .EXAMPLE
        Remove-VSASessionTimer -TimerId 123
     .EXAMPLE
@@ -21,6 +28,7 @@ function Remove-VSASessionTimer
     #>
 
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]

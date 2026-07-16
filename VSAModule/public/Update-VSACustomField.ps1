@@ -16,6 +16,8 @@ function Update-VSACustomField
         Value to assign to the provided field for provided AgentID.
     .PARAMETER NewFieldName
         New Field Name.
+    .PARAMETER AgentID
+        Specifies the agent whose custom-field value is updated (UpdateValue parameter set).
     .EXAMPLE
        Update-VSACustomField -FieldName 'MyField' -FieldValue 'New Value' -AgentID '100001'
     .EXAMPLE

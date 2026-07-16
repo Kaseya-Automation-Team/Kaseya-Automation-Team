@@ -28,6 +28,28 @@ function Update-VSAStaff
         Specifies ability to view all tickets.
     .PARAMETER ApproveAllTimeSheets
         Specifies ability to approve all time sheets.
+    .PARAMETER PreferredContactMethod
+        Specifies the preferred contact method.
+    .PARAMETER PrimaryPhone
+        Specifies the primary phone number.
+    .PARAMETER PrimaryFax
+        Specifies the primary fax number.
+    .PARAMETER PrimaryEmail
+        Specifies the primary email address.
+    .PARAMETER Country
+        Specifies the country of the postal address.
+    .PARAMETER Street
+        Specifies the street of the postal address.
+    .PARAMETER City
+        Specifies the city of the postal address.
+    .PARAMETER State
+        Specifies the state or region of the postal address.
+    .PARAMETER ZipCode
+        Specifies the postal code of the postal address.
+    .PARAMETER PrimaryTextMessagePhone
+        Specifies the phone number used for text messages.
+    .PARAMETER OrgStaffId
+        Specifies the Id of the staff record to update.
     .EXAMPLE
        Update-VSAStaff -OrgStaffId 10001 -OrgIdNumber 20002 -StaffFullName 'John Doe'
     .INPUTS
@@ -36,6 +58,7 @@ function Update-VSAStaff
        True if addition was successful.
     #>
     [CmdletBinding(SupportsShouldProcess)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true)]
@@ -171,9 +194,27 @@ function Update-VSAStaff
     # legitimate values like 0 or '' that a caller explicitly asked to send. The BodyHT keys
     # here don't all match the source parameter names (OrgId<-OrgIdNumber, DeptId<-DepartmentId),
     # so each field is keyed off its own source parameter's bound state.
-    [hashtable]$BodyHT = @{} # Function = $Function ---> workaround for backend bug
+    [hashtable]$BodyHT = @{}
     if ($PSBoundParameters.ContainsKey('OrgIdNumber'))   { $BodyHT['OrgId'] = $OrgIdNumber }
-    if ($PSBoundParameters.ContainsKey('Function'))      { $BodyHT['Function'] = $Function }
+
+    # -Function must ALWAYS be on the wire, even when the caller did not supply it (F-69).
+    # The backend stored procedure behind this endpoint (sp_EditOrgDeptStaff) takes this field as its
+    # '@purpose' argument and rejects the entire update with HTTP 500 -- "expects parameter
+    # '@purpose', which was not supplied" -- if the key is absent. The field was historically sent
+    # unconditionally for exactly this reason; making it conditional (F-52, prune by bound state)
+    # silently reintroduced the failure for every caller that did not pass -Function.
+    # Sending an empty value instead would satisfy the server but WIPE the staff member's real job
+    # function, so when the caller omits it the current value is read back and re-sent unchanged.
+    if ($PSBoundParameters.ContainsKey('Function')) {
+        $BodyHT['Function'] = $Function
+    } else {
+        [hashtable]$LookupParams = @{}
+        if ($VSAConnection) { $LookupParams['VSAConnection'] = $VSAConnection }
+        $CurrentFunction = Get-VSAStaff @LookupParams |
+            Where-Object { "$($_.OrgStaffId)" -eq "$OrgStaffId" } |
+            Select-Object -First 1 -ExpandProperty Function
+        $BodyHT['Function'] = [string]$CurrentFunction
+    }
     if ($PSBoundParameters.ContainsKey('StaffFullName')) { $BodyHT['StaffFullName'] = $StaffFullName }
     if ($PSBoundParameters.ContainsKey('DepartmentId'))  { $BodyHT['DeptId'] = $DepartmentId }
     if ($PSBoundParameters.ContainsKey('SupervisorId'))  { $BodyHT['SupervisorId'] = $SupervisorId }

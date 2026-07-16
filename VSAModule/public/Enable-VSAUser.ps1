@@ -27,6 +27,7 @@ function Enable-VSAUser
         403/404. Read-only user cmdlets (Get-VSAUser) are unaffected.
 #>
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ById')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess is invoked centrally by Invoke-VSAWriteRequest, which receives this cmdlet''s $PSCmdlet via -Caller (module-wide pattern).')]
     param (
         [parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
@@ -82,10 +83,14 @@ function Enable-VSAUser
             [hashtable]$LookupParams = @{}
             if ($VSAConnection) { $LookupParams['VSAConnection'] = $VSAConnection }
             [array]$Users = Get-VSAUser @LookupParams
-            $UserId = $Users | Where-Object { $_.AdminName -eq $AdminName } | Select-Object -First 1 -ExpandProperty UserId
-            if ([string]::IsNullOrEmpty($UserId)) {
+            # Resolve into a LOCAL first: assigning an unresolved (empty) value straight to $UserId
+            # re-triggers that parameter's validator, whose "Non-numeric Id" masks the accurate
+            # message below (F-4).
+            $ResolvedUserId = $Users | Where-Object { $_.AdminName -eq $AdminName } | Select-Object -First 1 -ExpandProperty UserId
+            if ([string]::IsNullOrEmpty($ResolvedUserId)) {
                 throw "Enable-VSAUser: No user found with AdminName '$AdminName'."
             }
+            $UserId = $ResolvedUserId
         }
     }# Begin
     Process {

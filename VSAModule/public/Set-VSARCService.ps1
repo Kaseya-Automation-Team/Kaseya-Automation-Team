@@ -68,9 +68,29 @@ function Set-VSARCService
         [switch] $Force
     )
     process {
+        # The update endpoint dereferences ClientApp and Path unconditionally, so a body carrying
+        # only ServiceName + Port (their mandatory params) triggers a server-side null reference and
+        # HTTP 500 (verified live). Preserve the service's CURRENT ClientApp/Path when the caller does
+        # not override them, so updating just the name or port succeeds instead of 500ing (F-79).
+        $clientAppOmitted = -not $PSBoundParameters.ContainsKey('ClientApp')
+        $pathOmitted      = -not $PSBoundParameters.ContainsKey('Path')
+        if ($clientAppOmitted -or $pathOmitted) {
+            [hashtable] $LookupParams = @{}
+            if ($VSAConnection) { $LookupParams['VSAConnection'] = $VSAConnection }
+            $current = Get-VSARCService @LookupParams | Where-Object { "$($_.ServiceId)" -eq "$ServiceId" } | Select-Object -First 1
+            if ($current) {
+                if ($clientAppOmitted) { $ClientApp = $current.ClientApp }
+                if ($pathOmitted)      { $Path      = $current.Path }
+            }
+        }
+
         $query = "?serviceid={0}&force={1}" -f [uri]::EscapeDataString($ServiceId), $Force.IsPresent.ToString().ToLower()
         $URISuffix = $URISuffix + $query
-        [hashtable] $BodyHT = ConvertTo-VSARequestBody -BoundParameters $PSBoundParameters -Include @('ServiceName', 'Port', 'ClientApp', 'Path')
+        # ClientApp/Path are set explicitly (from the caller or the preserved current values) so the
+        # body always carries them; ServiceName/Port come from the bound parameters.
+        [hashtable] $BodyHT = ConvertTo-VSARequestBody -BoundParameters $PSBoundParameters -Include @('ServiceName', 'Port')
+        $BodyHT['ClientApp'] = "$ClientApp"
+        $BodyHT['Path']      = "$Path"
         return Invoke-VSAWriteRequest -Body $BodyHT -Method PUT -URISuffix $URISuffix `
             -VSAConnection $VSAConnection -Caller $PSCmdlet
     }

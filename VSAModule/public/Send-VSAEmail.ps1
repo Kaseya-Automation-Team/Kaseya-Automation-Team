@@ -84,7 +84,12 @@ function Send-VSAEmail
 
     $BodyHT = @{"FromAddress"="$FromAddress"; "ToAddress"="$ToAddress"; "Subject"="$Subject"; "Body"="$Body"; "Priority"=$Priority; "IsBodyHtml"=$Html.ToBool()}
 
-    if ( -not [string]::IsNullOrEmpty($UniqueTag) ) { $BodyHT.Add('UniqueTag', $UniqueTag) }
+    # The server rejects a missing UniqueTag with HTTP 400 "UniqueTag can't be null" (verified live),
+    # so one is ALWAYS sent: the caller's value when supplied, otherwise a generated unique default.
+    # -UniqueTag stays an optional parameter (F-66) -- the module fills it in rather than forcing the
+    # caller to invent a tag for a one-off send (F-80).
+    if ( [string]::IsNullOrEmpty($UniqueTag) ) { $UniqueTag = [guid]::NewGuid().ToString('N') }
+    $BodyHT.Add('UniqueTag', $UniqueTag)
 
     $Body = $BodyHT | ConvertTo-Json -Compress
 

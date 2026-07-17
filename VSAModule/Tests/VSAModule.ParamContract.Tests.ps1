@@ -30,14 +30,18 @@ Describe "Parameter mandatoriness matches the server contract" {
         }
     }
 
-    It "Send-VSAEmail succeeds without -UniqueTag and omits it from the body" {
+    It "Send-VSAEmail succeeds without -UniqueTag and auto-generates one (F-80, corrects F-66)" {
         InModuleScope VSAModule {
+            # F-66 made -UniqueTag optional and omitted it from the body when absent. Live testing
+            # proved that wrong: the server rejects a missing tag with HTTP 400 "UniqueTag can't be
+            # null". The module now always sends one -- the caller's value, or a generated default --
+            # so the optional-parameter call actually works (F-80).
             $script:body = $null
-            Mock Invoke-VSARestMethod { $script:body = $Body }
+            Mock Invoke-VSAWriteRequest { $script:body = $Body }
             Send-VSAEmail -FromAddress 'a@b.com' -ToAddress 'c@d.com' -Subject 'Sub' -Body 'Body' | Out-Null
             $obj = $script:body | ConvertFrom-Json
             $obj.FromAddress | Should -Be 'a@b.com'
-            $obj.PSObject.Properties.Name | Should -Not -Contain 'UniqueTag'
+            $obj.UniqueTag   | Should -Not -BeNullOrEmpty -Because 'the server requires a UniqueTag; the module fills one in'
         }
     }
 

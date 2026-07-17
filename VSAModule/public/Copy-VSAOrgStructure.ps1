@@ -19,6 +19,13 @@ function Copy-VSAOrgStructure {
         Accepts piped parameters.
     .OUTPUTS
         No output.
+    .NOTES
+        Rollback is bottom-up. A copied tree must be torn down deepest-child-first: the server
+        refuses to delete an organization that still has child orgs (Remove-VSAOrganization then
+        returns HTTP 500 "This organization cannot be deleted. It contains child orgs."). Deleting an
+        organization does cascade its own machine groups, but not its child organizations. There is
+        no Remove-VSAOrgStructure counterpart, so ordering the teardown (sort by OrgRef depth
+        descending) is the caller's responsibility. Verified live on a VSA 9 SaaS instance.
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param (

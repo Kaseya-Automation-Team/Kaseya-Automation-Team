@@ -103,7 +103,7 @@ $VSAConnection = New-VSAConnection -VSAServer 'https://vsa.example.com' -Credent
 
 ## Key Features
 
-- **139 cmdlets, 169 aliases** covering organizations, agents, assets, tickets, staff, roles, scopes, tenants, custom fields, agent procedures, remote-control services, temporary agents, alerts, and more.
+- **140 cmdlets, 168 aliases** covering organizations, agents, assets, tickets, staff, roles, scopes, tenants, custom fields, agent procedures, remote-control services, temporary agents, alerts, and more.
 - **Automatic paging**: collections are paged transparently via `$skip`/`$top`; no manual loop needed for large result sets.
 - **Automatic retry**: transient HTTP errors (429, 502, 503, 504) retry automatically with exponential backoff (and `Retry-After` support).
 - **Automatic token renewal**: session tokens are renewed transparently before paged/long-running requests.
@@ -173,6 +173,7 @@ Notes:
 - **Threshold.** Parallel only engages once there is enough work to be worth it (by default two full throttle windows, approximately `2 × ThrottleLimit × 100` records); smaller collections take the sequential path. Override with `-ParallelThreshold <records>`.
 - **Token handling is centralised.** The coordinator stamps and renews the session token on its single thread, so token renewal is race-free by construction (a persistent connection works too, since only the coordinator touches it). An explicit `-VSAConnection` is still recommended for long unattended jobs.
 - **Complementary tip:** pair `-Parallel` with `-Filter` on a modified-date field (delta sync) so recurring jobs fetch only what changed, often a far bigger win than concurrency alone.
+- **`-Filter` caveat: you cannot filter on a large numeric id.** VSA object ids are 15-26 digit strings, but the server types id fields (e.g. `OrgId`) as `Edm.Int32` inside an OData `$filter`, so `Get-VSAOrganization -Filter "OrgId eq <26-digit id>"` fails with **HTTP 400** *"Unrecognized 'Edm.Int32' literal"* (the id overflows Int32). Filter on a string field instead (e.g. `-Filter "OrgRef eq 'acme'"`), or fetch by the id **path** parameter (`-OrgId`/`-Id`), or match client-side. This also means a create-then-read-back must match on a stable non-id field, since the just-issued id is not filterable. (Verified live; related to the `tenant`-endpoint `$filter` trap in the release notes.)
 
 ## Getting Help
 
@@ -247,6 +248,17 @@ A full audit for inconsistencies (create/update parameter drift, `-Force` semant
 
 - **`Copy-VSAOrgStructure` and `Copy-VSAMGStructure` now support `-WhatIf`.** These were the only two mutating cmdlets in the module without it - and the highest-blast-radius ones, mass-creating an entire organization or machine-group tree on a destination VSA. They compose public cmdlets rather than the write chokepoint, so they now call `ShouldProcess` directly, gating the whole create-and-verify block: under `-WhatIf` they print exactly what would be created and the 60-second server read-back wait is skipped. Live-verified against the sandbox - nothing is created, and the run takes a second rather than spinning in the wait loop.
 - **The module-wide `PSShouldProcess` analyzer warning is resolved, not just tolerated.** Centralising `ShouldProcess` in `Invoke-VSAWriteRequest` (invoked with each cmdlet's `$PSCmdlet` via `-Caller`) is deliberate, but static analysers cannot see the delegation and flagged all ~96 delegating write cmdlets. Each now carries a `SuppressMessageAttribute` with a justification naming the pattern, so the tooling agrees with the architecture and the rationale is documented in place. Guarded by tests that fail if a new mutating cmdlet is added without either a `ShouldProcess` call or the justified suppression.
+
+#### Session-invalidation recovery, and further fixes from a full live re-test
+
+A rigorous re-test of the entire read and write surface against a live VSA ([TESTING-REPORT-rigorous-reads-2026-07-16.md](TESTING-REPORT-rigorous-reads-2026-07-16.md), [TESTING-REPORT-writes-2026-07-16.md](TESTING-REPORT-writes-2026-07-16.md)) - real invocations, not `-WhatIf` - found and fixed:
+
+- **`Get-VSAAPList` now returns data.** Its endpoint (`automation/agentprocs/proclist`) serves the Agent Procedure tree as Kaseya `ScExport` **XML**, not JSON, because VSA 9 stores Agent Procedures as XML - so the JSON-only read path could never parse it and the cmdlet always returned nothing. It is now a dedicated function that parses the XML and pages it like any collection (verified live: 786 procedures returned). Moving it from a dispatcher alias to a real function is why the surface is now **140 functions / 168 aliases**.
+- **The module recovers from a server-side session invalidation.** A session can be killed server-side before its client-tracked expiry - `Close-VSAUserSession` logs it out, and SaaS instances cut sessions short. `Update-VSAConnection` only checks the client-side expiry, so every later call used to fail with HTTP 401 *permanently*, even though the module holds the PAT and could re-authenticate. Now a 401 forces one token renewal and retries once, on **both** the sequential path and the parallel pump. On the pump the renewal draws on its own budget, so refreshing a token never consumes the retries reserved for throttling (429/503). Verified live: after the session is killed, reads, writes and `-Parallel` fan-outs all auto-recover.
+- **`Set-VSARCService` no longer 500s on its own documented call.** Updating a service with just its mandatory `-ServiceName`/`-Port` produced a server-side null reference because the body omitted `ClientApp`/`Path`; the cmdlet now reads and preserves the service's current values when they are not overridden.
+- **`Send-VSAEmail` works without `-UniqueTag`.** The server rejects a missing tag with HTTP 400; the module now generates one when the caller omits it (the parameter stays optional).
+
+**Known server-side limitations (not module defects):** `Get-VSADocumentVolumeLabel` and `Get-VSADocumentDistinctVolumeLabel` return no data because their endpoint answers `$top=100` (the module's page size) with zero records while returning data for smaller page sizes. `Add-VSASDStaffToTicket`, `New-VSATenant` (minimal body), and `New-VSATemporaryAgent` fail with server-side errors on this build. User-mutation and a few membership/agent-config endpoints are network-blocked on hardened (post-2021) VSA builds and surface as a typed `ConnectionReset`.
 
 ### Version 1.5.0
 

@@ -50,7 +50,8 @@ $script:URISuffixGetMap = @{
     'Get-VSATemporaryAgentConfig'        = 'api/v1.0/temporaryagent/config'
     'Get-VSAAgentActiveAdmin'            = 'api/v1.0/assetmgmt/agentactiveadmins'
     'Get-VSAAgentUserProfile'            = 'api/v1.0/assetmgmt/agent/settings/userprofiles'
-    'Get-VSAAPList'                      = 'api/v1.0/automation/agentprocs/proclist'
+    # Get-VSAAPList is NOT here: its endpoint returns XML (ScExport), not JSON, so it is a dedicated
+    # function (public/Get-VSAAPList.ps1) rather than a JSON dispatcher alias (F-72).
     'Get-VSAAPProcHistory'               = 'api/v1.0/automation/agentprocs/proclist/history'
     'Get-VSAAPExecHistory'               = 'api/v1.0/automation/agentprocs/proclist/execution/history'
     'Get-VSAAPPrompt'                    = 'api/v1.0/automation/agentprocs/prompts'

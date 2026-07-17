@@ -34,6 +34,10 @@ function Copy-VSAMGStructure {
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true)]
+        # AllowEmptyCollection so an org with no (custom) machine groups is a graceful no-op rather
+        # than a parameter-binding error: a whole-tenant migration loop can pass every org's groups
+        # via Get-VSAMachineGroup without pre-filtering the empty ones (F-76).
+        [AllowEmptyCollection()]
         [array] $SourceMGs,
 
         [parameter(Mandatory=$true,
@@ -46,6 +50,11 @@ function Copy-VSAMGStructure {
         })]
         [string] $OrgRef
     )
+
+    if ( 0 -eq $SourceMGs.Count ) {
+        Write-Verbose "Copy-VSAMGStructure: no machine groups supplied for '$OrgRef'; nothing to copy."
+        return
+    }
 
     if ( $SourceVSA -eq $DestinationVSA ) {
         throw "The Source and the Destionation is the same VSA Environment!"

@@ -426,7 +426,12 @@ Describe "Transport - shared retry/envelope policy is a single source of truth (
         InModuleScope VSAModule {
             $script:VSARetryStatuses | Should -Be @(429, 502, 503, 504)
             # Guard against a second, drifting copy being reintroduced in either path.
-            $src = Get-Content (Join-Path $PSScriptRoot 'private/Invoke-VSAParallelRequest.ps1') -Raw
+            # private/ is a SIBLING of Tests/, not a child: the old path (Join-Path $PSScriptRoot
+            # 'private/...') resolved to Tests/private/... which does not exist, so Get-Content
+            # returned $null and `$null | Should -Not -Match` passed VACUOUSLY -- the drift guard
+            # never actually read the file (F-74, caught by the 5.1 pass).
+            $src = Get-Content (Join-Path (Split-Path -Parent $PSScriptRoot) 'private/Invoke-VSAParallelRequest.ps1') -Raw
+            $src | Should -Not -BeNullOrEmpty -Because 'the guard must actually read the file, not pass on a null'
             $src | Should -Not -Match '(?m)^\s*\$retryStatuses\s*='
         }
     }
@@ -453,6 +458,70 @@ Describe "Transport - URISuffix that already has a query, and status-only respon
             Mock Get-RequestData { [pscustomobject]@{ ResponseCode = 0; Status = 'OK' } }   # status-only, no Result
             $conn = [VSAConnection]::new('https://vsa.example.com', 'u', 'tok', 'pat', [datetime]::Now.AddHours(1), $false, $false)
             { Invoke-VSARestMethod -VSAConnection $conn -URISuffix 'api/v1.0/x/true?flag=true' -Method PUT } | Should -Not -Throw
+        }
+    }
+}
+
+Describe "Sequential path recovers from a server-side session invalidation (F-77)" {
+
+    # A VSA session can die long before its client-tracked expiry (SaaS early cut-off, or
+    # Close-VSAUserSession logging the current session out). Update-VSAConnection only compares the
+    # client-side SessionExpiration to the clock, so it cannot detect this; before F-77 every
+    # subsequent call failed 401 forever despite the module holding the PAT. Found live: after
+    # Close-VSAUserSession, a connection expiring two days later 401'd permanently. The parallel
+    # pump already recovered (single forced renewal per 401); the sequential path now mirrors it.
+
+    It "renews ONCE on a 401 and retries with the fresh token" {
+        InModuleScope VSAModule {
+            $script:calls = 0
+            $script:seenAuth = @()
+            Mock Get-RequestData {
+                $script:calls++
+                $script:seenAuth += $AuthString
+                if ($script:calls -eq 1) { throw (New-VSAApiError -Message 'dead session' -StatusCode 401 -Method GET -Uri 'https://h/x') }
+                [pscustomobject]@{ Result = @(1,2); ResponseCode = 0; Status = 'OK' }
+            }
+            Mock Update-VSAConnection { if ($Force) { $VSAConnection.UpdateToken('RENEWED') } }
+
+            $conn = [VSAConnection]::new('https://vsa.example/', 'u', 'OLDTOK', 'pat', [datetime]::Now.AddDays(2), $false, $false)
+            $out = @(Invoke-VSARestMethod -URISuffix 'api/v1.0/x' -VSAConnection $conn)
+
+            $out.Count | Should -Be 2
+            Should -Invoke Get-RequestData -Times 2 -Exactly
+            Should -Invoke Update-VSAConnection -ParameterFilter { [bool]$Force } -Times 1 -Exactly
+            # The retry must actually carry the renewed token, not the dead one.
+            $script:seenAuth[1] | Should -Be 'Bearer RENEWED'
+        }
+    }
+
+    It "does NOT loop: a second 401 (genuinely bad credentials) surfaces typed after exactly one retry" {
+        InModuleScope VSAModule {
+            $script:calls = 0
+            Mock Get-RequestData {
+                $script:calls++
+                throw (New-VSAApiError -Message 'still unauthorized' -StatusCode 401 -Method GET -Uri 'https://h/x')
+            }
+            Mock Update-VSAConnection { }
+
+            $conn = [VSAConnection]::new('https://vsa.example/', 'u', 'tok', 'pat', [datetime]::Now.AddDays(2), $false, $false)
+            $err = $null
+            try { Invoke-VSARestMethod -URISuffix 'api/v1.0/x' -VSAConnection $conn } catch { $err = $_ }
+
+            $err.Exception | Should -BeOfType ([VSAApiException])
+            $err.Exception.StatusCode | Should -Be 401
+            $script:calls | Should -Be 2 -Because 'one initial attempt + exactly one post-renewal retry, never a loop'
+        }
+    }
+
+    It "a non-401 error triggers NO forced renewal (behaviour for 403/404/500 unchanged)" {
+        InModuleScope VSAModule {
+            Mock Get-RequestData { throw (New-VSAApiError -Message 'forbidden' -StatusCode 403 -Method GET -Uri 'https://h/x') }
+            Mock Update-VSAConnection { }
+
+            $conn = [VSAConnection]::new('https://vsa.example/', 'u', 'tok', 'pat', [datetime]::Now.AddDays(2), $false, $false)
+            { Invoke-VSARestMethod -URISuffix 'api/v1.0/x' -VSAConnection $conn } | Should -Throw
+            Should -Invoke Get-RequestData -Times 1 -Exactly
+            Should -Invoke Update-VSAConnection -ParameterFilter { [bool]$Force } -Times 0 -Exactly
         }
     }
 }

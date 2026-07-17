@@ -196,7 +196,19 @@ function Get-RequestData
     # is a success with nothing to deserialize; Resolve-VSAResponse normalizes it to $null (F-21).
     if ([string]::IsNullOrWhiteSpace($Result.Body)) { return $null }
 
-    $Response = $Result.Body | ConvertFrom-Json
+    # A 2xx body that is not JSON. Some VSA 9 endpoints return XML by design (e.g. the agent-procedure
+    # export api/v1.0/automation/agentprocs/proclist, Kaseya's ScExport format), and a genuine error
+    # page can also arrive as HTML/text. ConvertFrom-Json throws an opaque parser error on either
+    # edition (on 5.1: "Invalid JSON primitive"); surface it as a typed VSAApiException that names the
+    # cause, so callers get the same branchable error contract as any other transport failure. (F-72)
+    try {
+        $Response = $Result.Body | ConvertFrom-Json
+    } catch {
+        $bodyStart = ("$($Result.Body)").TrimStart()
+        $kind = if ($bodyStart -like '<?xml*' -or $bodyStart -like '<*') { 'XML' } else { 'not JSON' }
+        throw (New-VSAApiError -Message "The VSA API returned a non-JSON response for $Method $URI. The response body is $kind, not JSON, so it cannot be deserialized. Underlying error: $($_.Exception.Message)" `
+            -StatusCode ([int]$Result.StatusCode) -Method $Method -Uri $URI -InnerException $_.Exception)
+    }
 
     return (Resolve-VSAResponse -Response $Response -Method $Method -Uri $URI)
     }

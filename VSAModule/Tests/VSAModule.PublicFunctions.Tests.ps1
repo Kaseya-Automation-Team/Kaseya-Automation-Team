@@ -229,7 +229,10 @@ Describe "Get-VSAAPFile -DownloadFile routes through the transport so cert-bypas
     It "does not use a raw Invoke-RestMethod in the DownloadFile branch (source guard)" {
         # Strip comment lines first so an explanatory comment mentioning the cmdlet name by prose
         # can't trip the guard; we only care about actual code invoking the raw cmdlet.
-        $code = (Get-Content (Join-Path $PSScriptRoot '..' 'public' 'Get-VSAAPFile.ps1')) |
+        # Nested 2-arg Join-Path: Windows PowerShell 5.1's Join-Path takes only -Path/-ChildPath,
+        # so the 3+-segment form (valid on PS7) throws "A positional parameter cannot be found" and
+        # this source guard never runs on 5.1 (F-73).
+        $code = (Get-Content (Join-Path (Join-Path (Split-Path -Parent $PSScriptRoot) 'public') 'Get-VSAAPFile.ps1')) |
             Where-Object { $_ -notmatch '^\s*#' }
         ($code -join "`n") | Should -Not -Match '\bInvoke-RestMethod\b'
     }
@@ -322,6 +325,61 @@ Describe "Update-VSAStaff always sends Function, because the backend requires it
             Mock Invoke-VSAWriteRequest { $script:sentBody = $Body }
             Update-VSAStaff -OrgStaffId '42' -OrgIdNumber '7' -StaffFullName 'Someone' -Function 'Manager' -Confirm:$false
             ($script:sentBody | ConvertFrom-Json).Function | Should -Be 'Manager'
+        }
+    }
+}
+
+Describe "Set-VSARCService preserves ClientApp/Path when omitted (F-79)" {
+
+    # The update endpoint null-refs (HTTP 500) if the body lacks ClientApp/Path, so an update of just
+    # ServiceName/Port (their mandatory params) failed live. The cmdlet now reads the current service
+    # and re-sends the existing ClientApp/Path when the caller does not override them.
+
+    It "sends the current ClientApp/Path when the caller supplies only ServiceName/Port" {
+        InModuleScope VSAModule {
+            Mock Get-VSARCService { [pscustomobject]@{ ServiceId = 'svc-1'; ServiceName = 'old'; Port = 22; ClientApp = 'https'; Path = 'C:\Keep' } }
+            $script:body = $null
+            Mock Invoke-VSAWriteRequest { $script:body = $Body }
+            Set-VSARCService -ServiceId 'svc-1' -ServiceName 'new' -Port 3390 -Confirm:$false
+            $script:body['ServiceName'] | Should -Be 'new'
+            $script:body['Port']        | Should -Be 3390
+            $script:body['ClientApp']   | Should -Be 'https' -Because 'preserved from the current service, not dropped'
+            $script:body['Path']        | Should -Be 'C:\Keep'
+        }
+    }
+
+    It "honours an explicitly supplied ClientApp/Path over the current values" {
+        InModuleScope VSAModule {
+            Mock Get-VSARCService { [pscustomobject]@{ ServiceId = 'svc-1'; ClientApp = 'https'; Path = 'C:\Keep' } }
+            $script:body = $null
+            Mock Invoke-VSAWriteRequest { $script:body = $Body }
+            Set-VSARCService -ServiceId 'svc-1' -ServiceName 'new' -Port 3390 -ClientApp 'ssh' -Path '' -Confirm:$false
+            $script:body['ClientApp'] | Should -Be 'ssh'
+        }
+    }
+}
+
+Describe "Send-VSAEmail always sends a UniqueTag (F-80)" {
+
+    # The server rejects a missing UniqueTag with HTTP 400 "UniqueTag can't be null". -UniqueTag stays
+    # optional for the caller; the module generates one when it is omitted.
+
+    It "generates a UniqueTag when the caller omits it" {
+        InModuleScope VSAModule {
+            $script:body = $null
+            Mock Invoke-VSAWriteRequest { $script:body = $Body }
+            Send-VSAEmail -FromAddress 'a@b.com' -ToAddress 'c@d.com' -Subject 's' -Body 'b' -Confirm:$false
+            $obj = $script:body | ConvertFrom-Json
+            $obj.UniqueTag | Should -Not -BeNullOrEmpty
+        }
+    }
+
+    It "honours an explicit UniqueTag" {
+        InModuleScope VSAModule {
+            $script:body = $null
+            Mock Invoke-VSAWriteRequest { $script:body = $Body }
+            Send-VSAEmail -FromAddress 'a@b.com' -ToAddress 'c@d.com' -Subject 's' -Body 'b' -UniqueTag 'mytag' -Confirm:$false
+            ($script:body | ConvertFrom-Json).UniqueTag | Should -Be 'mytag'
         }
     }
 }

@@ -1,3 +1,62 @@
+function Invoke-VSARequestWithRenewal {
+    <#
+    .SYNOPSIS
+        Sends one request via Get-RequestData, recovering ONCE from an invalidated session (F-77).
+    .DESCRIPTION
+        A VSA session can be invalidated server-side long before its client-tracked expiration:
+        SaaS instances cut sessions short (the reason the paging loop renews proactively every
+        MaxRecordsPerSession records), and Close-VSAUserSession logs the current session out
+        outright. Update-VSAConnection only compares the CLIENT-tracked SessionExpiration against
+        the clock, so it cannot see a server-side invalidation -- every subsequent call then fails
+        with HTTP 401 until the operator manually reconnects, even though the module holds the PAT
+        and could re-authenticate itself. Found live: after Close-VSAUserSession, a connection whose
+        SessionExpiration lay two days in the future returned 401 forever.
+
+        This wrapper closes that gap on the sequential path, mirroring the parallel pump's existing
+        semantics (one forced renewal per 401, then redispatch): on a typed 401 it renews the token
+        once with the stored PAT and retries the request once. A second 401 (a genuinely revoked or
+        wrong PAT) surfaces as the typed error. A 401 is safe to retry for ANY method, including
+        writes: unlike a connection reset, the server explicitly refused the request without
+        processing it.
+
+        The AuthString refresh mutates the passed-in hashtable by design: hashtables are reference
+        types, so the caller's subsequent requests (e.g. the remaining pages of a paged read)
+        continue with the fresh token as well.
+    .PARAMETER WebRequestParams
+        The splat hashtable for Get-RequestData (Uri/Method/AuthString/...). AuthString is updated
+        in place on renewal.
+    .PARAMETER VSAConnection
+        The explicit connection to renew, or $null to renew the persistent connection.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [hashtable] $WebRequestParams,
+
+        [Parameter(Mandatory = $false)]
+        [AllowNull()]
+        [VSAConnection] $VSAConnection = $null
+    )
+
+    try {
+        return Get-RequestData @WebRequestParams
+    } catch {
+        $ex = $_.Exception
+        if (-not ($ex -is [VSAApiException] -and 401 -eq $ex.StatusCode)) { throw }
+
+        Write-Verbose "Invoke-VSARequestWithRenewal: HTTP 401 with an unexpired client-side session; the server invalidated the session early. Renewing the token once and retrying."
+        if ($null -eq $VSAConnection) {
+            Update-VSAConnection -Force
+            $WebRequestParams.AuthString = "Bearer $( Get-VSAPersistentToken )"
+        } else {
+            Update-VSAConnection -VSAConnection $VSAConnection -Force
+            $WebRequestParams.AuthString = "Bearer $($VSAConnection.Token)"
+        }
+        # One retry only: a second 401 is a real authentication problem and surfaces typed.
+        return Get-RequestData @WebRequestParams
+    }
+}
+
 function Invoke-VSARestMethod {
     <#
     .SYNOPSIS
@@ -186,7 +245,7 @@ function Invoke-VSARestMethod {
     Write-Verbose "Invoke-VSARestMethod. Calling Get-RequestData on URI: $($WebRequestParams.Uri)"
 
     try {
-        $response = Get-RequestData @WebRequestParams
+        $response = Invoke-VSARequestWithRenewal -WebRequestParams $WebRequestParams -VSAConnection $VSAConnection
     } catch {
         # Preserve the typed API error (StatusCode / ConnectionReset / Category) so callers can
         # branch programmatically -- e.g. distinguish 403 vs 404 vs a blocked/reset endpoint --
@@ -313,7 +372,7 @@ function Invoke-VSARestMethod {
                     $RenewThreshold = $MaxRecordsPerSession * $RenewTimes
                 }
 
-                [array]$temp = Get-RequestData @WebRequestParams | Select-Object -ExpandProperty Result
+                [array]$temp = Invoke-VSARequestWithRenewal -WebRequestParams $WebRequestParams -VSAConnection $VSAConnection | Select-Object -ExpandProperty Result
                 if ($temp.Count -gt 0) {
                     $resultCollection.AddRange($temp) | Out-Null
                 }

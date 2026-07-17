@@ -99,11 +99,18 @@ function Invoke-VSAParallelRequest {
         if ($null -eq $VSAConnection) { Update-VSAConnection -Force } else { Update-VSAConnection -VSAConnection $VSAConnection -Force }
     }
     [int]$tokenGen = 0   # bumped on each forced renewal; de-dupes the 401 stampede across in-flight items
+    # A 401 renewal is an auth refresh, NOT a transient failure, so it must not consume the
+    # transient-retry budget (Attempt/MaxRetries) that 429/502/503/504 draw on -- otherwise a long
+    # fan-out that hits both throttling and a token expiry would fail streams that only needed a
+    # fresh token. Auth renewals get their own small, separate budget per work item (F-78); it also
+    # bounds the pathological case of a genuinely revoked PAT that 401s no matter how often renewed.
+    [int]$MaxAuthRenewals = 3
 
-    # Pending work queue (each item: Id, Uri, Attempt, ReadyAt). ReadyAt gates backoff.
+    # Pending work queue (each item: Id, Uri, Attempt=transient retries, AuthAttempt=401 renewals,
+    # ReadyAt gates backoff).
     $pending = [System.Collections.Generic.Queue[object]]::new()
     foreach ($r in $Request) {
-        $pending.Enqueue([pscustomobject]@{ Id = $r.Id; Uri = $r.Uri; Attempt = 0; ReadyAt = [datetime]::MinValue })
+        $pending.Enqueue([pscustomobject]@{ Id = $r.Id; Uri = $r.Uri; Attempt = 0; AuthAttempt = 0; ReadyAt = [datetime]::MinValue })
     }
 
     $results   = [System.Collections.Generic.List[object]]::new()
@@ -171,13 +178,17 @@ function Invoke-VSAParallelRequest {
                 $meta.Cts.Dispose()
             }
 
-            # A 401 mid-batch means the SaaS killed the session before its stated expiry. Force ONE
-            # renewal per token generation (the first 401 bumps the generation; later 401s still
-            # carrying the old generation just re-dispatch with the fresh token, avoiding a stampede
-            # of simultaneous renewals from every in-flight request).
-            if ($status -eq 401 -and $work.Attempt -lt $MaxRetries) {
+            # A 401 mid-batch means the session was invalidated before its stated expiry (SaaS early
+            # cut-off, or a Close-VSAUserSession elsewhere). Force ONE renewal per token generation
+            # (the first 401 bumps the generation; later 401s still carrying the old generation just
+            # re-dispatch with the fresh token, avoiding a stampede of simultaneous renewals from
+            # every in-flight request), then RESTART the failed stream with the fresh token.
+            # Uses its own AuthAttempt budget, NOT the transient-retry Attempt/MaxRetries (F-78): a
+            # token refresh must not eat the retries reserved for 429/503, and its own cap bounds a
+            # genuinely revoked PAT (a renewed token that still 401s) rather than looping forever.
+            if ($status -eq 401 -and $work.AuthAttempt -lt $MaxAuthRenewals) {
                 if ($meta.Gen -eq $tokenGen) { & $forceRenew; $tokenGen++ }
-                $work.Attempt++
+                $work.AuthAttempt++
                 $work.ReadyAt = [datetime]::Now
                 $pending.Enqueue($work)
                 continue

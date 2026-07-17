@@ -19,7 +19,7 @@
     CompanyName = 'Kaseya'
 
     # Copyright statement for this module
-    Copyright = '(c) 2026 Kaseya ProServ.'
+    Copyright = '(c) 2026 Kaseya Professional Services.'
 
     # Description of the functionality provided by this module
     Description = 'PowerShell wrapper module for the Kaseya VSA 9 REST API. Provides cmdlets for automating tasks, retrieving data, and managing resources within the Kaseya VSA 9 environment.'
@@ -63,6 +63,8 @@
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport = @(
         'New-VSAConnection'
+        # Get-VSAAPList is a real function, not a dispatcher alias: its endpoint returns XML (F-72).
+        'Get-VSAAPList'
         # Generic dispatch wrappers reached via ~120 aliases (F-20): must be exported or the aliases
         # cannot resolve their target on a normal import (PowerShell resolves an alias's target in
         # the caller's scope, where a module-private function is invisible).
@@ -257,7 +259,6 @@
         'Get-VSATemporaryAgentConfig'
         'Get-VSAAgentActiveAdmin'
         'Get-VSAAgentUserProfile'
-        'Get-VSAAPList'
         'Get-VSAAPProcHistory'
         'Get-VSAAPExecHistory'
         'Get-VSAAPPrompt'

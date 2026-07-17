@@ -5,12 +5,17 @@ BeforeAll {
 
 Describe "Tenant/user password exposure minimized (T-5.5 / F-55)" {
 
-    It "New-VSATenant's -Debug stream does not contain the plaintext password" {
+    It "New-VSATenant's Debug stream does not contain the plaintext password" {
         InModuleScope VSAModule {
             Mock Invoke-VSARestMethod {}
             $secret = 'S3cretPassw0rd!12345678'
             $securePassword = ConvertTo-SecureString $secret -AsPlainText -Force
-            $debugOutput = New-VSATenant -Ref 'TestTenant' -AdminUserName 'admin' -EMail 'a@b.com' -Password $securePassword -Debug 5>&1 | Out-String
+            # Capture the Debug stream via $DebugPreference, NOT -Debug: on Windows PowerShell 5.1
+            # -Debug sets $DebugPreference='Inquire', which tries to prompt and fails under a
+            # non-interactive host ("Windows PowerShell is in NonInteractive mode"). 'Continue'
+            # emits the same stream without prompting, so the test is runnable in CI on 5.1 (F-75).
+            $DebugPreference = 'Continue'
+            $debugOutput = New-VSATenant -Ref 'TestTenant' -AdminUserName 'admin' -EMail 'a@b.com' -Password $securePassword 5>&1 | Out-String
             $debugOutput | Should -Not -Match ([regex]::Escape($secret))
         }
     }

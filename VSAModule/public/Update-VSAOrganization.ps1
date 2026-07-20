@@ -212,10 +212,15 @@ function Update-VSAOrganization {
     if ( -not [string]::IsNullOrEmpty($DefaultDepartmentName) )   { $BodyHT.Add('DefaultDepartmentName', $DefaultDepartmentName) }
     if ( -not [string]::IsNullOrEmpty($DefaultMachineGroupName) ) { $BodyHT.Add('DefaultMachineGroupName', $DefaultMachineGroupName) }
     if ( -not [string]::IsNullOrEmpty($OrgType) )                 { $BodyHT.Add('OrgType', $OrgType) }
-    if ( -not [string]::IsNullOrEmpty($ParentOrgId) )             { $BodyHT.Add('ParentOrgId', [decimal]$ParentOrgId) }
+    # Send these as the string value the caller supplied, exactly as New-VSAOrganization does. A
+    # [decimal] cast serialises an integer as "N.0" (e.g. 7 -> 7.0), and the server's org-update model
+    # rejects that for ParentOrgId and NoOfEmployees with HTTP 400 (live-verified: string and integer
+    # are accepted, "N.0" is not). ParentOrgId is a 26-digit id that also overflows every integer type,
+    # so it must travel as a string regardless.
+    if ( -not [string]::IsNullOrEmpty($ParentOrgId) )             { $BodyHT.Add('ParentOrgId', $ParentOrgId) }
     if ( -not [string]::IsNullOrEmpty($Website) )                 { $BodyHT.Add('Website', $Website) }
-    if ( -not [string]::IsNullOrEmpty($NoOfEmployees) )           { $BodyHT.Add('NoOfEmployees', [decimal]$NoOfEmployees) }
-    if ( -not [string]::IsNullOrEmpty($AnnualRevenue) )           { $BodyHT.Add('AnnualRevenue', [decimal]$AnnualRevenue) }
+    if ( -not [string]::IsNullOrEmpty($NoOfEmployees) )           { $BodyHT.Add('NoOfEmployees', $NoOfEmployees) }
+    if ( -not [string]::IsNullOrEmpty($AnnualRevenue) )           { $BodyHT.Add('AnnualRevenue', $AnnualRevenue) }
 
     [hashtable]$ContactInfoHT = @{}
     if ( -not [string]::IsNullOrEmpty($PreferredContactMethod) )  { $ContactInfoHT.Add('PreferredContactMethod', $PreferredContactMethod)}

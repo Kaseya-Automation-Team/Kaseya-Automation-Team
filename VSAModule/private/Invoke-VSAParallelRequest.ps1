@@ -67,7 +67,14 @@ function Invoke-VSAParallelRequest {
         [int] $MaxRetries = 3,
 
         [Parameter(Mandatory = $false)]
-        [string] $Activity = 'Fetching (parallel)'
+        [string] $Activity = 'Fetching (parallel)',
+
+        # The decode function for each page body, forwarded from the read engine so the parallel path
+        # decodes exactly as the sequential path does (JSON by default, ScExport XML for Get-VSAAPList).
+        # Without this the pump hard-coded the JSON decoder, so a -Parallel XML read would fail per page.
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('ConvertFrom-VSAResponseBody', 'ConvertFrom-VSAScExportResponse')]
+        [string] $Decoder = 'ConvertFrom-VSAResponseBody'
     )
 
     [bool]$ignoreCert = if ($null -ne $VSAConnection) { $VSAConnection.IgnoreCertificateErrors } else { Get-VSAPersistentIgnoreCertErrors }
@@ -121,6 +128,7 @@ function Invoke-VSAParallelRequest {
     [int]$done      = 0
     [int]$window    = $ThrottleLimit          # adaptive current window
     [int]$successStreak = 0
+    [int]$progressId = New-VSAProgressId       # own bar, isolated from a caller's progress id 0
 
     try {
         while ($pending.Count -gt 0 -or $inflightTasks.Count -gt 0) {
@@ -224,25 +232,29 @@ function Invoke-VSAParallelRequest {
                 $results.Add([pscustomobject]@{ Id = $work.Id; Response = $null; Error = $err })
             } else {
                 try {
-                    $parsed = if ([string]::IsNullOrWhiteSpace($body)) { $null } else { $body | ConvertFrom-Json }
-                    $resolved = Resolve-VSAResponse -Response $parsed -Method 'GET' -Uri $work.Uri
+                    # Decode through the module's single decode layer, exactly as the sequential path
+                    # does (F-67): empty-body -> $null (F-21), the F-72 non-JSON typed error, and the
+                    # envelope rules via Resolve-VSAResponse. The decoder is forwarded from the engine,
+                    # so a -Parallel XML read (Get-VSAAPList) decodes ScExport here just as it would
+                    # sequentially -- previously this was hard-coded to JSON.
+                    $resolved = & $Decoder -Body $body -StatusCode $status -Method 'GET' -Uri $work.Uri
                     $results.Add([pscustomobject]@{ Id = $work.Id; Response = $resolved; Error = $null })
                     # Recover the window on a sustained success streak (up to the requested throttle).
                     $successStreak++
                     if ($successStreak -ge $window -and $window -lt $ThrottleLimit) { $window++; $successStreak = 0 }
                 } catch {
-                    # Malformed JSON, or an application-level error carried inside an HTTP 200
-                    # envelope: already typed by Resolve-VSAResponse.
+                    # A typed application-level error (from Resolve-VSAResponse) or a non-JSON body
+                    # (F-72), both already VSAApiException; surface it for this item.
                     $results.Add([pscustomobject]@{ Id = $work.Id; Response = $null; Error = $_ })
                 }
             }
 
             $done++
-            Write-Progress -Activity $Activity -Status "$done / $total (window $window)" -PercentComplete ([Math]::Min(100, [int](100 * $done / $total)))
+            Write-VSAProgress -Id $progressId -Activity $Activity -Current $done -Total $total -Status "$done / $total (window $window)"
         }
     }
     finally {
-        Write-Progress -Activity $Activity -Completed
+        Write-VSAProgress -Id $progressId -Activity $Activity -Completed
         # $client is the shared, cached instance -- deliberately NOT disposed here.
         if ($certPushed) { & $script:VSAPopCertBypass }
     }

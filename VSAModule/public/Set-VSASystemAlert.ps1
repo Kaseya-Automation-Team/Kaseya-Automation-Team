@@ -56,7 +56,7 @@ function Set-VSASystemAlert
         [Parameter(Mandatory = $false)] [string] $NotificationBarUsers,
         [Parameter(Mandatory = $false)] [string] $InfoCenterUsers,
         [Parameter(Mandatory = $false)] [string] $UsersToEmail,
-        [Parameter(Mandatory = $false)] [int] $ScriptId,
+        [Parameter(Mandatory = $false)] [string] $ScriptId,
         [Parameter(Mandatory = $false)] [object] $RuntimeData,
         [Parameter(Mandatory = $false)] [object] $Attributes
     )

@@ -77,10 +77,11 @@ function Get-RequestData
        such as GET, POST, PUT, DELETE, and PATCH, and allows customization of the request parameters.
 
        This is the blocking entry point to the module's single HTTP stack: it issues the request via
-       Invoke-VSAHttp (System.Net.Http.HttpClient) and interprets the result with Resolve-VSAResponse.
-       Both are shared verbatim with the parallel engine, so the two dispatch modes cannot drift in
-       their retry, envelope or error-typing behaviour (F-67). This function therefore contains no
-       HTTP logic of its own -- it is the sequential adapter over that stack.
+       Invoke-VSAHttp (System.Net.Http.HttpClient) and decodes the result with the module's single
+       JSON decoder, ConvertFrom-VSAResponseBody (which applies Resolve-VSAResponse's envelope
+       rules). Both are shared verbatim with the parallel engine, so the two dispatch modes cannot
+       drift in their retry, envelope or error-typing behaviour (F-67). This function therefore
+       contains no HTTP or decode logic of its own -- it is the sequential adapter over that stack.
 
        Automatic retry covers transient HTTP errors (429, 502, 503, 504) and honours the server's
        Retry-After hint when present, otherwise exponential backoff. A request that gets no HTTP
@@ -111,6 +112,11 @@ function Get-RequestData
     .PARAMETER OutFile
         When specified, the response body is written to this path (file download) instead of
         being parsed as an API envelope.
+    .PARAMETER Decoder
+        The name of the decode function that turns the raw response body into a resolved response
+        object. Defaults to the JSON decoder (ConvertFrom-VSAResponseBody). The read engine passes
+        ConvertFrom-VSAScExportResponse for the XML agent-procedure endpoint. Any decoder shares the
+        signature (-Body -StatusCode -Method -Uri) so the two are interchangeable.
     .EXAMPLE
        Get-RequestData -URI $URI -AuthString $AuthString -IgnoreCertificateErrors
     .EXAMPLE
@@ -164,6 +170,11 @@ function Get-RequestData
         [ValidateNotNullOrEmpty()]
         [string] $OutFile,
 
+        # Internal decode-layer seam: not pipeline-bindable (a piped object must not select the decoder).
+        [parameter(Mandatory=$false)]
+        [ValidateSet('ConvertFrom-VSAResponseBody', 'ConvertFrom-VSAScExportResponse')]
+        [string] $Decoder = 'ConvertFrom-VSAResponseBody',
+
         [switch] $IgnoreCertificateErrors
     )
     process {
@@ -192,25 +203,11 @@ function Get-RequestData
 
     "$($MyInvocation.MyCommand). Response:`n{0}" -f ($Result.Body | Out-String) | Write-Debug
 
-    # An empty-body 2xx response (HTTP 204 No Content, returned by DELETE and some PUT endpoints)
-    # is a success with nothing to deserialize; Resolve-VSAResponse normalizes it to $null (F-21).
-    if ([string]::IsNullOrWhiteSpace($Result.Body)) { return $null }
-
-    # A 2xx body that is not JSON. Some VSA 9 endpoints return XML by design (e.g. the agent-procedure
-    # export api/v1.0/automation/agentprocs/proclist, Kaseya's ScExport format), and a genuine error
-    # page can also arrive as HTML/text. ConvertFrom-Json throws an opaque parser error on either
-    # edition (on 5.1: "Invalid JSON primitive"); surface it as a typed VSAApiException that names the
-    # cause, so callers get the same branchable error contract as any other transport failure. (F-72)
-    try {
-        $Response = $Result.Body | ConvertFrom-Json
-    } catch {
-        $bodyStart = ("$($Result.Body)").TrimStart()
-        $kind = if ($bodyStart -like '<?xml*' -or $bodyStart -like '<*') { 'XML' } else { 'not JSON' }
-        throw (New-VSAApiError -Message "The VSA API returned a non-JSON response for $Method $URI. The response body is $kind, not JSON, so it cannot be deserialized. Underlying error: $($_.Exception.Message)" `
-            -StatusCode ([int]$Result.StatusCode) -Method $Method -Uri $URI -InnerException $_.Exception)
-    }
-
-    return (Resolve-VSAResponse -Response $Response -Method $Method -Uri $URI)
+    # Decoding (the F-21 empty-body rule, parsing with F-72 non-JSON typing, and the envelope rules)
+    # lives in the module's decode layer, selected by -Decoder (JSON by default, ScExport XML for the
+    # agent-procedure endpoint). This adapter only dispatches the request and hands the body to the
+    # chosen decoder, so the decode policy cannot fork between consumers.
+    return (& $Decoder -Body $Result.Body -StatusCode ([int]$Result.StatusCode) -Method $Method -Uri $URI)
     }
 }
 #endregion function Get-RequestData

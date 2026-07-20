@@ -283,10 +283,14 @@ function Get-VSAItemById {
 
     if ( [string]::IsNullOrEmpty($URISuffix) ) {
 
-        $URISuffix = $URISuffixGetByIdMap[$PSCmdlet.MyInvocation.InvocationName]
-        if ( [string]::IsNullOrEmpty($URISuffix) ) {
-            throw "No VSA Object specified for alias $($PSCmdlet.MyInvocation.InvocationName)!"
+        # Resolve into a LOCAL first (see Get-VSAItem): a $null map miss assigned into the
+        # [ValidateNotNullOrEmpty] $URISuffix throws opaquely before this actionable message.
+        $invName  = $PSCmdlet.MyInvocation.InvocationName
+        $resolved = $URISuffixGetByIdMap[$invName]
+        if ( [string]::IsNullOrEmpty($resolved) ) {
+            throw "Get-VSAItemById is the internal by-id read-dispatch engine and has no endpoint of its own; call it through one of its aliases. List them with: Get-Alias -Definition Get-VSAItemById. (Invoked as '$invName'.)"
         }
+        $URISuffix = $resolved
     }
     # $URISuffix is the by-Id template (contains '{0}'); keep it un-substituted for the batch path.
 

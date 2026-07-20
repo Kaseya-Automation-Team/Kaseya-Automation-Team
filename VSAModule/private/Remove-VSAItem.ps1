@@ -106,10 +106,14 @@
 
     if ( [string]::IsNullOrEmpty($URISuffix) ) {
 
-        $URISuffix = $URISuffixRemoveMap[$PSCmdlet.MyInvocation.InvocationName]
-        if ( [string]::IsNullOrEmpty($URISuffix) ) {
-            throw "No VSA Object specified for alias $($PSCmdlet.MyInvocation.InvocationName)!"
+        # Resolve into a LOCAL first (see Get-VSAItem): a $null map miss assigned into the
+        # [ValidateNotNullOrEmpty] $URISuffix throws opaquely before this actionable message.
+        $invName  = $PSCmdlet.MyInvocation.InvocationName
+        $resolved = $URISuffixRemoveMap[$invName]
+        if ( [string]::IsNullOrEmpty($resolved) ) {
+            throw "Remove-VSAItem is the internal remove-dispatch engine and has no endpoint of its own; call it through one of its aliases. List them with: Get-Alias -Definition Remove-VSAItem. (Invoked as '$invName'.)"
         }
+        $URISuffix = $resolved
     }
     $URISuffix = $URISuffix -f $Id
 

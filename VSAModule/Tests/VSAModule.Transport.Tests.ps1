@@ -439,16 +439,31 @@ Describe "Transport - shared retry/envelope policy is a single source of truth (
 
 Describe "Transport - URISuffix that already has a query, and status-only responses (F-22 / F-23)" {
 
-    It "joins OData params with '&' (not a 2nd '?') when the URISuffix already has a query (F-22)" {
+    It "on a GET, joins OData params with '&' (not a 2nd '?') when the URISuffix already has a query (F-22)" {
         InModuleScope VSAModule {
             $script:capturedUri = $null
             Mock Update-VSAConnection {}
             Mock Get-RequestData { $script:capturedUri = $URI; [pscustomobject]@{ Result = @(); ResponseCode = 0; Status = 'OK' } }
             $conn = [VSAConnection]::new('https://vsa.example.com', 'u', 'tok', 'pat', [datetime]::Now.AddHours(1), $false, $false)
-            Invoke-VSARestMethod -VSAConnection $conn -URISuffix 'api/v1.0/x/true?flag=true' -Method PUT | Out-Null
+            Invoke-VSARestMethod -VSAConnection $conn -URISuffix 'api/v1.0/x?flag=true' -Method GET | Out-Null
             # exactly one '?' in the whole URL, and $top is appended with '&'
             (($script:capturedUri.ToCharArray() | Where-Object { $_ -eq '?' }).Count) | Should -Be 1
             $script:capturedUri | Should -Match 'flag=true&\$top='
+        }
+    }
+
+    It "does NOT append `$top/OData params to a WRITE (paging options are read-only)" {
+        InModuleScope VSAModule {
+            $script:capturedUri = $null
+            Mock Update-VSAConnection {}
+            Mock Get-RequestData { $script:capturedUri = $URI; [pscustomobject]@{ ResponseCode = 0; Status = 'OK' } }
+            $conn = [VSAConnection]::new('https://vsa.example.com', 'u', 'tok', 'pat', [datetime]::Now.AddHours(1), $false, $false)
+            Invoke-VSARestMethod -VSAConnection $conn -URISuffix 'api/v1.0/x/true?flag=true' -Method PUT | Out-Null
+            $script:capturedUri | Should -Not -Match '\$top'
+            $script:capturedUri | Should -Not -Match '\$skip'
+            # the URISuffix's own query is left intact, still exactly one '?'
+            (($script:capturedUri.ToCharArray() | Where-Object { $_ -eq '?' }).Count) | Should -Be 1
+            $script:capturedUri | Should -Match 'flag=true'
         }
     }
 

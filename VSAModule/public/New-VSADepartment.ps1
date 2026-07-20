@@ -104,9 +104,12 @@ function New-VSADepartment
         if ( 0 -lt $AttributesHT.Count ) { $BodyHT['Attributes'] = $AttributesHT }
     }
 
-    #Remove empty keys
+    # Drop only null/empty keys, never a bound $false/0 (F-52). ConvertTo-VSARequestBody already
+    # includes only bound fields; this trims any that came through explicitly empty. (These fields are
+    # all strings today, so this is defensive -- it keeps the module-wide "no truthiness pruning of
+    # body fields" invariant true even if a boolean field is added here later.)
     foreach ( $key in @($BodyHT.Keys) ) {
-        if ( -not $BodyHT[$key] )  { $BodyHT.Remove($key) }
+        if ( $null -eq $BodyHT[$key] -or '' -eq $BodyHT[$key] )  { $BodyHT.Remove($key) }
     }
 
     [string]$Body = $BodyHT | ConvertTo-Json

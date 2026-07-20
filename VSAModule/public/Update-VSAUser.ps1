@@ -34,8 +34,6 @@ function Update-VSAUser
         Specifies Ids of user's admin scopes.
     .PARAMETER AdminScopeNames
         Specifies user's admin scopes.
-    .PARAMETER AdminType
-        Specifies Id of user's admin type.
     .PARAMETER Attributes
         Specifies additional attributes to send in the request body.
     .PARAMETER AdminPassword
@@ -78,7 +76,10 @@ function Update-VSAUser
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
-        [decimal] $UserId,
+        # VSA object ids are 26-digit backend SQL identities: they overflow every integer type and,
+        # as JSON, a [decimal] serialises to "N.0" (which the server rejects) while a bare number
+        # would lose precision. Ids therefore travel as strings module-wide.
+        [string] $UserId,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
@@ -89,15 +90,18 @@ function Update-VSAUser
         [ValidateNotNull()]
         [securestring] $AdminPassword,
 
-        [parameter(DontShow,
-            Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ByName')]
-        [parameter(DontShow,
-            Mandatory=$false,
+        [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
-        [decimal] $AdminType,
+        [ValidateScript({
+            foreach ($item in $_) {
+                if ( -not [decimal]::TryParse($item, [ref]$null) ) {
+                    throw "All elements must be numeric. '$item' is not a valid number."
+                }
+            }
+            return $true
+        })]
+        [string[]] $AdminRoleIds,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
@@ -110,25 +114,12 @@ function Update-VSAUser
             }
             return $true
         })]
-        [decimal[]] $AdminRoleIds,
+        [string[]] $AdminScopeIds,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ById')]
-        [ValidateScript({
-            foreach ($item in $_) {
-                if ( -not [decimal]::TryParse($item, [ref]$null) ) {
-                    throw "All elements must be numeric. '$item' is not a valid number."
-                }
-            }
-            return $true
-        })]
-        [decimal[]] $AdminScopeIds,
-
-        [parameter(Mandatory=$false,
-            ValueFromPipelineByPropertyName=$true,
-            ParameterSetName = 'ById')]
-        [decimal] $DefaultStaffOrgId,
+        [string] $DefaultStaffOrgId,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
@@ -136,7 +127,7 @@ function Update-VSAUser
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,
             ParameterSetName = 'ByName')]
-        [decimal] $DefaultStaffDepartmentId,
+        [string] $DefaultStaffDepartmentId,
 
         [parameter(Mandatory=$false,
             ValueFromPipelineByPropertyName=$true,

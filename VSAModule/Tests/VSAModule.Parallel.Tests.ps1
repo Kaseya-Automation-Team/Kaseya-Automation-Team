@@ -69,7 +69,9 @@ Describe "Parallel pump restarts 401'd streams after a single renewal (F-78)" {
             $res = Invoke-VSAParallelRequest -Request @(@{ Id = '1'; Uri = 'https://h/x/1' }) -VSAConnection $conn -ThrottleLimit 1 -MaxRetries 3 -WarningAction SilentlyContinue
 
             # Bounded by the auth-renewal cap: it fails typed (401) rather than renewing forever.
-            $res.Count | Should -Be 1
+            # @() wrap: the pump returns a single-element array that unwraps to a scalar on return,
+            # and a scalar has no synthesized .Count on Windows PowerShell 5.1 (it does on PS7).
+            @($res).Count | Should -Be 1
             $res[0].Error | Should -Not -BeNullOrEmpty
             $res[0].Error.Exception.StatusCode | Should -Be 401
         }
@@ -229,6 +231,51 @@ Describe "Invoke-VSABatchGet merge + follow-up rounds" {
                 @([pscustomobject]@{ Id = '1'; Response = $null; Error = (New-VSAApiError -Message 'boom' -StatusCode 500 -Method GET -Uri 'u' -VSAError 'boom') })
             }
             { Invoke-VSABatchGet -URISuffixTemplate 'api/v1.0/x/{0}/notes' -Id '1' -VSAConnection $conn } | Should -Throw
+        }
+    }
+}
+
+Describe "Parallel pump decodes via the forwarded -Decoder (A: the XML seam reaches the pump)" {
+
+    AfterEach { InModuleScope VSAModule { $script:VSAHttpClients.Clear() } }
+
+    It "decodes a ScExport XML page when -Decoder is ConvertFrom-VSAScExportResponse" {
+        InModuleScope VSAModule {
+            Mock Update-VSAConnection {}
+            $xml = @'
+<ScExport xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Records totalRecords="2" startingRecordIndex="0" currentNumRecords="2" />
+  <Procedure id="659091963" name="A" treeFullPath="p\A" folderId="10" shared="true" treePres="3" />
+  <Procedure id="12" name="B" treeFullPath="p\B" folderId="11" shared="false" treePres="2" />
+</ScExport>
+'@
+            $h = [FakeHttpMessageHandler]::new()
+            $h.EnqueueResponse(200, $xml, 0)
+            $script:VSAHttpClients['strict'] = [System.Net.Http.HttpClient]::new($h)
+            $script:VSAHttpClients['strict'].Timeout = [System.Threading.Timeout]::InfiniteTimeSpan
+
+            $conn = [VSAConnection]::new('https://h', 'u', 'tok', 'pat', [datetime]::Now.AddHours(1), $false, $false)
+            $res = Invoke-VSAParallelRequest -Request @(@{ Id = '100'; Uri = 'https://h/proclist' }) -VSAConnection $conn -Decoder 'ConvertFrom-VSAScExportResponse'
+
+            @($res).Count            | Should -Be 1   # @() wrap: scalar has no .Count on WinPS 5.1
+            $res[0].Error            | Should -BeNullOrEmpty
+            @($res[0].Response.Result).Count | Should -Be 2
+            $res[0].Response.Result[0].Id    | Should -Be '659091963'
+        }
+    }
+
+    It "the DEFAULT decoder still parses JSON (regression: JSON path unchanged)" {
+        InModuleScope VSAModule {
+            Mock Update-VSAConnection {}
+            $h = [FakeHttpMessageHandler]::new()
+            $h.EnqueueResponse(200, '{"Result":[1,2],"ResponseCode":0,"Status":"OK","TotalRecords":2}', 0)
+            $script:VSAHttpClients['strict'] = [System.Net.Http.HttpClient]::new($h)
+            $script:VSAHttpClients['strict'].Timeout = [System.Threading.Timeout]::InfiniteTimeSpan
+
+            $conn = [VSAConnection]::new('https://h', 'u', 'tok', 'pat', [datetime]::Now.AddHours(1), $false, $false)
+            $res = Invoke-VSAParallelRequest -Request @(@{ Id = '0'; Uri = 'https://h/x' }) -VSAConnection $conn
+
+            @($res[0].Response.Result).Count | Should -Be 2
         }
     }
 }

@@ -4,7 +4,7 @@ A PowerShell wrapper for the Kaseya VSA 9 REST API. It handles authentication, t
 
 **Note:** This module simplifies interaction with the Kaseya VSA REST API; it does not modify or impact the behavior of the API itself. Issues or glitches within the REST API are unrelated to the module and should be addressed to Kaseya directly.
 
-**Current version:** 1.6.0 · **License:** [MIT](LICENSE.txt)
+**Current version:** 1.7.0 · **License:** [MIT](LICENSE.txt)
 
 ## Contents
 
@@ -190,7 +190,48 @@ Comment-based help is available on every public cmdlet. For the underlying REST 
 
 ## Release Notes
 
-### Version 1.6.0 (Current)
+### Version 1.7.0 (Current)
+
+One read engine: a single decode seam and a single progress policy, shared by every read; plus correctness and coherence fixes found by a full live-sandbox pass. The only public-surface additions are opt-in (`Get-VSAAPList` gains `-Parallel`); several id parameters were retyped to strings (see Correctness fixes).
+
+#### One decode seam -- and `Get-VSAAPList` joins the shared engine
+
+The knowledge of "what a VSA response looks like" used to live in **two and a half places** that had to be kept in agreement by hand: `Get-RequestData` parsed the body (JSON, the non-JSON typed error, the envelope success/error rules), `Invoke-VSARestMethod` re-inspected the same envelope a second time (the raw-payload rule, `.Result` extraction, `TotalRecords` detection), and the later-page path had a third inline copy. Split-brain policy is this module's recurring failure mode -- it is exactly how the parallel pump drifted from the sequential path in v1.6.0.
+
+That knowledge now lives in one decode layer (`private/ConvertFrom-VSAResponseBody.ps1`): `ConvertFrom-VSAResponseBody` (body to resolved object) and `Expand-VSAEnvelope` (resolved object to the flat facts the pager consumes). The sequential path, the parallel pump, and the later-page merge all go through it, so the F-21 (empty body), F-23 (status-only envelope), F-63 (raw non-enveloped payload) and F-72 (non-JSON typed error) rules have exactly one definition. The pump, which previously inlined its own parse, now gets the F-72 typed error too.
+
+Because decoding is now a seam rather than a hard-coded step, `Get-VSAAPList` stops hand-rolling its own transport. VSA 9 stores Agent Procedures as XML, so its endpoint answers with a Kaseya ScExport document instead of a JSON envelope; the cmdlet now passes an ScExport decoder (`ConvertFrom-VSAScExportResponse`) to the same `Invoke-VSARestMethod` every other read uses, and inherits its paging, token renewal, retry, progress -- and, most importantly, its **server-side session-invalidation recovery (F-77)**. The old hand-rolled loop sat *below* that recovery wrapper and silently lacked it: if the session was killed mid-fetch (a `Close-VSAUserSession` elsewhere, or a SaaS early cut-off), listing procedures failed with HTTP 401 permanently where every other read self-heals. Verified live: the session is killed server-side and the very next `Get-VSAAPList` transparently re-authenticates and returns the full 786-procedure tree.
+
+#### One progress policy across every long read
+
+Before this release only `-Parallel` fetches showed a progress bar; a large **sequential** fetch -- the slower path -- and the XML Agent-Procedure list showed nothing. The parallel bar also had two rough edges: it used progress id 0, which collides with a bar the caller's own script may be showing, and it redrew on every completed page (`Write-Progress` is expensive enough that on a large fan-out the repainting can dominate the run).
+
+All three paged-read paths now drive one shared helper (`private/Write-VSAProgress.ps1`):
+
+- **On by default, for every path.** A read that pages a large collection shows how far along it is, sequential reads included -- being the slower path, they need the feedback most.
+- **Suppressed the standard way.** Set `$ProgressPreference = 'SilentlyContinue'` to turn the bar off -- the same lever that silences `Invoke-WebRequest`. It is deliberately **not** tied to `-Verbose` / `-Debug`: progress is a UX affordance, those are diagnostic streams, and coupling them would force anyone watching a multi-hour fetch to wade through diagnostic output just to see a bar. Progress writes to its own stream and never pollutes the objects you pipe.
+- **Throttled.** Updates are coalesced to at most one redraw every ~200 ms, so a several-hundred-page fetch spends its time fetching, not repainting.
+- **Its own bar.** Each operation claims a unique progress id, so the module's bar nests cleanly under a progress bar your surrounding script is already showing instead of overwriting id 0.
+
+The returned data is identical with the bar on or off, and every read path returns byte-identical result sets before and after the decode-layer refactor -- verified live against the sandbox across sequential, parallel (including a real multi-page fan-out), the write round-trip, and the 786-procedure XML tree.
+
+#### Correctness fixes from a full live-sandbox write pass
+
+Exercising the whole write surface against a live VSA (real writes, not `-WhatIf`) found two id-serialisation defects that only a real request could reveal:
+
+- **`Update-VSAOrganization` no longer sends numbers the server rejects.** `NoOfEmployees` and `ParentOrgId` were cast to `[decimal]`, which serialises an integer as `7.0`; the org-update endpoint rejects that with HTTP 400. They now travel as the string value the caller supplied (matching `New-VSAOrganization`), which the server accepts. `ParentOrgId` is additionally a 26-digit id that overflows every integer type, so it could only ever be correct as a string. Live-verified: `-NoOfEmployees 7` and `-ParentOrgId <26 digits>` both succeed and read back.
+- **Every 26-digit object id is now a string, module-wide.** VSA object ids are 26-digit backend identities: they overflow `Int32`/`Int64` and, as JSON, can neither survive a `[decimal]` cast (`N.0`) nor a bare number (precision loss). The remaining numeric-typed id parameters were retyped to `[string]`/`[string[]]`: `Update-VSAUser` (`UserId`, `DefaultStaffOrgId`, `DefaultStaffDepartmentId`, `AdminRoleIds`, `AdminScopeIds`), `Set-VSAAgentAlert` / `Set-VSASystemAlert` (`ScriptId`), `Enable-VSATenantRoleType` (`RoleTypeId`), and `Update-VSAInfoMsg` (`ID`). Proof it mattered: a real tenant `RoleTypeId` on the sandbox is `52361412952525411214415725` -- `[int[]]` could not even bind it, and the fixed cmdlet accepts it with a live HTTP 200. Genuine small-integer *catalog* codes (the tenant module-id enum, the computed role-type sequence) are deliberately left numeric and guarded by a test so they are not "corrected" by mistake.
+
+#### Coherence fixes (a full architectural audit)
+
+A layer-by-layer audit for gaps where a guarantee could be silently skipped, each fix verified live:
+
+- **`-Parallel` now decodes correctly for every reader.** The read engine forwards its decoder to the parallel pump, which previously hard-coded JSON decoding. This closes a latent gap -- an XML `-Parallel` read would have failed per page -- and, as a bonus, makes **`Get-VSAAPList -Parallel`** real: the XML procedure tree now fans out through the same pump as every JSON read (live-verified: 786 procedures, identical to the sequential result).
+- **Writes no longer carry paging query options.** `$filter`/`$orderby`/`$skip`/`$top` are read-only concepts, but the engine appended them to every request, so a `PUT` went out as `.../orgs/{id}?$top=100`. This module has already proven `$top` can change server behaviour (the volume-label endpoints return zero rows at `$top=100`), so a paging directive on a write is a latent bug, not just noise. OData options are now built only for `GET`.
+- **The internal dispatch engines explain themselves.** Calling `Get-VSAItem` / `Get-VSAItemById` / `Remove-VSAItem` directly (rather than through their aliases) used to throw an opaque `"not a valid value for the URISuffix"` from a validated assignment. They now resolve the endpoint into a local first and, on a miss, throw an actionable message naming the engine and pointing to `Get-Alias -Definition <name>`.
+- **Housekeeping.** Removed a dead `-AdminType` parameter from `Update-VSAUser` (declared but never sent), and made the internal decoder seam non-pipeline-bindable (an internal routing knob a piped object must not set).
+
+### Version 1.6.0
 
 Two things land together: **one HTTP stack** (an internal transport unification), and the correctness fixes from the v1.5.0 full-surface sandbox testing pass ([TESTING-REPORT-v1.5.0.md](TESTING-REPORT-v1.5.0.md)). The public API is unchanged; the minor bump signals the transport replacement, matching the precedent set by v1.2.0's write-path refactor.
 

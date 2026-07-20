@@ -4,7 +4,7 @@
     RootModule = 'VSAModule.psm1'
 
     # Version number of this module.
-    ModuleVersion = '1.6.0'
+    ModuleVersion = '1.7.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Desktop','Core')
@@ -16,10 +16,10 @@
     Author = 'Vladislav Semko'
 
     # Company or vendor of this module
-    CompanyName = 'Kaseya'
+    CompanyName = 'Kaseya Professional Services'
 
     # Copyright statement for this module
-    Copyright = '(c) 2026 Kaseya Professional Services.'
+    Copyright = '(c) 2024-2026 Kaseya Professional Services'
 
     # Description of the functionality provided by this module
     Description = 'PowerShell wrapper module for the Kaseya VSA 9 REST API. Provides cmdlets for automating tasks, retrieving data, and managing resources within the Kaseya VSA 9 environment.'

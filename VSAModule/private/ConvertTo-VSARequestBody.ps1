@@ -3,6 +3,15 @@ function ConvertTo-VSARequestBody {
     .SYNOPSIS
        Builds a request-body hashtable from a cmdlet's bound parameters.
     .DESCRIPTION
+       THE CANONICAL way to assemble a flat request body. New write cmdlets MUST use this rather than
+       a hand-rolled `$BodyHT = @{ ... }` + `if (...) { $BodyHT.Add(...) }` ladder -- a Quality test
+       ratchets on this (VSAModule.Quality.Tests.ps1: "Body assembly uses the canonical helper"): the
+       existing hand-rolled builders are a fixed grandfathered allowlist, and any NEW file introducing
+       the ladder idiom fails the gate. Rationale: the ladder's "-not IsNullOrEmpty" membership rule is
+       a different *contract* from this helper's bound-membership rule (ContainsKey), and picking the
+       wrong one is a server-facing bug (see F-52 / F-66 / F-79); routing new cmdlets through one place
+       keeps that decision explicit and the numeric-cast (F-81) and truthiness-prune (F-52) classes out.
+
        Replaces the two hand-rolled body-assembly shapes that recur across the write cmdlets:
 
          * the `foreach ($key in $AllFields) { if ($PSBoundParameters.ContainsKey($key)) {...} }`

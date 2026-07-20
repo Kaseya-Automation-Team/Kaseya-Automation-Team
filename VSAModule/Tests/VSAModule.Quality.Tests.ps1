@@ -269,3 +269,57 @@ Describe "ShouldProcess discipline is complete and uniform across the write surf
         $offenders | Should -BeNullOrEmpty
     }
 }
+
+Describe "Body assembly uses the canonical helper (ratchet: no NEW hand-rolled ladder)" {
+
+    BeforeAll {
+        # The fixed, grandfathered set of cmdlets that pre-date the canonical ConvertTo-VSARequestBody
+        # helper and still hand-roll their request body with '$BodyHT = @{ ... }' / '[ordered]@{ ... }'.
+        # These are deliberately NOT migrated (many carry justified custom logic -- nested objects,
+        # computed fields, SecureString handling, read-and-preserve) and their known bug classes are
+        # individually guarded elsewhere. This list must only ever SHRINK. A NEW file appearing here
+        # means someone hand-rolled a body instead of using the canonical helper -- use
+        # ConvertTo-VSARequestBody instead (see its help).
+        $script:HandRolledAllowlist = @(
+            'New-VSAAgentInstallPkg', 'New-VSAAPScheduled', 'New-VSAPatchScan', 'New-VSARole',
+            'New-VSAScope', 'New-VSAStaff', 'New-VSATenant', 'New-VSATenantRoleType',
+            'New-VSAThirdAppNotification', 'Send-VSAEmail', 'Start-VSAAPReturnId', 'Start-VSAPatchUpdate',
+            'Suspend-VSAAgent', 'Update-VSAAgentCheckinCtl', 'Update-VSADepartment', 'Update-VSAOrganization',
+            'Update-VSAStaff', 'Update-VSAUser'
+        )
+    }
+
+    It "no cmdlet outside the grandfathered allowlist hand-rolls a `$BodyHT initializer" {
+        $current = Get-ChildItem -Path $PublicPath -Filter '*.ps1' -ErrorAction SilentlyContinue |
+            Where-Object { (Get-Content $_.FullName -Raw) -match '\$BodyHT\s*=\s*(@\{|\[ordered\]\s*@\{)' } |
+            ForEach-Object { $_.BaseName } | Sort-Object
+        $newOffenders = @($current | Where-Object { $_ -notin $script:HandRolledAllowlist })
+        $newOffenders | Should -BeNullOrEmpty -Because 'new cmdlets must build their body via ConvertTo-VSARequestBody, not a hand-rolled ladder'
+    }
+
+    It "the allowlist does not rot: every grandfathered name still exists and still hand-rolls" {
+        # If a listed cmdlet was migrated or removed, prune it from the allowlist so the ratchet keeps
+        # tightening rather than silently carrying dead entries.
+        $current = Get-ChildItem -Path $PublicPath -Filter '*.ps1' -ErrorAction SilentlyContinue |
+            Where-Object { (Get-Content $_.FullName -Raw) -match '\$BodyHT\s*=\s*(@\{|\[ordered\]\s*@\{)' } |
+            ForEach-Object { $_.BaseName }
+        $staleEntries = @($script:HandRolledAllowlist | Where-Object { $_ -notin $current })
+        $staleEntries | Should -BeNullOrEmpty -Because 'a migrated/removed cmdlet must be dropped from the allowlist'
+    }
+}
+
+Describe "No [decimal] cast in request-body assembly (F-81 invariant)" {
+
+    It "no public cmdlet casts a variable to [decimal] (renders 'N.0', which servers reject)" {
+        # F-81: '[decimal]$x' serialises an integer as 7.0, which the org-update endpoint (and the
+        # 26-digit-id endpoints) reject. Bodies carry the caller's value as-is (string) instead.
+        # '[decimal]::TryParse' (numeric input validation) is fine and excluded.
+        $offenders = @()
+        foreach ($f in (Get-ChildItem -Path $PublicPath -Filter '*.ps1' -ErrorAction SilentlyContinue)) {
+            $src = Get-Content $f.FullName -Raw
+            # a cast of a variable: [decimal]$foo  (NOT [decimal]::TryParse, NOT [decimal[]] type decls)
+            if ($src -match '\[decimal\]\s*\$') { $offenders += $f.BaseName }
+        }
+        $offenders | Should -BeNullOrEmpty -Because 'a [decimal] cast in body assembly reintroduces the F-81 N.0 defect'
+    }
+}

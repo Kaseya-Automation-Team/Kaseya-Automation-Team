@@ -207,8 +207,12 @@ function Start-VSAPatchUpdate
             Start            = $Start
             AgentGuids       = $AgentGuids
         }
+        # Drop only unset (null/empty) fields, NEVER a bound $false/0. Truthiness pruning here silently
+        # dropped an explicit $false, so the scheduling flags ServerTimeZone / SkipIfOffline /
+        # PowerUpIfOffLine / SchedInAgentTime never reached the server when set to false -- the F-52
+        # class. (New-VSAAPScheduled, the sibling scheduler, correctly sends its booleans unconditionally.)
         foreach ( $key in @($BodyHT.Keys)  ) {
-            if ( -not $BodyHT[$key]) { $BodyHT.Remove($key) }
+            if ( $null -eq $BodyHT[$key] -or '' -eq $BodyHT[$key] ) { $BodyHT.Remove($key) }
         }
 
         if ( (-not [string]::IsNullOrEmpty($ExcludeFrom)) -and (-not [string]::IsNullOrEmpty($ExcludeTo))) {

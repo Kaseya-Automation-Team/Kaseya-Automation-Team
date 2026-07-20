@@ -149,6 +149,28 @@ Describe "New-VSAOrganization - body built from bound params (T-6.7)" {
     }
 }
 
+Describe "Update-VSAOrganization - numeric fields not serialized as decimals (F-81)" {
+    It "sends NoOfEmployees and ParentOrgId without a '.0' rendering (the server 400s on N.0)" {
+        InModuleScope VSAModule {
+            # Live-confirmed: the org-update endpoint accepts {"NoOfEmployees":7} and a string
+            # ParentOrgId, but 400s on {"NoOfEmployees":7.0} / {"ParentOrgId":<26digits>.0}. A [decimal]
+            # cast rendered exactly that ".0". ParentOrgId is also a 26-digit id that overflows every
+            # integer type, so it must stay a string.
+            $script:body = $null
+            Mock Invoke-VSARestMethod { $script:body = $Body }
+            $bigParent = '11257819792528624824877126'
+            Update-VSAOrganization -OrgId '35217233916592159121111312' -OrgRef 'ref1' -OrganizationName 'X' `
+                -NoOfEmployees 7 -ParentOrgId $bigParent -Confirm:$false | Out-Null
+            $script:body | Should -Not -BeNullOrEmpty
+            $script:body | Should -Not -Match '7\.0'
+            $script:body | Should -Not -Match ([regex]::Escape($bigParent) + '\.0')
+            $obj = $script:body | ConvertFrom-Json
+            "$($obj.NoOfEmployees)" | Should -Be '7'
+            "$($obj.ParentOrgId)"   | Should -Be $bigParent
+        }
+    }
+}
+
 Describe "Get-VSAAudit AllAgentsSummaries hits the base audit collection (F-24)" {
     It "builds URISuffix 'api/v1.0/assetmgmt/audit' (no /{0}) for the default AuditOf" {
         InModuleScope VSAModule {
@@ -381,5 +403,43 @@ Describe "Send-VSAEmail always sends a UniqueTag (F-80)" {
             Send-VSAEmail -FromAddress 'a@b.com' -ToAddress 'c@d.com' -Subject 's' -Body 'b' -UniqueTag 'mytag' -Confirm:$false
             ($script:body | ConvertFrom-Json).UniqueTag | Should -Be 'mytag'
         }
+    }
+}
+
+Describe "Start-VSAPatchUpdate keeps false scheduling booleans (F-52: truthiness pruning dropped them)" {
+    It "sends the scheduling flags as false when their switches are omitted (not dropped)" {
+        InModuleScope VSAModule {
+            $script:body = $null
+            Mock Invoke-VSAWriteRequest { $script:body = $Body }
+            Start-VSAPatchUpdate -AgentGuids @('123') -Confirm:$false | Out-Null
+            $obj   = $script:body | ConvertFrom-Json
+            $names = $obj.PSObject.Properties.Name
+            # Before the fix, a truthiness prune removed every $false key, so these vanished entirely.
+            'ServerTimeZone'   | Should -BeIn $names
+            'SkipIfOffline'    | Should -BeIn $names
+            'PowerUpIfOffLine' | Should -BeIn $names
+            'SchedInAgentTime' | Should -BeIn $names
+            $obj.ServerTimeZone   | Should -Be $false
+            $obj.SkipIfOffline    | Should -Be $false
+            $obj.PowerUpIfOffLine | Should -Be $false
+            $obj.SchedInAgentTime | Should -Be $false
+        }
+    }
+    It "still sends true when a switch IS provided" {
+        InModuleScope VSAModule {
+            $script:body = $null
+            Mock Invoke-VSAWriteRequest { $script:body = $Body }
+            Start-VSAPatchUpdate -AgentGuids @('123') -ServerTimeZone -Confirm:$false | Out-Null
+            ($script:body | ConvertFrom-Json).ServerTimeZone | Should -Be $true
+        }
+    }
+}
+
+Describe "No request-body hashtable is pruned by truthiness (F-52 invariant across the module)" {
+    It "no public cmdlet drops body-hashtable keys with 'if (-not `$BodyHT[`$key])'" {
+        $publicDir = Join-Path $script:ModuleRoot 'public'
+        $hits = Select-String -Path (Join-Path $publicDir '*.ps1') `
+            -Pattern 'if \( *-not \$BodyHT\[\$key\]' -ErrorAction SilentlyContinue
+        @($hits).Count | Should -Be 0 -Because 'truthiness pruning silently drops a bound $false/0 body field (F-52)'
     }
 }

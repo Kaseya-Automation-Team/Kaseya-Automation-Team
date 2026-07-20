@@ -77,7 +77,10 @@ function Enable-VSATenantRoleType {
                     ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
             } catch { Write-Debug "Argument completer suppressed error: $_" }
         })]
-        [int[]] $RoleTypeId,
+        # Role-type ids are 26-digit backend identities for tenant-created role types (the built-in
+        # catalog ones are small, but they share the column), so they overflow [int] and must be
+        # strings -- a 26-digit id cannot even be a JSON number without losing precision.
+        [string[]] $RoleTypeId,
 
         [parameter(Mandatory=$true,
             ValueFromPipelineByPropertyName=$true,
@@ -109,7 +112,7 @@ function Enable-VSATenantRoleType {
                 if ([string]::IsNullOrEmpty("$id")) {
                     throw "Enable-VSATenantRoleType: No role type found with name '$name' on this VSA. Available: $(($Roles.RoleTypeName | Sort-Object) -join ', ')."
                 }
-                [int]$id
+                "$id"   # keep the resolved id a string (it may be a 26-digit identity)
             }
         } else {
             [array] $ResolvedRoleTypeId = $RoleTypeId

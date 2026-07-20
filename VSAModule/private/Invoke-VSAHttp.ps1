@@ -11,11 +11,12 @@
 #   Get-VSAHttpClient   - the shared, cached HttpClient (edition-specific certificate strategy)
 #   New-VSAHttpContent  - request body -> HttpContent
 #   Get-VSARetryAfterSeconds / Get-VSABackoffSeconds / $script:VSARetryStatuses - the retry policy
-#   Resolve-VSAResponse - the API envelope rules
 #   Invoke-VSAHttp      - blocking send + retry (used by Get-RequestData)
-# Invoke-VSAParallelRequest reuses every piece above except Invoke-VSAHttp itself, substituting its
-# own asynchronous pump for the blocking send. That is the only intentional difference between the
-# two paths.
+# The API envelope rules are NOT here: they are decode policy, not byte handling, and live one layer
+# up in the decode module (Resolve-VSAResponse in private/ConvertFrom-VSAResponseBody.ps1). This file
+# stays pure transport. Invoke-VSAParallelRequest reuses every piece above except Invoke-VSAHttp
+# itself, substituting its own asynchronous pump for the blocking send -- the only intentional
+# difference between the two paths.
 
 # ONE definition of the transient-retry status set, shared by both dispatch modes.
 $script:VSARetryStatuses = @(429, 502, 503, 504)
@@ -204,67 +205,6 @@ function Get-VSABackoffSeconds {
         return [Math]::Min(30, [int]$RetryAfterSeconds)
     }
     return [int][Math]::Min(30, [Math]::Pow(2, [Math]::Max(0, $Attempt - 1)))
-}
-
-function Resolve-VSAResponse {
-    <#
-    .SYNOPSIS
-        Applies the VSA API envelope rules to a deserialized 2xx response body.
-    .DESCRIPTION
-        The single definition of "what does a successful VSA response look like", shared by the
-        sequential and parallel paths. Returns the value the caller should receive, or throws a typed
-        VSAApiException for an application-level error carried inside an HTTP 200 envelope.
-
-        Rules, in order:
-          1. Empty body (HTTP 204, returned by DELETE and some PUT endpoints) -> $null, a single
-             empty-success sentinel for callers (F-21).
-          2. ResponseCode 4xx/5xx inside a 200 -> application error, throw typed.
-          3. ResponseCode 0/20x, or Status 'OK' -> success, return the envelope.
-          4. Neither ResponseCode nor Status present -> a raw, non-enveloped payload. Cloud Backup
-             (kcb/*) returns a bare JSON map with none of the envelope fields; that is a successful
-             result, not a broken envelope, so return it as-is (F-63).
-          5. Anything else -> an envelope we do not recognise; throw rather than return it silently.
-    .PARAMETER Response
-        The deserialized response body ($null for an empty body).
-    .PARAMETER Method
-        HTTP method, for error context.
-    .PARAMETER Uri
-        Request URI, for error context.
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $false)]
-        [AllowNull()]
-        [object] $Response,
-
-        [Parameter(Mandatory = $false)]
-        [string] $Method,
-
-        [Parameter(Mandatory = $false)]
-        [string] $Uri
-    )
-
-    if ($null -eq $Response -or ($Response -is [string] -and [string]::IsNullOrWhiteSpace($Response))) {
-        return $null
-    }
-
-    if ($Response.ResponseCode -match "(^40\d|^50\d)") {
-        $code = 0; [void][int]::TryParse([string]$Response.ResponseCode, [ref]$code)
-        throw (New-VSAApiError -Message "API Error (Code: $($Response.ResponseCode)) for $Method $Uri. Error: '$($Response.Error)'. Result: '$($Response.Result)'." `
-            -StatusCode $code -Method $Method -Uri $Uri -VSAError ([string]$Response.Error))
-    }
-
-    if (($Response.ResponseCode -match "(^0$)|(^20\d+$)") -or ('OK' -eq $Response.Status)) {
-        return $Response
-    }
-
-    if (($null -eq $Response.PSObject.Properties['ResponseCode']) -and
-        ($null -eq $Response.PSObject.Properties['Status'])) {
-        return $Response
-    }
-
-    throw (New-VSAApiError -Message "Unexpected API response for $Method $Uri. Response Code: '$($Response.ResponseCode)'. Error: '$($Response.Error)'." `
-        -StatusCode 0 -Method $Method -Uri $Uri -VSAError ([string]$Response.Error))
 }
 
 function ConvertFrom-VSAErrorBody {

@@ -44,7 +44,10 @@ function Update-VSAInfoMsg
             }
             return $true
         })]
-        [decimal[]] $ID,
+        # Info-message ids are 26-digit backend identities: they overflow every integer type and a
+        # [decimal] serialises as "N.0". They travel as strings (the ValidateScript still enforces
+        # numeric-only input).
+        [string[]] $ID,
 
         [switch] $IsRead
     )

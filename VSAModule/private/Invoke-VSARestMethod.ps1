@@ -164,7 +164,15 @@ function Invoke-VSARestMethod {
         # i.e. 2 * ThrottleLimit * RecordsPerPage) -- below that the sequential path is faster anyway.
         [parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
         [ValidateRange(0, [int]::MaxValue)]
-        [int] $ParallelThreshold = 0
+        [int] $ParallelThreshold = 0,
+
+        # The decode function for each page body (the decode-layer seam). Default is the JSON decoder;
+        # Get-VSAAPList passes ConvertFrom-VSAScExportResponse so the same engine pages an XML endpoint.
+        # DontShow and NOT pipeline-bindable: an internal routing knob, not part of any public surface
+        # and never something a piped object should set.
+        [parameter(DontShow, Mandatory = $false)]
+        [ValidateSet('ConvertFrom-VSAResponseBody', 'ConvertFrom-VSAScExportResponse')]
+        [string] $Decoder = 'ConvertFrom-VSAResponseBody'
     )
 
     # Renew the session token BEFORE reading it, so a token that is about to expire is
@@ -209,12 +217,18 @@ function Invoke-VSARestMethod {
     # double-'?' URL that the server rejects (F-22).
     $UriSeparator = if ($URI -match '\?') { '&' } else { '?' }
 
+    # OData query options ($filter/$orderby/$skip/$top) are READ concepts and belong only on GET.
+    # Appending them to a write (POST/PUT/DELETE/PATCH) is incoherent -- and not merely cosmetic: this
+    # module has already proven $top changes server behaviour (the volume-label endpoints return 0 rows
+    # at $top=100). Writes therefore carry only the URISuffix's own query string, never these.
     [hashtable]$ApiSearchParams = @{}
-    if (-not [string]::IsNullOrEmpty($Filter)) { $ApiSearchParams['$filter']  = $Filter }
-    if (-not [string]::IsNullOrEmpty($Sort))   { $ApiSearchParams['$orderby'] = $Sort }
-    if (-not [string]::IsNullOrEmpty($Skip))   { $ApiSearchParams['$skip']    = $Skip }
-    # Always transmit the page size as $top (default 100, which is also the server ceiling).
-    $ApiSearchParams['$top'] = $RecordsPerPage
+    if ($Method -eq 'GET') {
+        if (-not [string]::IsNullOrEmpty($Filter)) { $ApiSearchParams['$filter']  = $Filter }
+        if (-not [string]::IsNullOrEmpty($Sort))   { $ApiSearchParams['$orderby'] = $Sort }
+        if (-not [string]::IsNullOrEmpty($Skip))   { $ApiSearchParams['$skip']    = $Skip }
+        # Always transmit the page size as $top (default 100, which is also the server ceiling).
+        $ApiSearchParams['$top'] = $RecordsPerPage
+    }
 
     if ($ApiSearchParams.Count -eq 0) {
         $CombinedURI = $URI
@@ -228,6 +242,7 @@ function Invoke-VSARestMethod {
         AuthString              = $UsersToken
         IgnoreCertificateErrors = $IgnoreCertificateErrors
         MaxRetries              = $MaxRetries
+        Decoder                 = $Decoder
     }
 
     if ($Body) {
@@ -273,34 +288,26 @@ function Invoke-VSARestMethod {
 
     Write-Debug "Invoke-VSARestMethod. Response:`n$($response | Out-String)"
 
-    # A successful empty-body 2xx (HTTP 204 No Content from DELETE / some PUT) comes back as $null
-    # -- there is no envelope to expand or page. Return nothing rather than trying to expand a
-    # non-existent .Result property, which would throw on the success path (F-21).
-    if ($null -eq $response) {
+    # Envelope knowledge lives in exactly one place: the decode layer (Expand-VSAEnvelope in
+    # private/ConvertFrom-VSAResponseBody.ps1). The engine only consumes its classification; the
+    # F-21 / F-63 / F-23 rules and their rationale are documented there.
+    $page = Expand-VSAEnvelope -Response $response
+
+    # Empty-body success (HTTP 204): nothing to expand or page (F-21).
+    if ($page.IsNull) {
         return $null
     }
 
-    # A raw (non-enveloped) payload -- e.g. Cloud Backup's flat { <agentId>: <status> } map -- carries
-    # its data directly and has none of the standard envelope fields (Result/ResponseCode/Status).
-    # There is no '.Result' to unwrap and nothing to page, so return it as-is (F-63). A status-only
-    # envelope (has ResponseCode/Status but no Result) is NOT raw and still flows through below, where
-    # its absent '.Result' correctly yields an empty result set (F-23).
-    $isEnvelope = ($null -ne $response.PSObject.Properties['Result']) -or
-                  ($null -ne $response.PSObject.Properties['ResponseCode']) -or
-                  ($null -ne $response.PSObject.Properties['Status'])
-    if (-not $isEnvelope) {
+    # Raw, non-enveloped payload (e.g. Cloud Backup): return it as-is (F-63).
+    if (-not $page.IsEnvelope) {
         return $response
     }
 
-    # Use member access, not Select-Object -ExpandProperty: some write endpoints (e.g. the
-    # 'ask before executing' settings PUT) return a status-only envelope with no 'Result' property,
-    # and -ExpandProperty throws on a missing property. '.Result' yields $null there instead (F-23).
-    [array]$result = $response.Result
-    [bool]$paginated = $false
+    [array]$result = $page.Result
+    [bool]$paginated = $page.Paginated
 
-    if (-not [string]::IsNullOrEmpty("$($response.TotalRecords)")) {
-        $paginated = $true
-        [int]$TotalRecords = $response.TotalRecords
+    if ($paginated) {
+        [int]$TotalRecords = $page.TotalRecords
 
         Write-Verbose "Invoke-VSARestMethod. TotalRecords: $TotalRecords"
 
@@ -330,7 +337,7 @@ function Invoke-VSARestMethod {
             }
 
             $pageResults = Invoke-VSAParallelRequest -Request $pageRequests.ToArray() -VSAConnection $VSAConnection `
-                -ThrottleLimit $ThrottleLimit -TimeoutSec 100 -MaxRetries $MaxRetries -Activity "Fetching $URISuffix (parallel)"
+                -ThrottleLimit $ThrottleLimit -TimeoutSec 100 -MaxRetries $MaxRetries -Decoder $Decoder -Activity "Fetching $URISuffix (parallel)"
 
             $failed = @($pageResults | Where-Object { $null -ne $_.Error })
             if ($failed.Count -gt 0) {
@@ -339,9 +346,12 @@ function Invoke-VSARestMethod {
                 throw ($failed[0].Error)
             }
 
-            # Merge pages in $skip order so the result set matches the sequential path exactly.
+            # Merge pages in $skip order so the result set matches the sequential path exactly. Each
+            # page's Result is extracted through the same decode layer as the sequential path, so the
+            # engine holds no envelope knowledge of its own (the pump already resolved the envelope;
+            # Expand-VSAEnvelope just reads .Result the one canonical way).
             foreach ($pr in ($pageResults | Sort-Object { [int]$_.Id })) {
-                [array]$temp = $pr.Response.Result
+                [array]$temp = (Expand-VSAEnvelope -Response $pr.Response).Result
                 if ($temp.Count -gt 0) { $resultCollection.AddRange($temp) | Out-Null }
             }
         }
@@ -350,34 +360,49 @@ function Invoke-VSARestMethod {
             [int]$RenewTimes = 1
             [int]$RenewThreshold = $MaxRecordsPerSession
 
-            # The first page (skip 0) is already fetched above; continue while more remain.
-            [int]$skipValue = $RecordsPerPage
-            while ($skipValue -lt $TotalRecords) {
+            # Same progress policy as the parallel pump, via the one shared helper: on by default,
+            # throttled, its own bar id, suppressed with $ProgressPreference (not -Verbose/-Debug).
+            [int]$progressId = New-VSAProgressId
+            [string]$progressActivity = "Fetching $URISuffix"
 
-                $ApiSearchParams['$skip'] = $skipValue
-                $WebRequestParams.Uri = '{0}{1}{2}' -f $URI, $UriSeparator, (ConvertTo-VSAQueryString -Parameters $ApiSearchParams)
+            try {
+                # The first page (skip 0) is already fetched above; continue while more remain.
+                [int]$skipValue = $RecordsPerPage
+                while ($skipValue -lt $TotalRecords) {
 
-                if ($skipValue -ge $RenewThreshold) {
-                    Write-Verbose "Fetching in progress... So far fetched $RenewThreshold records. Renewing session token."
+                    $ApiSearchParams['$skip'] = $skipValue
+                    $WebRequestParams.Uri = '{0}{1}{2}' -f $URI, $UriSeparator, (ConvertTo-VSAQueryString -Parameters $ApiSearchParams)
 
-                    if ($null -eq $VSAConnection) {
-                        Update-VSAConnection -Force
-                        $UsersToken = "Bearer $( Get-VSAPersistentToken )"
-                    } else {
-                        Update-VSAConnection -VSAConnection $VSAConnection -Force
-                        $UsersToken = "Bearer $($VSAConnection.Token)"
+                    if ($skipValue -ge $RenewThreshold) {
+                        Write-Verbose "Fetching in progress... So far fetched $RenewThreshold records. Renewing session token."
+
+                        if ($null -eq $VSAConnection) {
+                            Update-VSAConnection -Force
+                            $UsersToken = "Bearer $( Get-VSAPersistentToken )"
+                        } else {
+                            Update-VSAConnection -VSAConnection $VSAConnection -Force
+                            $UsersToken = "Bearer $($VSAConnection.Token)"
+                        }
+                        $WebRequestParams.AuthString = $UsersToken
+                        $RenewTimes += 1
+                        $RenewThreshold = $MaxRecordsPerSession * $RenewTimes
                     }
-                    $WebRequestParams.AuthString = $UsersToken
-                    $RenewTimes += 1
-                    $RenewThreshold = $MaxRecordsPerSession * $RenewTimes
-                }
 
-                [array]$temp = Invoke-VSARequestWithRenewal -WebRequestParams $WebRequestParams -VSAConnection $VSAConnection | Select-Object -ExpandProperty Result
-                if ($temp.Count -gt 0) {
-                    $resultCollection.AddRange($temp) | Out-Null
-                }
+                    # Later pages flow through the same decoder as page 1, so '.Result' extraction
+                    # has one definition (previously this used Select-Object -ExpandProperty, a third
+                    # in-line copy of envelope knowledge that threw an opaque missing-property error
+                    # on any mid-page envelope anomaly).
+                    [array]$temp = (Expand-VSAEnvelope -Response (Invoke-VSARequestWithRenewal -WebRequestParams $WebRequestParams -VSAConnection $VSAConnection)).Result
+                    if ($temp.Count -gt 0) {
+                        $resultCollection.AddRange($temp) | Out-Null
+                    }
 
-                $skipValue += $RecordsPerPage
+                    $skipValue += $RecordsPerPage
+                    Write-VSAProgress -Id $progressId -Activity $progressActivity -Current $resultCollection.Count -Total $TotalRecords
+                }
+            }
+            finally {
+                Write-VSAProgress -Id $progressId -Activity $progressActivity -Completed
             }
         }
         $result = $resultCollection.ToArray()

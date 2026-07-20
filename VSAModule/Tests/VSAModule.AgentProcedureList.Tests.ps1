@@ -132,3 +132,61 @@ Describe "Get-VSAAPList is a dedicated XML function, not a JSON dispatcher alias
         }
     }
 }
+
+Describe "Get-VSAAPList routes through the shared read engine with the XML decoder (inherits F-77/retry/progress)" {
+
+    It "calls Invoke-VSARestMethod with the ScExport decoder and the proclist endpoint" {
+        InModuleScope VSAModule {
+            # Capture the bound values directly, not the $PSBoundParameters reference (Pester reuses
+            # and clears that dictionary after the mock returns).
+            $script:decoder = $null; $script:suffix = $null
+            Mock Invoke-VSARestMethod { $script:decoder = $Decoder; $script:suffix = $URISuffix }
+            Get-VSAAPList | Out-Null
+            $script:decoder | Should -Be 'ConvertFrom-VSAScExportResponse'
+            $script:suffix  | Should -Be 'api/v1.0/automation/agentprocs/proclist'
+        }
+    }
+
+    It "forwards an explicit VSAConnection through to the engine" {
+        InModuleScope VSAModule {
+            $script:conn = $null
+            Mock Invoke-VSARestMethod { $script:conn = $VSAConnection }
+            $c = [VSAConnection]::new('https://h', 'u', 'tok', 'pat', [datetime]::Now.AddHours(1), $false, $false)
+            Get-VSAAPList -VSAConnection $c | Out-Null
+            $script:conn                | Should -Not -BeNullOrEmpty
+            "$($script:conn.URI)"       | Should -Be 'https://h'
+        }
+    }
+
+    It "forwards -Parallel (and throttle) to the engine alongside the ScExport decoder (A)" {
+        InModuleScope VSAModule {
+            $script:par = $null; $script:dec = $null; $script:thr = $null
+            Mock Invoke-VSARestMethod { $script:par = [bool]$Parallel; $script:dec = $Decoder; $script:thr = $ThrottleLimit }
+            Get-VSAAPList -Parallel -ThrottleLimit 4 | Out-Null
+            $script:par | Should -BeTrue
+            $script:dec | Should -Be 'ConvertFrom-VSAScExportResponse'
+            $script:thr | Should -Be 4
+        }
+    }
+
+    It "does NOT forward -Parallel when it is not requested (stays sequential)" {
+        InModuleScope VSAModule {
+            $script:par = $null
+            Mock Invoke-VSARestMethod { $script:par = [bool]$Parallel }
+            Get-VSAAPList | Out-Null
+            $script:par | Should -BeFalse
+        }
+    }
+
+    It "no longer hand-rolls its own transport: it does not call Invoke-VSAHttp directly" {
+        # The F-77 gap existed precisely because the old implementation called Invoke-VSAHttp below the
+        # session-recovery wrapper. Routing through Invoke-VSARestMethod is what fixes that by
+        # construction; guard against a regression back to a direct transport call.
+        InModuleScope VSAModule {
+            Mock Invoke-VSARestMethod {}
+            Mock Invoke-VSAHttp { throw 'Get-VSAAPList must not call Invoke-VSAHttp directly' }
+            { Get-VSAAPList } | Should -Not -Throw
+            Should -Invoke Invoke-VSAHttp -Times 0 -Exactly
+        }
+    }
+}

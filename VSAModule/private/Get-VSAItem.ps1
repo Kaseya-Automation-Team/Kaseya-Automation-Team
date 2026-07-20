@@ -209,10 +209,15 @@ function Get-VSAItem {
     process {
 
     if ([string]::IsNullOrEmpty($URISuffix)) {
-        $URISuffix = $URISuffixGetMap[$PSCmdlet.MyInvocation.InvocationName]
-        if ([string]::IsNullOrEmpty($URISuffix)) {
-            throw "No VSA Object specified for alias $($PSCmdlet.MyInvocation.InvocationName)!"
+        # Resolve into a LOCAL first: assigning a $null map miss straight into $URISuffix (which is
+        # [ValidateNotNullOrEmpty]) would throw the opaque "not a valid value for URISuffix" instead of
+        # the actionable message below (the same class as F-4).
+        $invName  = $PSCmdlet.MyInvocation.InvocationName
+        $resolved = $URISuffixGetMap[$invName]
+        if ([string]::IsNullOrEmpty($resolved)) {
+            throw "Get-VSAItem is the internal read-dispatch engine and has no endpoint of its own; call it through one of its aliases (e.g. Get-VSAOrganization). List them with: Get-Alias -Definition Get-VSAItem. (Invoked as '$invName'.)"
         }
+        $URISuffix = $resolved
     }
 
     [hashtable]$Params = @{

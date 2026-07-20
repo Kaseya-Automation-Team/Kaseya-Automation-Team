@@ -421,7 +421,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = 'https://github.com/Kaseya-Automation-Team/Kaseya-Automation-Team/tree/main/VSAModule/README.md'
+            ReleaseNotes = 'https://github.com/Kaseya-Automation-Team/Kaseya-Automation-Team/tree/main/VSAModule/CHANGELOG.md'
 
             # Flag indicating whether this module requires explicit user acceptance for install/update/save
             # RequireLicenseAcceptance = $false
